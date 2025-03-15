@@ -1,0 +1,65 @@
+== Route Reroute
+
+A simple clone of the game https://www.mediocre.se/commute/[Does Not Commute], built using https://threejs.org/[Three.js] for 3D rendering. The goal is to create a minimalistic, top-down driving game where players control vehicles in a small town, with each level's actions affecting subsequent levels, displaying diverse lighting and interactivity.
+
+.Other possible names
+[%collapsible]
+====
+- Traffic Tango
+- Rush Hour Madness
+- Late Again!
+- DoppelDrivers
+====
+
+== Core Features and Requirements
+
+.Core Gameplay
+[%collapsible]
+====
+- Each vehicle's path is recorded as the player drives. In subsequent turns, all prior routes replay simultaneously, turning the player's past turns into obstacles.
+- As the level progresses, the town becomes a huge traffic jam. The objective is to avoid collisions at all costs.
+- Steering-only player controlled vehicles with no ability to decelerate or brake.
+- A timer to complete the whole level, incremeted with every completed level.
+- Unique vehicle and destination for each turn.
+====
+
+.Visual Style
+[%collapsible]
+====
+- Top-down 3D view of a small town with roads, intersections, and buildings.
+- Minimalist and cartoonish art style with a retro-modern aesthetic.
+====
+
+.Physics and Collisions
+[%collapsible]
+====
+- Vehicles should interact realistically with each other and the environment.
+- Enough collisions with other vehicles and the environment will end the game.
+====
+
+.Progression and Difficulty
+[%collapsible]
+====
+- Start with simple routes and gradually introduce more complex routes and faster, more challenging, vehicles.
+====
+
+.Stretch Goals (Optional)
+[%collapsible]
+====
+- Alternative cameras, such as a cockpit or chase view.
+- Sandbox mode where players can freely experiment with any of the already driven vehicles.
+- Cheat codes to allow players to play the game at their own volition.
+- Include sound effects and background music to enhance the experience.
+====
+
+== List of Assets
+
+.From https://kenney.nl/[Keenye]
+[%collapsible]
+====
+- https://kenney.nl/assets/modular-buildings[Modular Buildings]
+- https://kenney.nl/assets/city-kit-roads[City Kit (Roads)]
+- https://kenney.nl/assets/car-kit[Car Kit]
+- https://kenney.nl/assets/emotes-pack[Emotes Pack]
+- https://kenney.nl/assets/ui-pack[UI Pack]
+====
