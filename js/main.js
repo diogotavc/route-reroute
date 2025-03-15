@@ -38,25 +38,24 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 
-// IMPORT CAR MODEL
-let model;
-
 const modelLoader = new GLTFLoader();
+
+// IMPORT CAR MODEL
+let carModel;
 modelLoader.load(
     "../assets/kenney_car-kit/Models/GLB format/hatchback-sports.glb",
     (gltf) => {
-        model = gltf.scene;
-        model.traverse((node) => {
+        carModel = gltf.scene;
+        carModel.traverse((node) => {
             if (node.isMesh) {
-                node.material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
                 node.castShadow = true;
                 node.receiveShadow = true;
             }
         });
-        scene.add(model);
+        scene.add(carModel);
 
-        model.scale.set(1, 1, 1);
-        model.position.set(0, 0, 0);
+        carModel.scale.set(1, 1, 1);
+        carModel.position.set(0, 0, 0);
 
         const center = box.getCenter(new THREE.Vector3());
         camera.position.set(center.x + 5, center.y + 3, center.z + 5);
