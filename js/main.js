@@ -40,37 +40,103 @@ controls.dampingFactor = 0.05;
 
 const modelLoader = new GLTFLoader();
 
-// IMPORT CAR MODEL
-let carModel;
-modelLoader.load(
+// CAR MODELS CONFIGURATION
+const carModelPaths = [
     "../assets/kenney_car-kit/Models/GLB format/hatchback-sports.glb",
-    (gltf) => {
-        carModel = gltf.scene;
-        carModel.traverse((node) => {
-            if (node.isMesh) {
-                node.castShadow = true;
-                node.receiveShadow = true;
-            }
+    "../assets/kenney_car-kit/Models/GLB format/sedan.glb",
+    "../assets/kenney_car-kit/Models/GLB format/suv.glb",
+    "../assets/kenney_car-kit/Models/GLB format/police.glb",
+    "../assets/kenney_car-kit/Models/GLB format/delivery.glb",
+    "../assets/kenney_car-kit/Models/GLB format/truck-flat.glb",
+    "../assets/kenney_car-kit/Models/GLB format/taxi.glb",
+    "../assets/kenney_car-kit/Models/GLB format/ambulance.glb",
+    "../assets/kenney_car-kit/Models/GLB format/delivery-flat.glb",
+    "../assets/kenney_car-kit/Models/GLB format/suv-luxury.glb",
+    "../assets/kenney_car-kit/Models/GLB format/tractor.glb",
+    "../assets/kenney_car-kit/Models/GLB format/van.glb",
+    "../assets/kenney_car-kit/Models/GLB format/truck.glb",
+    "../assets/kenney_car-kit/Models/GLB format/firetruck.glb"
+    // missing some models, dunno if I'll use them
+];
+
+const loadedCarModels = [];
+let currentCarIndex = 0;
+
+function loadCarModels() {
+    const loadModelPromises = carModelPaths.map((path, index) => {
+        return new Promise((resolve, reject) => {
+            modelLoader.load(
+                path,
+                (gltf) => {
+                    const model = gltf.scene;
+                    model.traverse((node) => {
+                        if (node.isMesh) {
+                            node.castShadow = true;
+                            node.receiveShadow = true;
+                        }
+                    });
+
+                    model.visible = false;
+                    model.scale.set(1, 1, 1);
+                    model.position.set(0, 0, 0);
+
+                    scene.add(model);
+                    loadedCarModels.push(model);
+                    
+                    console.log(`Loaded car model ${index + 1}/${carModelPaths.length}`);
+                    resolve();
+                },
+                (progress) => {
+                    console.log(`Loading model ${index + 1}: ${(progress.loaded / progress.total) * 100}%`);
+                },
+                (error) => {
+                    console.error(`Error loading car model ${index}:`, error);
+                    reject(error);
+                }
+            );
         });
-        scene.add(carModel);
+    });
 
-        carModel.scale.set(1, 1, 1);
-        carModel.position.set(0, 0, 0);
+    return Promise.all(loadModelPromises).then(() => {
+        if (loadedCarModels.length > 0) {
+            setActiveCar(0);
+        }
+    });
+}
 
-        const center = box.getCenter(new THREE.Vector3());
-        camera.position.set(center.x + 5, center.y + 3, center.z + 5);
-        camera.lookAt(center);
-        controls.target.copy(center);
-    },
-    (progress) => {
-        console.log('Loading progress: ', (progress.loaded / progress.total) * 100, '%');
-    },
-    (error) => {
-        console.error('Error loading GLB:', error);
+function setActiveCar(index) {
+    if (index < 0 || index >= loadedCarModels.length) {
+        console.error("Invalid car index:", index);
+        return;
     }
-);
+    
+    // REMOVE LATER
+    loadedCarModels.forEach(car => car.visible = false);
 
-camera.position.set(3, 2, 5);
+    const activeCar = loadedCarModels[index];
+    activeCar.visible = true;
+    currentCarIndex = index;
+
+    const boundingBox = new THREE.Box3().setFromObject(activeCar);
+    const center = boundingBox.getCenter(new THREE.Vector3());
+
+    camera.position.set(center.x + 4, center.y + 3, center.z + 5);
+    camera.lookAt(center);
+    controls.target.copy(center);
+
+    return activeCar;
+}
+
+function nextCar() {
+    const nextIndex = (currentCarIndex + 1) % loadedCarModels.length;
+    return setActiveCar(nextIndex);
+}
+
+loadCarModels().then(() => {
+    console.log("All car models loaded successfully.");
+}).catch(error => {
+    console.error("Failed to load all car models:", error);
+});
 
 function animate() {
     controls.update();
@@ -78,8 +144,14 @@ function animate() {
 }
 
 // LISTENERS
-window.addEventListener("resize",()=>{
+window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-})
+});
+
+window.addEventListener("keydown", (event) => {
+    if (event.key === "n") {
+        nextCar();
+    }
+});
