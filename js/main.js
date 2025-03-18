@@ -24,8 +24,42 @@ initCars(scene, camera, controls);
 const lights = setupLights(scene);
 const environment = setupEnvironment(scene);
 
+// LEVELS
+// to be migrated to another file
+// Level[i] = [modelName, character, backstory, startingPoint, finishingPoint]
+const exampleLevel1 = [
+    ["ambulance", "Dr. Healmore", "Rushing to save a critical patient.", "hospital", "downtown"],
+    ["firetruck", "Chief Blaze", "A fire broke out in an apartment complex.", "firestation", "apartment-block"],
+    ["police", "Officer Speed", "Chasing a getaway car!", "police-station", "highway"],
+    ["sedan", "Bob Commuter", "Late for an important meeting.", "suburbs", "office"],
+    ["suv-luxury", "Mr. Richman", "Heading to a gala event.", "mansion", "city-center"],
+    ["tractor-police", "Deputy Plow", "Rural patrol duty.", "farm", "county-jail"],
+    ["truck-flat", "Big Joe", "Delivering construction materials.", "warehouse", "construction-site"],
+    ["delivery", "Timmy Express", "Rush delivery of a fragile package.", "post-office", "residential-area"],
+    ["garbage-truck", "Oscar Binman", "Trash pickup for the whole neighborhood.", "garbage-depot", "landfill"],
+    ["race", "Lightning Fast", "Competing in the Grand Prix!", "race-track", "finish-line"],
+    ["sedan-sports", "Speedy Greg", "Testing out his new turbo engine.", "garage", "coastal-road"],
+    ["taxi", "Manny Cab", "Picking up an important passenger.", "airport", "hotel"],
+    ["tractor-shovel", "Farmer Buck", "Clearing the field for planting.", "barn", "north-field"],
+    ["van", "Sam Courier", "Delivering a mysterious package.", "warehouse", "docks"],
+    ["delivery-flat", "Flat Fred", "Transporting large furniture.", "ikea-store", "suburbs"],
+    ["hatchback-sports", "Drift Queen", "Street racing at midnight.", "parking-lot", "bridge"],
+    ["race-future", "Neo Racer", "High-speed hover race through the city.", "neo-district", "spaceport"],
+    ["suv", "Emma Explorer", "Going on an off-road adventure.", "camp-site", "mountain-peak"],
+    ["tractor", "Old Mac", "Plowing the fields.", "farmhouse", "cornfield"],
+    ["truck", "Road King", "Long-haul delivery across the state.", "depot", "border-crossing"]
+];
+const exampleLevel2 = [
+    ["suv", "john doe", "he's a dumb ass", "whatever1", "whatever1"],
+    ["tractor", "quem", "te perguntou", "whatever2", "whatever2"]
+];
+const levels = [
+    [exampleLevel1,"map1"],
+    [exampleLevel2, "map2"]
+];
+
 // CAR MODEL CONFIGURATION
-loadCarModels().then(() => {
+loadCarModels(levels[0][0]).then(() => {
     console.log("All car models loaded successfully.");
 }).catch(error => {
     console.error("Failed to load all car models:", error);

@@ -14,62 +14,36 @@ export function initCars(sceneObj, cameraObj, controlsObj) {
 const modelLoader = new GLTFLoader();
 
 // CAR MODELS CONFIGURATION
-const carModelPaths = [
-    "../assets/kenney_car-kit/Models/GLB format/ambulance.glb",
-    "../assets/kenney_car-kit/Models/GLB format/firetruck.glb",
-    "../assets/kenney_car-kit/Models/GLB format/police.glb",
-    "../assets/kenney_car-kit/Models/GLB format/sedan.glb",
-    "../assets/kenney_car-kit/Models/GLB format/suv-luxury.glb",
-    "../assets/kenney_car-kit/Models/GLB format/tractor-police.glb",
-    "../assets/kenney_car-kit/Models/GLB format/truck-flat.glb",
-    "../assets/kenney_car-kit/Models/GLB format/delivery.glb",
-    "../assets/kenney_car-kit/Models/GLB format/garbage-truck.glb",
-    "../assets/kenney_car-kit/Models/GLB format/race.glb",
-    "../assets/kenney_car-kit/Models/GLB format/sedan-sports.glb",
-    "../assets/kenney_car-kit/Models/GLB format/taxi.glb",
-    "../assets/kenney_car-kit/Models/GLB format/tractor-shovel.glb",
-    "../assets/kenney_car-kit/Models/GLB format/van.glb",
-    "../assets/kenney_car-kit/Models/GLB format/delivery-flat.glb",
-    "../assets/kenney_car-kit/Models/GLB format/hatchback-sports.glb",
-    "../assets/kenney_car-kit/Models/GLB format/race-future.glb",
-    "../assets/kenney_car-kit/Models/GLB format/suv.glb",
-    "../assets/kenney_car-kit/Models/GLB format/tractor.glb",
-    "../assets/kenney_car-kit/Models/GLB format/truck.glb"
-];
-
-const carModelNames = [
-    "ambulance",
-    "firetruck",
-    "police",
-    "sedan",
-    "suv-luxury",
-    "tractor-police",
-    "truck-flat",
-    "delivery",
-    "garbage-truck",
-    "race",
-    "sedan-sports",
-    "taxi",
-    "tractor-shovel",
-    "van",
-    "delivery-flat",
-    "hatchback-sports",
-    "race-future",
-    "suv",
-    "tractor",
-    "truck"
-]
+const carModels = {
+    "ambulance":["../assets/kenney_car-kit/Models/GLB format/ambulance.glb"],
+    "firetruck":["../assets/kenney_car-kit/Models/GLB format/firetruck.glb"],
+    "police":["../assets/kenney_car-kit/Models/GLB format/police.glb"],
+    "sedan":["../assets/kenney_car-kit/Models/GLB format/sedan.glb"],
+    "suv-luxury":["../assets/kenney_car-kit/Models/GLB format/suv-luxury.glb"],
+    "tractor-police":["../assets/kenney_car-kit/Models/GLB format/tractor-police.glb"],
+    "truck-flat":["../assets/kenney_car-kit/Models/GLB format/truck-flat.glb"],
+    "delivery":["../assets/kenney_car-kit/Models/GLB format/delivery.glb"],
+    "garbage-truck":["../assets/kenney_car-kit/Models/GLB format/garbage-truck.glb"],
+    "race":["../assets/kenney_car-kit/Models/GLB format/race.glb"],
+    "sedan-sports":["../assets/kenney_car-kit/Models/GLB format/sedan-sports.glb"],
+    "taxi":["../assets/kenney_car-kit/Models/GLB format/taxi.glb"],
+    "tractor-shovel":["../assets/kenney_car-kit/Models/GLB format/tractor-shovel.glb"],
+    "van":["../assets/kenney_car-kit/Models/GLB format/van.glb"],
+    "delivery-flat":["../assets/kenney_car-kit/Models/GLB format/delivery-flat.glb"],
+    "hatchback-sports":["../assets/kenney_car-kit/Models/GLB format/hatchback-sports.glb"],
+    "race-future":["../assets/kenney_car-kit/Models/GLB format/race-future.glb"],
+    "suv":["../assets/kenney_car-kit/Models/GLB format/suv.glb"],
+    "tractor":["../assets/kenney_car-kit/Models/GLB format/tractor.glb"],
+    "truck":["../assets/kenney_car-kit/Models/GLB format/truck.glb"]
+};
 
 const loadedCarModels = {};
-let currentCarIndex = 0;
+let missionIndex = 0;
 
-function carName(path) {
-    var pathList = path.split("/");
-    return pathList[pathList.length - 1].replace(".glb","");
-}
-
-export function loadCarModels() {
-    const loadModelPromises = carModelPaths.map((path, index) => {
+export function loadCarModels(level) {
+    const loadModelPromises = level.map((mission, index) => {
+        const name = mission[0];
+        const path = carModels[name];
         return new Promise((resolve, reject) => {
             modelLoader.load(
                 path,
@@ -84,13 +58,13 @@ export function loadCarModels() {
 
                     model.visible = false;
                     model.scale.set(1, 1, 1);
+                    // model.position.set(STARTINGPOSITION);
                     model.position.set(0, 0, 0);
 
                     scene.add(model);
-                    const name = carName(path);
-                    loadedCarModels[name] = model;
+                    loadedCarModels[index] = model;
 
-                    console.debug(`Loaded car model ${index + 1}/${carModelPaths.length} - ${name}`);
+                    console.debug(`Loaded car model ${index + 1}/${level.length} - ${name}`);
                     resolve();
                 },
                 (progress) => {
@@ -125,9 +99,9 @@ function setActiveCar(index) {
     // REMOVE LATER
     Object.values(loadedCarModels).forEach(car => car.visible = false);
 
-    const activeCar = loadedCarModels[carModelNames[index]];
+    const activeCar = loadedCarModels[index];
     activeCar.visible = true;
-    currentCarIndex = index;
+    missionIndex = index;
 
     const boundingBox = new THREE.Box3().setFromObject(activeCar);
     const center = boundingBox.getCenter(new THREE.Vector3());
@@ -140,6 +114,6 @@ function setActiveCar(index) {
 }
 
 export function nextCar() {
-    const nextIndex = (currentCarIndex + 1) % Object.keys(loadedCarModels).length;
+    const nextIndex = (missionIndex + 1) % Object.keys(loadedCarModels).length;
     return setActiveCar(nextIndex);
 }
