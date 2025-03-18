@@ -58,8 +58,8 @@ export function loadCarModels(level) {
 
                     model.visible = false;
                     model.scale.set(1, 1, 1);
-                    // model.position.set(STARTINGPOSITION);
-                    model.position.set(0, 0, 0);
+                    const startingPoint = mission[3];
+                    model.position.set(startingPoint[0], startingPoint[1], startingPoint[2]);
 
                     scene.add(model);
                     loadedCarModels[index] = model;
@@ -97,7 +97,7 @@ function setActiveCar(index) {
     }
 
     // REMOVE LATER
-    Object.values(loadedCarModels).forEach(car => car.visible = false);
+    // Object.values(loadedCarModels).forEach(car => car.visible = false);
 
     const activeCar = loadedCarModels[index];
     activeCar.visible = true;
