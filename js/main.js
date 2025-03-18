@@ -6,7 +6,7 @@ import { setupEnvironment } from './environment.js';
 import { initCars, loadCarModels, nextCar } from './cars.js';
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -16,8 +16,9 @@ document.body.appendChild(renderer.domElement);
 
 // ORBITCONTROLS
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.05;
+controls.enablePan = false;
+controls.enableDamping = false;
+controls.enableRotate = false;
 
 // INIT CARS, LIGHTS AND ENVIRONMENT
 initCars(scene, camera, controls);
@@ -54,12 +55,15 @@ const exampleLevel2 = [
     ["tractor", "quem", "te perguntou", [0, 0, 0], "whatever2"]
 ];
 const levels = [
-    [exampleLevel1,"map1"],
-    [exampleLevel2, "map2"]
+    [exampleLevel1, "map1", [0, 20, 30]],
+    [exampleLevel2, "map2", [0, 20, 30]]
 ];
 
+const testLevel = levels[0];
+// this is so janky lmao
+camera.position.set(testLevel[2][0], testLevel[2][1], testLevel[2][2]);
 // CAR MODEL CONFIGURATION
-loadCarModels(levels[0][0]).then(() => {
+loadCarModels(testLevel[0]).then(() => {
     console.log("All car models loaded successfully.");
 }).catch(error => {
     console.error("Failed to load all car models:", error);
