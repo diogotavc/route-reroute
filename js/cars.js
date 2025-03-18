@@ -43,7 +43,7 @@ let missionIndex = 0;
 export function loadCarModels(level) {
     const loadModelPromises = level.map((mission, index) => {
         const name = mission[0];
-        const path = carModels[name];
+        const path = carModels[name][0];
         return new Promise((resolve, reject) => {
             modelLoader.load(
                 path,
