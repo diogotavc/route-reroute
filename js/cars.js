@@ -15,21 +15,26 @@ const modelLoader = new GLTFLoader();
 
 // CAR MODELS CONFIGURATION
 const carModelPaths = [
-    "../assets/kenney_car-kit/Models/GLB format/hatchback-sports.glb",
-    "../assets/kenney_car-kit/Models/GLB format/sedan.glb",
-    "../assets/kenney_car-kit/Models/GLB format/suv.glb",
-    "../assets/kenney_car-kit/Models/GLB format/police.glb",
-    "../assets/kenney_car-kit/Models/GLB format/delivery.glb",
-    "../assets/kenney_car-kit/Models/GLB format/truck-flat.glb",
-    "../assets/kenney_car-kit/Models/GLB format/taxi.glb",
     "../assets/kenney_car-kit/Models/GLB format/ambulance.glb",
-    "../assets/kenney_car-kit/Models/GLB format/delivery-flat.glb",
+    "../assets/kenney_car-kit/Models/GLB format/firetruck.glb",
+    "../assets/kenney_car-kit/Models/GLB format/police.glb",
+    "../assets/kenney_car-kit/Models/GLB format/sedan.glb",
     "../assets/kenney_car-kit/Models/GLB format/suv-luxury.glb",
-    "../assets/kenney_car-kit/Models/GLB format/tractor.glb",
+    "../assets/kenney_car-kit/Models/GLB format/tractor-police.glb",
+    "../assets/kenney_car-kit/Models/GLB format/truck-flat.glb",
+    "../assets/kenney_car-kit/Models/GLB format/delivery.glb",
+    "../assets/kenney_car-kit/Models/GLB format/garbage-truck.glb",
+    "../assets/kenney_car-kit/Models/GLB format/race.glb",
+    "../assets/kenney_car-kit/Models/GLB format/sedan-sports.glb",
+    "../assets/kenney_car-kit/Models/GLB format/taxi.glb",
+    "../assets/kenney_car-kit/Models/GLB format/tractor-shovel.glb",
     "../assets/kenney_car-kit/Models/GLB format/van.glb",
-    "../assets/kenney_car-kit/Models/GLB format/truck.glb",
-    "../assets/kenney_car-kit/Models/GLB format/firetruck.glb"
-    // missing some models, dunno if I'll use them
+    "../assets/kenney_car-kit/Models/GLB format/delivery-flat.glb",
+    "../assets/kenney_car-kit/Models/GLB format/hatchback-sports.glb",
+    "../assets/kenney_car-kit/Models/GLB format/race-future.glb",
+    "../assets/kenney_car-kit/Models/GLB format/suv.glb",
+    "../assets/kenney_car-kit/Models/GLB format/tractor.glb",
+    "../assets/kenney_car-kit/Models/GLB format/truck.glb"
 ];
 
 const loadedCarModels = [];
