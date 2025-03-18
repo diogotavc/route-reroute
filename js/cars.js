@@ -68,11 +68,6 @@ export function loadCarModels(level) {
                     resolve();
                 },
                 (progress) => {
-                    // I have no clue if there's another way to round to 1 decimal place
-                    const percent = Math.round((progress.loaded / progress.total) * 100 * 10)/10;
-                    if (percent < 100) {
-                        console.debug(`Loading model ${index + 1}: ${percent}%`);
-                    }
                 },
                 (error) => {
                     console.error(`Error loading car model ${index}:`, error);
@@ -106,7 +101,7 @@ function setActiveCar(index) {
     const boundingBox = new THREE.Box3().setFromObject(activeCar);
     const center = boundingBox.getCenter(new THREE.Vector3());
 
-    camera.position.set(center.x + 4, center.y + 3, center.z + 5);
+    if (index == 0) { camera.position.set(15, 10, 10) }
     camera.lookAt(center);
     controls.target.copy(center);
 
