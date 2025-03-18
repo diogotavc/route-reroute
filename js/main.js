@@ -23,32 +23,34 @@ controls.enableRotate = false;
 // INIT CARS, LIGHTS AND ENVIRONMENT
 initCars(scene, camera, controls);
 const lights = setupLights(scene);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const environment = setupEnvironment(scene);
 
 // LEVELS
 // to be migrated to another file
 // Level[i] = [modelName, character, backstory, startingPoint, finishingPoint]
 const exampleLevel1 = [
-    ["ambulance", "Dr. Healmore", "Rushing to save a critical patient.", [7.51, 0, -4.29], [-9.89, 0, -6.90]],
-    ["firetruck", "Chief Blaze", "A fire broke out in an apartment complex.", [0.45, 0, 6.71], [6.73, 0, -7.69]],
-    ["police", "Officer Speed", "Chasing a getaway car!", [2.24, 0, -1.22], [1.51, 0, -6.12]],
-    ["sedan", "Bob Commuter", "Late for an important meeting.", [-3.24, 0, -6.97], [-9.57, 0, -5.66]],
-    ["suv-luxury", "Mr. Richman", "Heading to a gala event.", [9.23, 0, 5.55], [4.36, 0, 9.85]],
-    ["tractor-police", "Deputy Plow", "Rural patrol duty.", [-4.51, 0, -7.11], [5.03, 0, 3.42]],
-    ["truck-flat", "Big Joe", "Delivering construction materials.", [9.61, 0, 1.07], [9.26, 0, -5.64]],
-    ["delivery", "Timmy Express", "Rush delivery of a fragile package.", [-5.25, 0, -5.19], [-5.43, 0, -5.26]],
-    ["garbage-truck", "Oscar Binman", "Trash pickup for the whole neighborhood.", [2.10, 0, -6.66], [-8.58, 0, 1.56]],
-    ["race", "Lightning Fast", "Competing in the Grand Prix!", [-2.02, 0, -2.96], [-6.18, 0, -4.78]],
-    ["sedan-sports", "Speedy Greg", "Testing out his new turbo engine.", [-3.16, 0, 6.23], [3.39, 0, -9.49]],
-    ["taxi", "Manny Cab", "Picking up an important passenger.", [-5.62, 0, -2.39], [-6.04, 0, -1.70]],
-    ["tractor-shovel", "Farmer Buck", "Clearing the field for planting.", [-9.88, 0, 8.27], [0.24, 0, -2.03]],
-    ["van", "Sam Courier", "Delivering a mysterious package.", [-0.21, 0, -7.70], [-3.69, 0, -9.92]],
-    ["delivery-flat", "Flat Fred", "Transporting large furniture.", [3.37, 0, 8.68], [1.09, 0, 0.82]],
-    ["hatchback-sports", "Drift Queen", "Street racing at midnight.", [7.32, 0, -3.12], [5.28, 0, -3.85]],
-    ["race-future", "Neo Racer", "High-speed hover race through the city.", [-0.34, 0, -8.09], [-5.82, 0, -5.23]],
-    ["suv", "Emma Explorer", "Going on an off-road adventure.", [-8.68, 0, 5.27], [-5.53, 0, -0.62]],
-    ["tractor", "Old Mac", "Plowing the fields.", [2.71, 0, 3.17], [-2.02, 0, 5.24]],
-    ["truck", "Road King", "Long-haul delivery across the state.", [3.51, 0, -2.79], [3.49, 0, 7.33]]
+    ["ambulance", "Dr. Healmore", "Rushing to save a critical patient.", [-11.61, 0, -3.20], [-1.60, 0, 2.61]],
+    ["firetruck", "Chief Blaze", "A fire broke out in an apartment complex.", [-3.12, 0, -10.79], [4.17, 0, -8.25]],
+    ["police", "Officer Speed", "Chasing a getaway car!", [-3.20, 0, 4.26], [5.20, 0, -9.09]],
+    ["sedan", "Bob Commuter", "Late for an important meeting.", [12.94, 0, -8.84], [7.48, 0, 0.61]],
+    ["suv-luxury", "Mr. Richman", "Heading to a gala event.", [6.98, 0, 14.43], [0.04, 0, 6.21]],
+    ["tractor-police", "Deputy Plow", "Rural patrol duty.", [-4.22, 0, -3.11], [6.95, 0, 3.56]],
+    ["truck-flat", "Big Joe", "Delivering construction materials.", [3.25, 0, 8.53], [4.15, 0, -0.51]],
+    ["delivery", "Timmy Express", "Rush delivery of a fragile package.", [8.83, 0, -6.00], [-6.35, 0, 5.44]],
+    ["garbage-truck", "Oscar Binman", "Trash pickup for the whole neighborhood.", [11.33, 0, 2.85], [-6.23, 0, 1.08]],
+    ["race", "Lightning Fast", "Competing in the Grand Prix!", [-15.41, 0, -4.76], [-1.42, 0, -1.00]],
+    ["sedan-sports", "Speedy Greg", "Testing out his new turbo engine.", [15.33, 0, -8.44], [-4.08, 0, -9.03]],
+    ["taxi", "Manny Cab", "Picking up an important passenger.", [4.85, 0, -6.99], [-4.80, 0, 0.23]],
+    ["tractor-shovel", "Farmer Buck", "Clearing the field for planting.", [5.85, 0, -2.22], [8.89, 0, -6.32]],
+    ["van", "Sam Courier", "Delivering a mysterious package.", [-0.91, 0, -4.44], [-6.83, 0, 3.51]],
+    ["delivery-flat", "Flat Fred", "Transporting large furniture.", [11.14, 0, 6.77], [9.00, 0, -9.26]],
+    ["hatchback-sports", "Drift Queen", "Street racing at midnight.", [5.08, 0, 8.81], [3.20, 0, 7.23]],
+    ["race-future", "Neo Racer", "High-speed hover race through the city.", [-9.10, 0, 2.47], [6.33, 0, -6.56]],
+    ["suv", "Emma Explorer", "Going on an off-road adventure.", [-7.62, 0, 16.17], [2.83, 0, -5.07]],
+    ["tractor", "Old Mac", "Plowing the fields.", [10.13, 0, -7.10], [-2.44, 0, -6.36]],
+    ["truck", "Road King", "Long-haul delivery across the state.", [-8.34, 0, -8.72], [8.14, 0, 2.40]]
 ];
 const exampleLevel2 = [
     ["suv", "john doe", "he's a dumb ass", [10, 0, 3], "whatever1"],
