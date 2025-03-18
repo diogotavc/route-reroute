@@ -79,6 +79,7 @@ window.addEventListener("resize", () => {
 
 window.addEventListener("keydown", (event) => {
     if (event.key === "n") {
+        // if (nextCar() == -1) { end of the level }
         nextCar();
     }
 });

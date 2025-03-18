@@ -90,7 +90,7 @@ export function loadCarModels(level) {
 }
 
 function setActiveCar(index) {
-    var carCount = loadedCarModels.length;
+    var carCount = Object.keys(loadedCarModels).length;
     if (index < 0 || index >= carCount) {
         console.error("Invalid car index:", index);
         return;
@@ -114,6 +114,8 @@ function setActiveCar(index) {
 }
 
 export function nextCar() {
-    const nextIndex = (missionIndex + 1) % Object.keys(loadedCarModels).length;
+    var carCount = Object.keys(loadedCarModels).length;
+    if ( carCount == missionIndex + 1 ) { return -1 };
+    const nextIndex = (missionIndex + 1) % carCount;
     return setActiveCar(nextIndex);
 }
