@@ -90,14 +90,14 @@ export function loadCarModels() {
                     const name = carName(path);
                     loadedCarModels[name] = model;
 
-                    console.log(`Loaded car model ${index + 1}/${carModelPaths.length} - ${name}`);
+                    console.debug(`Loaded car model ${index + 1}/${carModelPaths.length} - ${name}`);
                     resolve();
                 },
                 (progress) => {
                     // I have no clue if there's another way to round to 1 decimal place
                     const percent = Math.round((progress.loaded / progress.total) * 100 * 10)/10;
                     if (percent < 100) {
-                        console.log(`Loading model ${index + 1}: ${percent}%`);
+                        console.debug(`Loading model ${index + 1}: ${percent}%`);
                     }
                 },
                 (error) => {
