@@ -101,9 +101,10 @@ function setActiveCar(index) {
     const boundingBox = new THREE.Box3().setFromObject(activeCar);
     const center = boundingBox.getCenter(new THREE.Vector3());
 
-    if (index == 0) { camera.position.set(15, 10, 10) }
+    // camera.position.set is now done outside of this function
+    const startPosition = new THREE.Vector3 (center.x, center.y - 5, center.z);
     camera.lookAt(center);
-    controls.target.copy(center);
+    controls.target.copy(startPosition);
 
     return activeCar;
 }
