@@ -2,6 +2,8 @@
 
 A simple clone of the game https://www.mediocre.se/commute/[Does Not Commute], built using https://threejs.org/[Three.js] for 3D rendering. The goal is to create a minimalistic, top-down driving game where players control vehicles in a small town, with each level's actions affecting subsequent levels, displaying diverse lighting and interactivity.
 
+To follow along with the project, there's a link:./TODO.md[list of tasks].
+
 .Other possible names
 [%collapsible]
 ====

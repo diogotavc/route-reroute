@@ -1,0 +1,11 @@
+- [x] Basic car model loading
+- [ ] Basic map model loading
+- [x] Level data structure
+- [ ] Fix camera
+- [ ] Map loading mechanism
+- [ ] Menus
+- [ ] HUD
+- [ ] Music & SFX
+- [ ] Optional third person view
+- [ ] Mouse interactions _(sort of quick time event, or steering control by clicking the map)_
+- [ ] Performance testing and debugging
