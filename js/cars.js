@@ -93,13 +93,6 @@ export function loadCarModels() {
                     console.debug(`Loaded car model ${index + 1}/${carModelPaths.length} - ${name}`);
                     resolve();
                 },
-                (progress) => {
-                    // I have no clue if there's another way to round to 1 decimal place
-                    const percent = Math.round((progress.loaded / progress.total) * 100 * 10)/10;
-                    if (percent < 100) {
-                        console.debug(`Loading model ${index + 1}: ${percent}%`);
-                    }
-                },
                 (error) => {
                     console.error(`Error loading car model ${index}:`, error);
                     reject(error);
