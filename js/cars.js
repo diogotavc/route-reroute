@@ -40,6 +40,11 @@ const carModelPaths = [
 const loadedCarModels = [];
 let currentCarIndex = 0;
 
+function carName(path) {
+    var pathList = path.split("/");
+    return pathList[pathList.length - 1].replace(".glb","");
+}
+
 export function loadCarModels() {
     const loadModelPromises = carModelPaths.map((path, index) => {
         return new Promise((resolve, reject) => {
@@ -61,7 +66,7 @@ export function loadCarModels() {
                     scene.add(model);
                     loadedCarModels.push(model);
                     
-                    console.log(`Loaded car model ${index + 1}/${carModelPaths.length}`);
+                    console.log(`Loaded car model ${index + 1}/${carModelPaths.length} - ${carName(path)}`);
                     resolve();
                 },
                 (progress) => {
