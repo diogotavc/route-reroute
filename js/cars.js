@@ -37,7 +37,30 @@ const carModelPaths = [
     "../assets/kenney_car-kit/Models/GLB format/truck.glb"
 ];
 
-const loadedCarModels = [];
+const carModelNames = [
+    "ambulance",
+    "firetruck",
+    "police",
+    "sedan",
+    "suv-luxury",
+    "tractor-police",
+    "truck-flat",
+    "delivery",
+    "garbage-truck",
+    "race",
+    "sedan-sports",
+    "taxi",
+    "tractor-shovel",
+    "van",
+    "delivery-flat",
+    "hatchback-sports",
+    "race-future",
+    "suv",
+    "tractor",
+    "truck"
+]
+
+const loadedCarModels = {};
 let currentCarIndex = 0;
 
 function carName(path) {
@@ -64,9 +87,10 @@ export function loadCarModels() {
                     model.position.set(0, 0, 0);
 
                     scene.add(model);
-                    loadedCarModels.push(model);
-                    
-                    console.log(`Loaded car model ${index + 1}/${carModelPaths.length} - ${carName(path)}`);
+                    const name = carName(path);
+                    loadedCarModels[name] = model;
+
+                    console.log(`Loaded car model ${index + 1}/${carModelPaths.length} - ${name}`);
                     resolve();
                 },
                 (progress) => {
@@ -85,22 +109,23 @@ export function loadCarModels() {
     });
 
     return Promise.all(loadModelPromises).then(() => {
-        if (loadedCarModels.length > 0) {
+        if (Object.keys(loadedCarModels).length > 0) {
             setActiveCar(0);
         }
     });
 }
 
 function setActiveCar(index) {
-    if (index < 0 || index >= loadedCarModels.length) {
+    var carCount = loadedCarModels.length;
+    if (index < 0 || index >= carCount) {
         console.error("Invalid car index:", index);
         return;
     }
-    
-    // REMOVE LATER
-    loadedCarModels.forEach(car => car.visible = false);
 
-    const activeCar = loadedCarModels[index];
+    // REMOVE LATER
+    Object.values(loadedCarModels).forEach(car => car.visible = false);
+
+    const activeCar = loadedCarModels[carModelNames[index]];
     activeCar.visible = true;
     currentCarIndex = index;
 
@@ -115,6 +140,6 @@ function setActiveCar(index) {
 }
 
 export function nextCar() {
-    const nextIndex = (currentCarIndex + 1) % loadedCarModels.length;
+    const nextIndex = (currentCarIndex + 1) % Object.keys(loadedCarModels).length;
     return setActiveCar(nextIndex);
 }
