@@ -11,7 +11,7 @@ const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerH
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setAnimationLoop(animate);
-renderer.setClearColor(0x87CEEB);
+renderer.setClearColor(0x212121);
 document.body.appendChild(renderer.domElement);
 
 // ORBITCONTROLS
@@ -66,7 +66,7 @@ const testLevel = levels[0];
 camera.position.set(testLevel[2][0], testLevel[2][1], testLevel[2][2]);
 // CAR MODEL CONFIGURATION
 loadCarModels(testLevel[0]).then(() => {
-    console.log("All car models loaded successfully.");
+    console.debug("All car models loaded successfully.");
 }).catch(error => {
     console.error("Failed to load all car models:", error);
 });

@@ -39,8 +39,10 @@ const carModels = {
 
 const loadedCarModels = {};
 let missionIndex = 0;
+let levels;
 
 export function loadCarModels(level) {
+    levels = level;
     const loadModelPromises = level.map((mission, index) => {
         const name = mission[0];
         const path = carModels[name][0];
@@ -90,6 +92,11 @@ function setActiveCar(index) {
         console.error("Invalid car index:", index);
         return;
     }
+
+    var [modelName, character, backstory, startingPoint, finishingPoint] = levels[index];
+    var characterName = String(character).charAt(0).toUpperCase() + String(character).slice(1);
+    console.log(`${characterName}: ${backstory}`)
+    console.log(`Drive ${modelName} from ${startingPoint} to ${finishingPoint}.`);
 
     // REMOVE LATER
     // Object.values(loadedCarModels).forEach(car => car.visible = false);
