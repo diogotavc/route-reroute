@@ -1,5 +1,5 @@
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/Addons.js';
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/Addons.js";
 
 let scene = null;
 let camera = null;
@@ -15,26 +15,40 @@ const modelLoader = new GLTFLoader();
 
 // CAR MODELS CONFIGURATION
 const carModels = {
-    "ambulance":["../assets/kenney_car-kit/Models/GLB format/ambulance.glb"],
-    "firetruck":["../assets/kenney_car-kit/Models/GLB format/firetruck.glb"],
-    "police":["../assets/kenney_car-kit/Models/GLB format/police.glb"],
-    "sedan":["../assets/kenney_car-kit/Models/GLB format/sedan.glb"],
-    "suv-luxury":["../assets/kenney_car-kit/Models/GLB format/suv-luxury.glb"],
-    "tractor-police":["../assets/kenney_car-kit/Models/GLB format/tractor-police.glb"],
-    "truck-flat":["../assets/kenney_car-kit/Models/GLB format/truck-flat.glb"],
-    "delivery":["../assets/kenney_car-kit/Models/GLB format/delivery.glb"],
-    "garbage-truck":["../assets/kenney_car-kit/Models/GLB format/garbage-truck.glb"],
-    "race":["../assets/kenney_car-kit/Models/GLB format/race.glb"],
-    "sedan-sports":["../assets/kenney_car-kit/Models/GLB format/sedan-sports.glb"],
-    "taxi":["../assets/kenney_car-kit/Models/GLB format/taxi.glb"],
-    "tractor-shovel":["../assets/kenney_car-kit/Models/GLB format/tractor-shovel.glb"],
-    "van":["../assets/kenney_car-kit/Models/GLB format/van.glb"],
-    "delivery-flat":["../assets/kenney_car-kit/Models/GLB format/delivery-flat.glb"],
-    "hatchback-sports":["../assets/kenney_car-kit/Models/GLB format/hatchback-sports.glb"],
-    "race-future":["../assets/kenney_car-kit/Models/GLB format/race-future.glb"],
-    "suv":["../assets/kenney_car-kit/Models/GLB format/suv.glb"],
-    "tractor":["../assets/kenney_car-kit/Models/GLB format/tractor.glb"],
-    "truck":["../assets/kenney_car-kit/Models/GLB format/truck.glb"]
+    ambulance: ["../assets/kenney_car-kit/Models/GLB format/ambulance.glb"],
+    firetruck: ["../assets/kenney_car-kit/Models/GLB format/firetruck.glb"],
+    police: ["../assets/kenney_car-kit/Models/GLB format/police.glb"],
+    sedan: ["../assets/kenney_car-kit/Models/GLB format/sedan.glb"],
+    "suv-luxury": ["../assets/kenney_car-kit/Models/GLB format/suv-luxury.glb"],
+    "tractor-police": [
+        "../assets/kenney_car-kit/Models/GLB format/tractor-police.glb",
+    ],
+    "truck-flat": ["../assets/kenney_car-kit/Models/GLB format/truck-flat.glb"],
+    delivery: ["../assets/kenney_car-kit/Models/GLB format/delivery.glb"],
+    "garbage-truck": [
+        "../assets/kenney_car-kit/Models/GLB format/garbage-truck.glb",
+    ],
+    race: ["../assets/kenney_car-kit/Models/GLB format/race.glb"],
+    "sedan-sports": [
+        "../assets/kenney_car-kit/Models/GLB format/sedan-sports.glb",
+    ],
+    taxi: ["../assets/kenney_car-kit/Models/GLB format/taxi.glb"],
+    "tractor-shovel": [
+        "../assets/kenney_car-kit/Models/GLB format/tractor-shovel.glb",
+    ],
+    van: ["../assets/kenney_car-kit/Models/GLB format/van.glb"],
+    "delivery-flat": [
+        "../assets/kenney_car-kit/Models/GLB format/delivery-flat.glb",
+    ],
+    "hatchback-sports": [
+        "../assets/kenney_car-kit/Models/GLB format/hatchback-sports.glb",
+    ],
+    "race-future": [
+        "../assets/kenney_car-kit/Models/GLB format/race-future.glb",
+    ],
+    suv: ["../assets/kenney_car-kit/Models/GLB format/suv.glb"],
+    tractor: ["../assets/kenney_car-kit/Models/GLB format/tractor.glb"],
+    truck: ["../assets/kenney_car-kit/Models/GLB format/truck.glb"],
 };
 
 const loadedCarModels = {};
@@ -61,20 +75,25 @@ export function loadCarModels(level) {
                     model.visible = false;
                     model.scale.set(1, 1, 1);
                     const startingPoint = mission[3];
-                    model.position.set(startingPoint[0], startingPoint[1], startingPoint[2]);
+                    model.position.set(
+                        startingPoint[0],
+                        startingPoint[1],
+                        startingPoint[2],
+                    );
 
                     scene.add(model);
                     loadedCarModels[index] = model;
 
-                    console.debug(`Loaded car model ${index + 1}/${level.length} - ${name}`);
+                    console.debug(
+                        `Loaded car model ${index + 1}/${level.length} - ${name}`,
+                    );
                     resolve();
                 },
-                (progress) => {
-                },
+                (progress) => {},
                 (error) => {
                     console.error(`Error loading car model ${index}:`, error);
                     reject(error);
-                }
+                },
             );
         });
     });
@@ -93,10 +112,14 @@ function setActiveCar(index) {
         return;
     }
 
-    var [modelName, character, backstory, startingPoint, finishingPoint] = levels[index];
-    var characterName = String(character).charAt(0).toUpperCase() + String(character).slice(1);
-    console.log(`${characterName}: ${backstory}`)
-    console.log(`Drive ${modelName} from ${startingPoint} to ${finishingPoint}.`);
+    var [modelName, character, backstory, startingPoint, finishingPoint] =
+        levels[index];
+    var characterName =
+        String(character).charAt(0).toUpperCase() + String(character).slice(1);
+    console.log(`${characterName}: ${backstory}`);
+    console.log(
+        `Drive ${modelName} from ${startingPoint} to ${finishingPoint}.`,
+    );
 
     // REMOVE LATER
     // Object.values(loadedCarModels).forEach(car => car.visible = false);
@@ -109,7 +132,7 @@ function setActiveCar(index) {
     const center = boundingBox.getCenter(new THREE.Vector3());
 
     // camera.position.set is now done outside of this function
-    const startPosition = new THREE.Vector3 (center.x, center.y - 5, center.z);
+    const startPosition = new THREE.Vector3(center.x, center.y - 5, center.z);
     camera.lookAt(center);
     controls.target.copy(startPosition);
 
@@ -118,7 +141,9 @@ function setActiveCar(index) {
 
 export function nextCar() {
     var carCount = Object.keys(loadedCarModels).length;
-    if ( carCount == missionIndex + 1 ) { return -1 };
+    if (carCount == missionIndex + 1) {
+        return -1;
+    }
     const nextIndex = (missionIndex + 1) % carCount;
     return setActiveCar(nextIndex);
 }
