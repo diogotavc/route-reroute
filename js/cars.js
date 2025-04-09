@@ -15,40 +15,40 @@ const modelLoader = new GLTFLoader();
 
 // CAR MODELS CONFIGURATION
 const carModels = {
-    ambulance: ["../assets/kenney_car-kit/Models/GLB format/ambulance.glb"],
-    firetruck: ["../assets/kenney_car-kit/Models/GLB format/firetruck.glb"],
-    police: ["../assets/kenney_car-kit/Models/GLB format/police.glb"],
-    sedan: ["../assets/kenney_car-kit/Models/GLB format/sedan.glb"],
-    "suv-luxury": ["../assets/kenney_car-kit/Models/GLB format/suv-luxury.glb"],
+    ambulance: ["../assets/kenney_car-kit/Models/ambulance.glb"],
+    firetruck: ["../assets/kenney_car-kit/Models/firetruck.glb"],
+    police: ["../assets/kenney_car-kit/Models/police.glb"],
+    sedan: ["../assets/kenney_car-kit/Models/sedan.glb"],
+    "suv-luxury": ["../assets/kenney_car-kit/Models/suv-luxury.glb"],
     "tractor-police": [
-        "../assets/kenney_car-kit/Models/GLB format/tractor-police.glb",
+        "../assets/kenney_car-kit/Models/tractor-police.glb",
     ],
-    "truck-flat": ["../assets/kenney_car-kit/Models/GLB format/truck-flat.glb"],
-    delivery: ["../assets/kenney_car-kit/Models/GLB format/delivery.glb"],
+    "truck-flat": ["../assets/kenney_car-kit/Models/truck-flat.glb"],
+    delivery: ["../assets/kenney_car-kit/Models/delivery.glb"],
     "garbage-truck": [
-        "../assets/kenney_car-kit/Models/GLB format/garbage-truck.glb",
+        "../assets/kenney_car-kit/Models/garbage-truck.glb",
     ],
-    race: ["../assets/kenney_car-kit/Models/GLB format/race.glb"],
+    race: ["../assets/kenney_car-kit/Models/race.glb"],
     "sedan-sports": [
-        "../assets/kenney_car-kit/Models/GLB format/sedan-sports.glb",
+        "../assets/kenney_car-kit/Models/sedan-sports.glb",
     ],
-    taxi: ["../assets/kenney_car-kit/Models/GLB format/taxi.glb"],
+    taxi: ["../assets/kenney_car-kit/Models/taxi.glb"],
     "tractor-shovel": [
-        "../assets/kenney_car-kit/Models/GLB format/tractor-shovel.glb",
+        "../assets/kenney_car-kit/Models/tractor-shovel.glb",
     ],
-    van: ["../assets/kenney_car-kit/Models/GLB format/van.glb"],
+    van: ["../assets/kenney_car-kit/Models/van.glb"],
     "delivery-flat": [
-        "../assets/kenney_car-kit/Models/GLB format/delivery-flat.glb",
+        "../assets/kenney_car-kit/Models/delivery-flat.glb",
     ],
     "hatchback-sports": [
-        "../assets/kenney_car-kit/Models/GLB format/hatchback-sports.glb",
+        "../assets/kenney_car-kit/Models/hatchback-sports.glb",
     ],
     "race-future": [
-        "../assets/kenney_car-kit/Models/GLB format/race-future.glb",
+        "../assets/kenney_car-kit/Models/race-future.glb",
     ],
-    suv: ["../assets/kenney_car-kit/Models/GLB format/suv.glb"],
-    tractor: ["../assets/kenney_car-kit/Models/GLB format/tractor.glb"],
-    truck: ["../assets/kenney_car-kit/Models/GLB format/truck.glb"],
+    suv: ["../assets/kenney_car-kit/Models/suv.glb"],
+    tractor: ["../assets/kenney_car-kit/Models/tractor.glb"],
+    truck: ["../assets/kenney_car-kit/Models/truck.glb"],
 };
 
 const loadedCarModels = {};
