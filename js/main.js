@@ -3,7 +3,16 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 import { setupLights } from './lights.js';
 import { setupEnvironment } from './environment.js';
-import { initCars, loadCarModels, nextCar } from './cars.js';
+import {
+    initCars,
+    loadCarModels,
+    nextCar,
+    setAccelerating,
+    setBraking,
+    setTurningLeft,
+    setTurningRight,
+    updateCarPhysics
+} from './cars.js';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -71,8 +80,15 @@ loadCarModels(testLevel[0]).then(() => {
     console.error("Failed to load all car models:", error);
 });
 
+// Clock for Delta Time
+const clock = new THREE.Clock();
+
 function animate() {
-    controls.update();
+    const deltaTime = clock.getDelta(); // Get time difference since last frame
+
+    updateCarPhysics(deltaTime); // Update car physics
+
+    controls.update(); // Update OrbitControls if needed (might interfere with car camera)
     renderer.render(scene, camera);
 }
 
@@ -84,8 +100,47 @@ window.addEventListener("resize", () => {
 });
 
 window.addEventListener("keydown", (event) => {
-    if (event.key === "n") {
-        // if (nextCar() == -1) { end of the level }
-        nextCar();
+    switch (event.key) {
+        case "n":
+            // if (nextCar() == -1) { end of the level }
+            nextCar();
+            break;
+        case "ArrowUp":
+        case "w":
+            setAccelerating(true);
+            break;
+        case "ArrowDown":
+        case "s":
+            setBraking(true);
+            break;
+        case "ArrowLeft":
+        case "a":
+            setTurningLeft(true);
+            break;
+        case "ArrowRight":
+        case "d":
+            setTurningRight(true);
+            break;
+    }
+});
+
+window.addEventListener("keyup", (event) => {
+    switch (event.key) {
+        case "ArrowUp":
+        case "w":
+            setAccelerating(false);
+            break;
+        case "ArrowDown":
+        case "s":
+            setBraking(false);
+            break;
+        case "ArrowLeft":
+        case "a":
+            setTurningLeft(false);
+            break;
+        case "ArrowRight":
+        case "d":
+            setTurningRight(false);
+            break;
     }
 });
