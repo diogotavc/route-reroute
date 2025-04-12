@@ -9,3 +9,4 @@
 - [ ] Optional third person view
 - [ ] Mouse interactions _(sort of quick time event, or steering control by clicking the map)_
 - [ ] Performance testing and debugging
+- [ ] Cars can spawn at the bottom going up, or at the top going down -  not just going down every single time (!!!)
