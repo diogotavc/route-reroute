@@ -69,6 +69,9 @@ const BRAKING_RATE = 10;
 const STEERING_RATE = 1.5;
 const FRICTION = 1; // Speed decay per second when not accelerating/braking
 const STEERING_FRICTION = 2; // How quickly steering returns to center
+const CAMERA_FOLLOW_SPEED = 2.0; // How quickly the camera catches up (higher is faster)
+const CAMERA_DISTANCE = 10; // How far back the camera should be
+const CAMERA_HEIGHT = 5; // How high the camera should be
 
 export function loadCarModels(level) {
     levels = level;
@@ -143,13 +146,12 @@ function setActiveCar(index) {
     activeCar.visible = true;
     missionIndex = index;
 
-    const boundingBox = new THREE.Box3().setFromObject(activeCar);
-    const center = boundingBox.getCenter(new THREE.Vector3());
-
-    // camera.position.set is now done outside of this function
-    const startPosition = new THREE.Vector3(center.x, center.y - 5, center.z);
-    camera.lookAt(center);
-    controls.target.copy(startPosition);
+    // Remove initial camera positioning from here
+    // const boundingBox = new THREE.Box3().setFromObject(activeCar);
+    // const center = boundingBox.getCenter(new THREE.Vector3());
+    // const startPosition = new THREE.Vector3(center.x, center.y - 5, center.z);
+    // camera.lookAt(center);
+    // controls.target.copy(startPosition);
 
     // Reset physics state for the new car
     carSpeed = 0;
@@ -258,6 +260,26 @@ export function updateCarPhysics(deltaTime) {
     forward.normalize();
 
     car.position.addScaledVector(forward, carSpeed * deltaTime);
+
+    // --- Update Camera ---
+    // Calculate desired camera position: behind and above the car
+    const desiredCameraOffset = new THREE.Vector3(0, CAMERA_HEIGHT, -CAMERA_DISTANCE); // Offset in car's local space
+    const worldOffset = desiredCameraOffset.applyQuaternion(car.quaternion); // Rotate offset to world space
+    const desiredCameraPosition = car.position.clone().add(worldOffset); // Add world offset to car's world position
+
+    // Calculate desired look-at point (car's position)
+    const desiredLookAt = car.position.clone(); // Look directly at the car's current position
+
+    // Smoothly interpolate camera position
+    const lerpFactor = Math.min(CAMERA_FOLLOW_SPEED * deltaTime, 1); // Ensure lerp factor doesn't exceed 1
+    camera.position.lerp(desiredCameraPosition, lerpFactor);
+
+    // Set the OrbitControls target *after* lerping camera position
+    // This tells OrbitControls where the center of interest is, even if we don't use its movement.
+    controls.target.copy(desiredLookAt);
+
+    // Ensure camera always looks at the target *after* interpolation and setting controls.target
+    camera.lookAt(controls.target);
 
     // --- Collision Detection ---
     activeCarBox.setFromObject(car);
