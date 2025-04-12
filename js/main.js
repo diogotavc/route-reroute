@@ -86,9 +86,9 @@ const clock = new THREE.Clock();
 function animate() {
     const deltaTime = clock.getDelta(); // Get time difference since last frame
 
-    updateCarPhysics(deltaTime); // Update car physics
+    updateCarPhysics(deltaTime); // Update car physics and camera
 
-    controls.update(); // Update OrbitControls if needed (might interfere with car camera)
+    // controls.update(); // Comment this out - let updateCarPhysics handle camera
     renderer.render(scene, camera);
 }
 
