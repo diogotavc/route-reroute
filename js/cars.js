@@ -75,8 +75,9 @@ const STEERING_RATE = 1.5;
 const FRICTION = 1; // Speed decay per second when not accelerating/braking
 const STEERING_FRICTION = 2; // How quickly steering returns to center
 const CAMERA_FOLLOW_SPEED = 2.0; // How quickly the camera catches up (higher is faster)
-const CAMERA_DISTANCE = 10; // How far back the camera should be
-const CAMERA_HEIGHT = 5; // How high the camera should be
+// Adjust these values for zoom and angle
+const CAMERA_DISTANCE = 18; // Increased distance for zoom out
+const CAMERA_HEIGHT = 10; // Increased height for a higher angle
 
 export function loadCarModels(level) {
     levels = level;
