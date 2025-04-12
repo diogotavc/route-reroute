@@ -173,11 +173,28 @@ function setActiveCar(index) {
 
 
     // Add the initial state to the new recording
+    const initialPosition = activeCar.position.clone();
+    const initialRotation = activeCar.quaternion.clone();
     currentRecording.push({
         time: 0,
-        position: activeCar.position.clone(),
-        rotation: activeCar.quaternion.clone(),
+        position: initialPosition,
+        rotation: initialRotation,
     });
+
+    // --- Instant Camera Positioning ---
+    // Calculate desired camera position based on the car's initial state
+    const desiredCameraOffset = new THREE.Vector3(0, CAMERA_HEIGHT, -CAMERA_DISTANCE); // Offset in car's local space
+    const worldOffset = desiredCameraOffset.applyQuaternion(initialRotation); // Rotate offset to world space based on initial rotation
+    const desiredCameraPosition = initialPosition.clone().add(worldOffset); // Add world offset to car's initial world position
+
+    // Calculate desired look-at point (car's initial position)
+    const desiredLookAt = initialPosition.clone();
+
+    // Set camera position and target instantly
+    camera.position.copy(desiredCameraPosition);
+    controls.target.copy(desiredLookAt);
+    camera.lookAt(controls.target); // Ensure camera looks at the target immediately
+    // --- End Instant Camera Positioning ---
 
 
     // Reset physics state for the new car
