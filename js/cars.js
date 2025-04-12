@@ -55,6 +55,21 @@ const loadedCarModels = {};
 let missionIndex = 0;
 let levels;
 
+// Physics State
+let carSpeed = 0;
+let carAcceleration = 0; // Can be positive (accelerating) or negative (braking)
+let steeringAngle = 0;
+let isAccelerating = false;
+let isBraking = false;
+let isTurningLeft = false;
+let isTurningRight = false;
+const MAX_SPEED = 15;
+const ACCELERATION_RATE = 5;
+const BRAKING_RATE = 10;
+const STEERING_RATE = 1.5;
+const FRICTION = 1; // Speed decay per second when not accelerating/braking
+const STEERING_FRICTION = 2; // How quickly steering returns to center
+
 export function loadCarModels(level) {
     levels = level;
     const loadModelPromises = level.map((mission, index) => {
@@ -136,6 +151,15 @@ function setActiveCar(index) {
     camera.lookAt(center);
     controls.target.copy(startPosition);
 
+    // Reset physics state for the new car
+    carSpeed = 0;
+    carAcceleration = 0;
+    steeringAngle = 0;
+    isAccelerating = false;
+    isBraking = false;
+    isTurningLeft = false;
+    isTurningRight = false;
+
     return activeCar;
 }
 
@@ -146,6 +170,121 @@ export function nextCar() {
     }
     const nextIndex = (missionIndex + 1) % carCount;
     return setActiveCar(nextIndex);
+}
+
+// --- Physics Control Functions ---
+
+export function setAccelerating(value) {
+    isAccelerating = value;
+    if (value) isBraking = false; // Cannot accelerate and brake simultaneously
+}
+
+export function setBraking(value) {
+    isBraking = value;
+    if (value) isAccelerating = false; // Cannot accelerate and brake simultaneously
+}
+
+export function setTurningLeft(value) {
+    isTurningLeft = value;
+}
+
+export function setTurningRight(value) {
+    isTurningRight = value;
+}
+
+// --- Physics Update ---
+
+let activeCarBox = new THREE.Box3();
+let otherCarBox = new THREE.Box3();
+
+export function updateCarPhysics(deltaTime) {
+    const car = loadedCarModels[missionIndex];
+    if (!car) return;
+
+    // --- Update Steering ---
+    let steeringChange = 0;
+    if (isTurningLeft) {
+        steeringChange += STEERING_RATE * deltaTime;
+    }
+    if (isTurningRight) {
+        steeringChange -= STEERING_RATE * deltaTime;
+    }
+    steeringAngle += steeringChange;
+
+    // Apply steering friction (return to center)
+    if (!isTurningLeft && !isTurningRight) {
+        steeringAngle -= steeringAngle * STEERING_FRICTION * deltaTime;
+        // Prevent overshooting center
+        if (Math.abs(steeringAngle) < 0.01) {
+            steeringAngle = 0;
+        }
+    }
+    // Clamp steering angle (optional)
+    steeringAngle = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, steeringAngle)); // Limit to +/- 45 degrees
+
+    // --- Update Speed ---
+    if (isAccelerating) {
+        carAcceleration = ACCELERATION_RATE;
+    } else if (isBraking) {
+        carAcceleration = -BRAKING_RATE;
+    } else {
+        // Apply friction when not accelerating or braking
+        carAcceleration = -Math.sign(carSpeed) * FRICTION;
+        // Prevent friction from reversing direction at low speeds
+        if (Math.abs(carSpeed) < FRICTION * deltaTime) {
+            carSpeed = 0;
+            carAcceleration = 0;
+        }
+    }
+
+    carSpeed += carAcceleration * deltaTime;
+    carSpeed = Math.max(-MAX_SPEED / 2, Math.min(MAX_SPEED, carSpeed)); // Clamp speed (allow slower reverse)
+
+    // Stop if braking brings speed close to zero
+    if (isBraking && Math.abs(carSpeed) < 0.1) {
+        carSpeed = 0;
+    }
+
+    // --- Update Position & Rotation ---
+    // Only rotate if moving
+    if (Math.abs(carSpeed) > 0.01) {
+        // Adjust rotation based on steering angle and speed (more speed = less turn influence needed for same radius)
+        // Simplified: Rotate directly by steering angle scaled by deltaTime and speed sign
+        car.rotation.y += steeringAngle * deltaTime * Math.sign(carSpeed);
+    }
+
+    const forward = new THREE.Vector3(0, 0, 1); // Car's local forward
+    forward.applyQuaternion(car.quaternion); // Rotate forward vector to world space
+    forward.normalize();
+
+    car.position.addScaledVector(forward, carSpeed * deltaTime);
+
+    // --- Collision Detection ---
+    activeCarBox.setFromObject(car);
+    let collisionDetected = false;
+
+    for (const key in loadedCarModels) {
+        if (parseInt(key) === missionIndex) continue; // Don't check against self
+
+        const otherCar = loadedCarModels[key];
+        if (!otherCar.visible) continue; // Skip inactive cars (optional)
+
+        otherCarBox.setFromObject(otherCar);
+
+        if (activeCarBox.intersectsBox(otherCarBox)) {
+            collisionDetected = true;
+            break; // Stop checking after first collision
+        }
+    }
+
+    // --- Collision Response ---
+    if (collisionDetected) {
+        console.log("Collision!");
+        // Simple response: Stop the car immediately
+        carSpeed = 0;
+        // Optional: Move car back slightly (needs previous position)
+        // car.position.addScaledVector(forward, -0.1); // Nudge back
+    }
 }
 
 /**
