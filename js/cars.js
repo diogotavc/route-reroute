@@ -55,6 +55,11 @@ const loadedCarModels = {};
 let missionIndex = 0;
 let levels;
 
+// Recording and Replay State
+const recordedMovements = {}; // Stores recordings for completed cars { missionIndex: [ { time, position, rotation } ] }
+let currentRecording = []; // Stores the recording for the currently active car
+let carStartTime = 0; // Timestamp (performance.now()) when the current car became active
+
 // Physics State
 let carSpeed = 0;
 let carAcceleration = 0; // Can be positive (accelerating) or negative (braking)
@@ -130,6 +135,16 @@ function setActiveCar(index) {
         return;
     }
 
+    // Store the recording of the PREVIOUS car before switching
+    if (currentRecording.length > 0) {
+        recordedMovements[missionIndex] = currentRecording;
+        console.log(`Stored recording for car index ${missionIndex} with ${currentRecording.length} states.`);
+    }
+
+    // Reset recording for the NEW car
+    currentRecording = [];
+    carStartTime = performance.now(); // Record the start time for this car's control period
+
     var [modelName, character, backstory, startingPoint, finishingPoint] =
         levels[index];
     var characterName =
@@ -144,14 +159,25 @@ function setActiveCar(index) {
 
     const activeCar = loadedCarModels[index];
     activeCar.visible = true;
+    const previousMissionIndex = missionIndex; // Store previous index before updating
     missionIndex = index;
 
-    // Remove initial camera positioning from here
-    // const boundingBox = new THREE.Box3().setFromObject(activeCar);
-    // const center = boundingBox.getCenter(new THREE.Vector3());
-    // const startPosition = new THREE.Vector3(center.x, center.y - 5, center.z);
-    // camera.lookAt(center);
-    // controls.target.copy(startPosition);
+    // Make previously active car visible again for replay (if it exists)
+    // This assumes we want all previous cars to replay simultaneously
+    // Alternatively, hide all cars except the active one initially
+    // Object.values(loadedCarModels).forEach((car, idx) => car.visible = (idx === index));
+    if (previousMissionIndex !== index && loadedCarModels[previousMissionIndex]) {
+         loadedCarModels[previousMissionIndex].visible = true;
+    }
+
+
+    // Add the initial state to the new recording
+    currentRecording.push({
+        time: 0,
+        position: activeCar.position.clone(),
+        rotation: activeCar.quaternion.clone(),
+    });
+
 
     // Reset physics state for the new car
     carSpeed = 0;
@@ -198,11 +224,17 @@ export function setTurningRight(value) {
 
 let activeCarBox = new THREE.Box3();
 let otherCarBox = new THREE.Box3();
+let tempReplayPosition = new THREE.Vector3(); // To avoid creating vectors in the loop
+let tempReplayQuaternion = new THREE.Quaternion(); // To avoid creating quaternions in the loop
 
 export function updateCarPhysics(deltaTime) {
-    const car = loadedCarModels[missionIndex];
-    if (!car) return;
+    const activeCar = loadedCarModels[missionIndex];
+    if (!activeCar) return;
 
+    const currentTime = performance.now();
+    const elapsedTime = (currentTime - carStartTime) / 1000; // Elapsed time in seconds since this car became active
+
+    // --- Update Active Car Physics (Steering, Speed, Position) ---
     // --- Update Steering ---
     let steeringChange = 0;
     if (isTurningLeft) {
@@ -252,23 +284,76 @@ export function updateCarPhysics(deltaTime) {
     if (Math.abs(carSpeed) > 0.01) {
         // Adjust rotation based on steering angle and speed (more speed = less turn influence needed for same radius)
         // Simplified: Rotate directly by steering angle scaled by deltaTime and speed sign
-        car.rotation.y += steeringAngle * deltaTime * Math.sign(carSpeed);
+        activeCar.rotation.y += steeringAngle * deltaTime * Math.sign(carSpeed);
     }
 
-    const forward = new THREE.Vector3(0, 0, 1); // Car's local forward
-    forward.applyQuaternion(car.quaternion); // Rotate forward vector to world space
-    forward.normalize();
+    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(activeCar.quaternion).normalize();
+    activeCar.position.addScaledVector(forward, carSpeed * deltaTime);
 
-    car.position.addScaledVector(forward, carSpeed * deltaTime);
+    // --- Record Active Car State ---
+    currentRecording.push({
+        time: elapsedTime,
+        position: activeCar.position.clone(),
+        rotation: activeCar.quaternion.clone(),
+    });
+
+
+    // --- Replay Inactive Cars ---
+    for (const key in loadedCarModels) {
+        const carIndex = parseInt(key);
+        if (carIndex === missionIndex) continue; // Skip the active car
+
+        const carToReplay = loadedCarModels[carIndex];
+        const recording = recordedMovements[carIndex];
+
+        if (recording && recording.length > 0) {
+            carToReplay.visible = true; // Ensure replaying cars are visible
+
+            // Find the two states surrounding the current elapsedTime
+            let state1 = recording[0];
+            let state2 = recording[recording.length - 1]; // Default to last state if time exceeds recording
+
+            for (let i = 0; i < recording.length - 1; i++) {
+                if (recording[i].time <= elapsedTime && recording[i + 1].time >= elapsedTime) {
+                    state1 = recording[i];
+                    state2 = recording[i + 1];
+                    break;
+                }
+            }
+
+            // Interpolate between state1 and state2
+            const timeDiff = state2.time - state1.time;
+            let interpFactor = 0;
+            if (timeDiff > 0) {
+                interpFactor = (elapsedTime - state1.time) / timeDiff;
+            } else if (elapsedTime >= state2.time) {
+                interpFactor = 1; // If exactly on or past the last state
+            }
+
+            interpFactor = Math.max(0, Math.min(1, interpFactor)); // Clamp factor
+
+            tempReplayPosition.lerpVectors(state1.position, state2.position, interpFactor);
+            tempReplayQuaternion.slerpQuaternions(state1.rotation, state2.rotation, interpFactor);
+
+            // Apply interpolated state
+            carToReplay.position.copy(tempReplayPosition);
+            carToReplay.quaternion.copy(tempReplayQuaternion);
+
+        } else {
+             // If no recording, ensure it's visible but static at its starting point (or hide it)
+             // carToReplay.visible = false; // Option to hide cars without recordings
+        }
+    }
+
 
     // --- Update Camera ---
     // Calculate desired camera position: behind and above the car
     const desiredCameraOffset = new THREE.Vector3(0, CAMERA_HEIGHT, -CAMERA_DISTANCE); // Offset in car's local space
-    const worldOffset = desiredCameraOffset.applyQuaternion(car.quaternion); // Rotate offset to world space
-    const desiredCameraPosition = car.position.clone().add(worldOffset); // Add world offset to car's world position
+    const worldOffset = desiredCameraOffset.applyQuaternion(activeCar.quaternion); // Rotate offset to world space
+    const desiredCameraPosition = activeCar.position.clone().add(worldOffset); // Add world offset to car's world position
 
     // Calculate desired look-at point (car's position)
-    const desiredLookAt = car.position.clone(); // Look directly at the car's current position
+    const desiredLookAt = activeCar.position.clone(); // Look directly at the car's current position
 
     // Smoothly interpolate camera position
     const lerpFactor = Math.min(CAMERA_FOLLOW_SPEED * deltaTime, 1); // Ensure lerp factor doesn't exceed 1
@@ -281,17 +366,20 @@ export function updateCarPhysics(deltaTime) {
     // Ensure camera always looks at the target *after* interpolation and setting controls.target
     camera.lookAt(controls.target);
 
-    // --- Collision Detection ---
-    activeCarBox.setFromObject(car);
+
+    // --- Collision Detection (Active Car vs Replaying Cars) ---
+    activeCarBox.setFromObject(activeCar); // Bounding box of the player-controlled car
     let collisionDetected = false;
 
     for (const key in loadedCarModels) {
-        if (parseInt(key) === missionIndex) continue; // Don't check against self
+        const carIndex = parseInt(key);
+        if (carIndex === missionIndex) continue; // Don't check against self
 
-        const otherCar = loadedCarModels[key];
-        if (!otherCar.visible) continue; // Skip inactive cars (optional)
+        const otherCar = loadedCarModels[carIndex];
+        if (!otherCar.visible) continue; // Skip inactive/hidden cars
 
-        otherCarBox.setFromObject(otherCar);
+        // Use the current (potentially replaying) position for collision check
+        otherCarBox.setFromObject(otherCar); // Get bounding box based on current position
 
         if (activeCarBox.intersectsBox(otherCarBox)) {
             collisionDetected = true;
@@ -304,8 +392,8 @@ export function updateCarPhysics(deltaTime) {
         console.log("Collision!");
         // Simple response: Stop the car immediately
         carSpeed = 0;
-        // Optional: Move car back slightly (needs previous position)
-        // car.position.addScaledVector(forward, -0.1); // Nudge back
+        // Optional: Move car back slightly
+        // activeCar.position.addScaledVector(forward, -0.1); // Nudge back (using the 'forward' calculated earlier)
     }
 }
 
