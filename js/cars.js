@@ -244,6 +244,7 @@ let activeCarBox = new THREE.Box3();
 let otherCarBox = new THREE.Box3();
 let tempReplayPosition = new THREE.Vector3(); // To avoid creating vectors in the loop
 let tempReplayQuaternion = new THREE.Quaternion(); // To avoid creating quaternions in the loop
+const COLLISION_IMPULSE_MAGNITUDE = 0.5; // How strongly the active car is pushed
 
 export function updateCarPhysics(deltaTime) {
     const activeCar = loadedCarModels[missionIndex];
@@ -388,6 +389,7 @@ export function updateCarPhysics(deltaTime) {
     // --- Collision Detection (Active Car vs Replaying Cars) ---
     activeCarBox.setFromObject(activeCar); // Bounding box of the player-controlled car
     let collisionDetected = false;
+    let collidedOtherCar = null; // Keep track of which car collided
 
     for (const key in loadedCarModels) {
         const carIndex = parseInt(key);
@@ -401,17 +403,28 @@ export function updateCarPhysics(deltaTime) {
 
         if (activeCarBox.intersectsBox(otherCarBox)) {
             collisionDetected = true;
+            collidedOtherCar = otherCar; // Store the car that was hit
             break; // Stop checking after first collision
         }
     }
 
     // --- Collision Response ---
-    if (collisionDetected) {
+    if (collisionDetected && collidedOtherCar) { // Ensure we have the other car
         console.log("Collision!");
-        // Simple response: Stop the car immediately
+        // Stop the active car's controlled movement
         carSpeed = 0;
-        // Optional: Move car back slightly
-        // activeCar.position.addScaledVector(forward, -0.1); // Nudge back (using the 'forward' calculated earlier)
+
+        // --- Apply Impulse to Active Car ---
+        // Calculate collision vector (from other car center to active car center)
+        const activeCenter = activeCarBox.getCenter(new THREE.Vector3());
+        const otherCenter = otherCarBox.getCenter(new THREE.Vector3());
+        const impulseDirection = activeCenter.sub(otherCenter).normalize();
+
+        // Apply positional impulse (push the car)
+        // Using addScaledVector for a single frame push. Adjust magnitude as needed.
+        activeCar.position.addScaledVector(impulseDirection, COLLISION_IMPULSE_MAGNITUDE);
+        console.log(`Applying impulse in direction: ${impulseDirection.toArray()}`);
+        // --- End Apply Impulse ---
     }
 }
 
