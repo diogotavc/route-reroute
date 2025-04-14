@@ -100,10 +100,22 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
 
         const activeCenter = activeCarBox.getCenter(new THREE.Vector3());
         const otherCenter = otherCarBox.getCenter(new THREE.Vector3());
-        const impulseDirection = activeCenter.sub(otherCenter).normalize();
+        const impulseDirection = activeCenter.sub(otherCenter); // Vector from other to active
 
-        activeCar.position.addScaledVector(impulseDirection, COLLISION_IMPULSE_MAGNITUDE);
-        console.log(`Applying impulse in direction: ${impulseDirection.toArray()}`);
+        // Make impulse horizontal (ignore Y component)
+        impulseDirection.y = 0;
+
+        // Apply positional impulse only horizontally
+        // Check if impulseDirection is not zero vector before normalizing and applying
+        if (impulseDirection.lengthSq() > 0.001) { // Avoid normalizing zero vector
+            impulseDirection.normalize();
+            activeCar.position.addScaledVector(impulseDirection, COLLISION_IMPULSE_MAGNITUDE);
+            console.log(`Applying horizontal impulse in direction: ${impulseDirection.toArray()}`);
+        } else {
+            // Optional: Handle cases where centers are vertically aligned
+            console.log("Collision centers aligned vertically, no horizontal impulse applied.");
+            // Maybe apply a small default horizontal push if needed? e.g., activeCar.position.x += 0.1;
+        }
     }
 
     return {
