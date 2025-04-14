@@ -7,7 +7,8 @@ export const BRAKING_RATE = 10;
 export const STEERING_RATE = 1.5;
 export const FRICTION = 1; // Speed decay per second when not accelerating/braking
 export const STEERING_FRICTION = 2; // How quickly steering returns to center
-const COLLISION_IMPULSE_MAGNITUDE = 0.5; // How strongly the active car is pushed
+const COLLISION_RESTITUTION = 0.4; // How much speed is reversed on collision (0=stop, 1=perfect bounce)
+const COLLISION_SEPARATION = 0.05; // Small push to prevent sticking after collision
 
 // --- Helper Variables ---
 let activeCarBox = new THREE.Box3();
@@ -72,8 +73,9 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
     }
 
     const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(activeCar.quaternion).normalize();
+    // Store original position before potential collision adjustment
+    const originalPosition = activeCar.position.clone();
     activeCar.position.addScaledVector(forward, speed * deltaTime);
-
 
     // --- Collision Detection (Active Car vs Replaying Cars) ---
     activeCarBox.setFromObject(activeCar);
@@ -89,6 +91,8 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
         if (activeCarBox.intersectsBox(otherCarBox)) {
             collisionDetected = true;
             collidedOtherCar = otherCar;
+            // Restore position to before movement step to calculate response from point of impact
+            activeCar.position.copy(originalPosition);
             break;
         }
     }
@@ -96,26 +100,44 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
     // --- Collision Response ---
     if (collisionDetected && collidedOtherCar) {
         console.log("Collision!");
-        speed = 0; // Stop the active car's controlled movement
 
+        // Calculate collision normal (from other car to active car)
         const activeCenter = activeCarBox.getCenter(new THREE.Vector3());
         const otherCenter = otherCarBox.getCenter(new THREE.Vector3());
-        const impulseDirection = activeCenter.sub(otherCenter); // Vector from other to active
+        const collisionNormal = activeCenter.sub(otherCenter); // Vector from other to active
 
-        // Make impulse horizontal (ignore Y component)
-        impulseDirection.y = 0;
+        // Make normal horizontal
+        collisionNormal.y = 0;
 
-        // Apply positional impulse only horizontally
-        // Check if impulseDirection is not zero vector before normalizing and applying
-        if (impulseDirection.lengthSq() > 0.001) { // Avoid normalizing zero vector
-            impulseDirection.normalize();
-            activeCar.position.addScaledVector(impulseDirection, COLLISION_IMPULSE_MAGNITUDE);
-            console.log(`Applying horizontal impulse in direction: ${impulseDirection.toArray()}`);
+        // Apply bounce and separation only if normal is significant
+        if (collisionNormal.lengthSq() > 0.001) { // Avoid normalizing zero vector
+            collisionNormal.normalize();
+
+            // Calculate how much the car was moving into the collision normal
+            const dot = forward.dot(collisionNormal);
+
+            // If moving towards the other car, apply bounce
+            if (dot < 0) {
+                // Reverse a portion of the speed based on restitution
+                speed *= -COLLISION_RESTITUTION;
+                console.log(`Collision bounce applied. New speed: ${speed.toFixed(2)}`);
+            }
+
+            // Apply a small separation force regardless of direction to prevent sticking
+            activeCar.position.addScaledVector(collisionNormal, COLLISION_SEPARATION);
+            console.log(`Applying separation push in direction: ${collisionNormal.toArray().map(n => n.toFixed(2)).join(',')}`);
+
         } else {
-            // Optional: Handle cases where centers are vertically aligned
-            console.log("Collision centers aligned vertically, no horizontal impulse applied.");
-            // Maybe apply a small default horizontal push if needed? e.g., activeCar.position.x += 0.1;
+            // Optional: Handle cases where centers are vertically aligned or coincident
+            console.log("Collision centers aligned vertically or coincident, applying default separation.");
+            // Apply a small default horizontal push if centers are too close
+            activeCar.position.x += Math.sign(Math.random() - 0.5) * COLLISION_SEPARATION; // Random small push
+            // Apply small speed reduction if centers are aligned
+            speed *= (1 - COLLISION_RESTITUTION); // Reduce speed but don't reverse
         }
+
+        // Re-apply movement with potentially modified speed after collision response
+        activeCar.position.addScaledVector(forward, speed * deltaTime);
     }
 
     return {
