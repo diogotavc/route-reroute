@@ -239,9 +239,21 @@ export function setTurningRight(value) {
 let tempReplayPosition = new THREE.Vector3(); // Keep for replay interpolation
 let tempReplayQuaternion = new THREE.Quaternion(); // Keep for replay interpolation
 
+// Timer for logging coordinates
+let logTimer = 0;
+
 export function updateCarPhysics(deltaTime) {
     const activeCar = loadedCarModels[missionIndex];
     if (!activeCar) return;
+
+    // --- Coordinate Logging ---
+    logTimer += deltaTime;
+    if (logTimer >= 1.0) {
+        console.log(`Active Car [${missionIndex}] Position: ${activeCar.position.toArray().map(p => p.toFixed(2)).join(', ')}`);
+        logTimer %= 1.0; // Reset timer, keeping any excess time
+    }
+    // --- End Coordinate Logging ---
+
 
     const currentTime = performance.now();
     const elapsedTime = (currentTime - carStartTime) / 1000; // Elapsed time in seconds
