@@ -8,11 +8,34 @@ export const STEERING_RATE = 1.5;
 export const FRICTION = 1; // Speed decay per second when not accelerating/braking
 export const STEERING_FRICTION = 2; // How quickly steering returns to center
 const COLLISION_RESTITUTION = 0.4; // How much speed is reversed on collision (0=stop, 1=perfect bounce)
-const COLLISION_SEPARATION = 0.05; // Small push to prevent sticking after collision
+const COLLISION_SEPARATION_FACTOR = 1.1; // Multiplier for separation push (increase slightly from 1.05)
+const HITBOX_SHRINK_FACTOR = 0.75; // Shrink AABB size by this factor (e.g., 0.8 = 80% of original size)
 
 // --- Helper Variables ---
 let activeCarBox = new THREE.Box3();
 let otherCarBox = new THREE.Box3();
+let collisionNormal = new THREE.Vector3(); // Reuse vector for normal calculation
+let separationVector = new THREE.Vector3(); // Reuse vector for separation
+let tempBox = new THREE.Box3(); // Temporary box for calculations
+let boxCenter = new THREE.Vector3(); // Reuse vector for box center
+let boxSize = new THREE.Vector3(); // Reuse vector for box size
+
+/**
+ * Shrinks a Box3 towards its center by a given factor.
+ * @param {THREE.Box3} box - The box to shrink.
+ * @param {number} factor - The factor to shrink by (e.g., 0.8).
+ * @returns {THREE.Box3} - The original box, now shrunk.
+ */
+function shrinkBox(box, factor) {
+    if (factor >= 1.0 || factor <= 0) return box; // No shrinking or invalid factor
+    box.getCenter(boxCenter);
+    box.getSize(boxSize);
+    const newSize = boxSize.multiplyScalar(factor);
+    const halfNewSize = newSize.multiplyScalar(0.5);
+    box.min.copy(boxCenter).sub(halfNewSize);
+    box.max.copy(boxCenter).add(halfNewSize);
+    return box;
+}
 
 /**
  * Updates the physics state of the active car based on input and deltaTime.
@@ -73,27 +96,48 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
     }
 
     const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(activeCar.quaternion).normalize();
-    // Store original position before potential collision adjustment
     const originalPosition = activeCar.position.clone();
-    activeCar.position.addScaledVector(forward, speed * deltaTime);
+    const potentialNewPosition = activeCar.position.clone().addScaledVector(forward, speed * deltaTime);
 
-    // --- Collision Detection (Active Car vs Replaying Cars) ---
-    activeCarBox.setFromObject(activeCar);
+    // --- Collision Detection ---
     let collisionDetected = false;
     let collidedOtherCar = null;
+    let penetrationDepth = Infinity;
+
+    // Calculate potential box for the active car *at its potential new position*
+    // Create a temporary object or manually calculate the box for the potential position
+    // For simplicity, let's calculate based on current position and check against others
+    // This isn't perfect but avoids predicting the box precisely.
+    // We will use the *shrunk* boxes for the intersection test.
+
+    activeCarBox.setFromObject(activeCar); // Get current full box
+    shrinkBox(activeCarBox, HITBOX_SHRINK_FACTOR); // Shrink it
 
     for (const key in otherCars) {
         const otherCar = otherCars[key];
-        if (!otherCar || !otherCar.visible) continue; // Skip inactive/hidden cars
+        if (!otherCar || !otherCar.visible) continue;
 
-        otherCarBox.setFromObject(otherCar);
+        // Calculate and shrink the other car's box
+        tempBox.setFromObject(otherCar);
+        shrinkBox(tempBox, HITBOX_SHRINK_FACTOR); // Use tempBox for the shrunk other car box
 
-        if (activeCarBox.intersectsBox(otherCarBox)) {
+        // Check intersection between the *shrunk* boxes
+        if (activeCarBox.intersectsBox(tempBox)) {
             collisionDetected = true;
             collidedOtherCar = otherCar;
-            // Restore position to before movement step to calculate response from point of impact
-            activeCar.position.copy(originalPosition);
-            break;
+
+            // --- IMPORTANT: For response, use the ORIGINAL (unshrunk) boxes ---
+            // Recalculate original boxes at the point of impact (originalPosition)
+            activeCar.position.copy(originalPosition); // Temporarily move back
+            activeCarBox.setFromObject(activeCar);     // Get full box at original pos
+            otherCarBox.setFromObject(collidedOtherCar); // Get full box of the other car
+
+            // Restore potential position for further calculations if needed,
+            // or just proceed with response based on originalPosition.
+            // Let's proceed with response based on originalPosition.
+            // activeCar.position.copy(potentialNewPosition); // Not needed if we base response on original
+
+            break; // Handle one collision per frame
         }
     }
 
@@ -101,49 +145,60 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
     if (collisionDetected && collidedOtherCar) {
         console.log("Collision!");
 
-        // Calculate collision normal (from other car to active car)
-        const activeCenter = activeCarBox.getCenter(new THREE.Vector3());
-        const otherCenter = otherCarBox.getCenter(new THREE.Vector3());
-        const collisionNormal = activeCenter.sub(otherCenter); // Vector from other to active
+        // Calculate AABB overlap using the FULL boxes calculated above
+        const overlapX = Math.min(activeCarBox.max.x, otherCarBox.max.x) - Math.max(activeCarBox.min.x, otherCarBox.min.x);
+        const overlapZ = Math.min(activeCarBox.max.z, otherCarBox.max.z) - Math.max(activeCarBox.min.z, otherCarBox.min.z);
 
-        // Make normal horizontal
-        collisionNormal.y = 0;
-
-        // Apply bounce and separation only if normal is significant
-        if (collisionNormal.lengthSq() > 0.001) { // Avoid normalizing zero vector
-            collisionNormal.normalize();
-
-            // Calculate how much the car was moving into the collision normal
-            const dot = forward.dot(collisionNormal);
-
-            // If moving towards the other car, apply bounce
-            if (dot < 0) {
-                // Reverse a portion of the speed based on restitution
-                speed *= -COLLISION_RESTITUTION;
-                console.log(`Collision bounce applied. New speed: ${speed.toFixed(2)}`);
-            }
-
-            // Apply a small separation force regardless of direction to prevent sticking
-            activeCar.position.addScaledVector(collisionNormal, COLLISION_SEPARATION);
-            console.log(`Applying separation push in direction: ${collisionNormal.toArray().map(n => n.toFixed(2)).join(',')}`);
-
+        // Determine minimum penetration axis (X or Z) using FULL boxes
+        if (overlapX < overlapZ) {
+            penetrationDepth = overlapX;
+            const sign = Math.sign(activeCarBox.getCenter(new THREE.Vector3()).x - otherCarBox.getCenter(new THREE.Vector3()).x);
+            collisionNormal.set(sign, 0, 0);
         } else {
-            // Optional: Handle cases where centers are vertically aligned or coincident
-            console.log("Collision centers aligned vertically or coincident, applying default separation.");
-            // Apply a small default horizontal push if centers are too close
-            activeCar.position.x += Math.sign(Math.random() - 0.5) * COLLISION_SEPARATION; // Random small push
-            // Apply small speed reduction if centers are aligned
-            speed *= (1 - COLLISION_RESTITUTION); // Reduce speed but don't reverse
+            penetrationDepth = overlapZ;
+            const sign = Math.sign(activeCarBox.getCenter(new THREE.Vector3()).z - otherCarBox.getCenter(new THREE.Vector3()).z);
+            collisionNormal.set(0, 0, sign);
         }
 
-        // Re-apply movement with potentially modified speed after collision response
-        activeCar.position.addScaledVector(forward, speed * deltaTime);
+        // Ensure normal is valid
+        if (collisionNormal.lengthSq() > 0.001 && penetrationDepth < Infinity && penetrationDepth > 0) {
+            // Calculate how much the car was moving into the collision normal
+            // Use forward vector calculated before collision check
+            const dot = forward.dot(collisionNormal);
+
+            // Apply bounce if moving towards
+            if (dot < 0) {
+                speed *= -COLLISION_RESTITUTION;
+                console.log(`Collision bounce applied along ${collisionNormal.toArray().map(n=>n.toFixed(1))}. New speed: ${speed.toFixed(2)}`);
+            } else {
+                speed *= (1 - COLLISION_RESTITUTION * 0.5);
+            }
+
+            // Apply separation push based on penetration depth of FULL boxes
+            separationVector.copy(collisionNormal).multiplyScalar(penetrationDepth * COLLISION_SEPARATION_FACTOR);
+            activeCar.position.add(separationVector); // Apply separation to originalPosition
+            console.log(`Applying separation push: ${separationVector.toArray().map(n => n.toFixed(2)).join(',')}`);
+
+        } else {
+            // Fallback
+            console.warn("Collision detected but MTV calculation failed or penetration zero. Applying fallback.");
+            speed *= -COLLISION_RESTITUTION;
+            activeCar.position.x += (Math.random() - 0.5) * 0.1;
+            activeCar.position.z += (Math.random() - 0.5) * 0.1;
+        }
+
+        // After response (position adjusted, speed modified), we don't re-apply movement this frame.
+        // The modified speed will affect the *next* frame's movement calculation.
+
+    } else {
+        // No collision detected, apply the potential movement
+        activeCar.position.copy(potentialNewPosition);
     }
 
     return {
         speed: speed,
         acceleration: acceleration,
         steeringAngle: steeringAngle,
-        collisionDetected: collisionDetected
+        collisionDetected: collisionDetected // Report if a collision *was handled* this frame
     };
 }
