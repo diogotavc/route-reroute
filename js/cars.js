@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import * as CarPhysics from "./carPhysics.js"; // Import the new physics module
 
 let scene = null;
 let camera = null;
@@ -60,20 +61,15 @@ const recordedMovements = {}; // Stores recordings for completed cars { missionI
 let currentRecording = []; // Stores the recording for the currently active car
 let carStartTime = 0; // Timestamp (performance.now()) when the current car became active
 
-// Physics State
+// Physics State (managed per active car, but stored here for simplicity for now)
 let carSpeed = 0;
-let carAcceleration = 0; // Can be positive (accelerating) or negative (braking)
+let carAcceleration = 0;
 let steeringAngle = 0;
 let isAccelerating = false;
 let isBraking = false;
 let isTurningLeft = false;
 let isTurningRight = false;
-const MAX_SPEED = 15;
-const ACCELERATION_RATE = 5;
-const BRAKING_RATE = 10;
-const STEERING_RATE = 1.5;
-const FRICTION = 1; // Speed decay per second when not accelerating/braking
-const STEERING_FRICTION = 2; // How quickly steering returns to center
+
 const CAMERA_FOLLOW_SPEED = 2.0; // How quickly the camera catches up (higher is faster)
 // Adjust these values for zoom and angle
 const CAMERA_DISTANCE = 18; // Increased distance for zoom out
@@ -240,74 +236,57 @@ export function setTurningRight(value) {
 
 // --- Physics Update ---
 
-let activeCarBox = new THREE.Box3();
-let otherCarBox = new THREE.Box3();
-let tempReplayPosition = new THREE.Vector3(); // To avoid creating vectors in the loop
-let tempReplayQuaternion = new THREE.Quaternion(); // To avoid creating quaternions in the loop
-const COLLISION_IMPULSE_MAGNITUDE = 0.5; // How strongly the active car is pushed
+let tempReplayPosition = new THREE.Vector3(); // Keep for replay interpolation
+let tempReplayQuaternion = new THREE.Quaternion(); // Keep for replay interpolation
 
 export function updateCarPhysics(deltaTime) {
     const activeCar = loadedCarModels[missionIndex];
     if (!activeCar) return;
 
     const currentTime = performance.now();
-    const elapsedTime = (currentTime - carStartTime) / 1000; // Elapsed time in seconds since this car became active
+    const elapsedTime = (currentTime - carStartTime) / 1000; // Elapsed time in seconds
 
-    // --- Update Active Car Physics (Steering, Speed, Position) ---
-    // --- Update Steering ---
-    let steeringChange = 0;
-    if (isTurningLeft) {
-        steeringChange += STEERING_RATE * deltaTime;
-    }
-    if (isTurningRight) {
-        steeringChange -= STEERING_RATE * deltaTime;
-    }
-    steeringAngle += steeringChange;
-
-    // Apply steering friction (return to center)
-    if (!isTurningLeft && !isTurningRight) {
-        steeringAngle -= steeringAngle * STEERING_FRICTION * deltaTime;
-        // Prevent overshooting center
-        if (Math.abs(steeringAngle) < 0.01) {
-            steeringAngle = 0;
-        }
-    }
-    // Clamp steering angle (optional)
-    steeringAngle = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, steeringAngle)); // Limit to +/- 45 degrees
-
-    // --- Update Speed ---
-    if (isAccelerating) {
-        carAcceleration = ACCELERATION_RATE;
-    } else if (isBraking) {
-        carAcceleration = -BRAKING_RATE;
-    } else {
-        // Apply friction when not accelerating or braking
-        carAcceleration = -Math.sign(carSpeed) * FRICTION;
-        // Prevent friction from reversing direction at low speeds
-        if (Math.abs(carSpeed) < FRICTION * deltaTime) {
-            carSpeed = 0;
-            carAcceleration = 0;
+    // --- Prepare data for physics update ---
+    const currentPhysicsState = {
+        speed: carSpeed,
+        acceleration: carAcceleration,
+        steeringAngle: steeringAngle
+    };
+    const currentInputState = {
+        isAccelerating: isAccelerating,
+        isBraking: isBraking,
+        isTurningLeft: isTurningLeft,
+        isTurningRight: isTurningRight
+    };
+    // Prepare list of other cars for collision detection
+    const otherCars = {};
+    for (const key in loadedCarModels) {
+        const carIndex = parseInt(key);
+        if (carIndex !== missionIndex) {
+            otherCars[carIndex] = loadedCarModels[carIndex];
         }
     }
 
-    carSpeed += carAcceleration * deltaTime;
-    carSpeed = Math.max(-MAX_SPEED / 2, Math.min(MAX_SPEED, carSpeed)); // Clamp speed (allow slower reverse)
+    // --- Call external physics update ---
+    const updatedPhysicsState = CarPhysics.updatePhysics(
+        activeCar,
+        currentPhysicsState,
+        currentInputState,
+        deltaTime,
+        otherCars // Pass other cars for collision detection
+    );
 
-    // Stop if braking brings speed close to zero
-    if (isBraking && Math.abs(carSpeed) < 0.1) {
-        carSpeed = 0;
+    // --- Update local physics state from result ---
+    carSpeed = updatedPhysicsState.speed;
+    carAcceleration = updatedPhysicsState.acceleration;
+    steeringAngle = updatedPhysicsState.steeringAngle;
+
+    // Optional: Handle collision result if needed (e.g., specific game logic)
+    if (updatedPhysicsState.collisionDetected) {
+        // Collision response (like impulse) is handled within updatePhysics
+        // Add any additional game logic here if needed
     }
 
-    // --- Update Position & Rotation ---
-    // Only rotate if moving
-    if (Math.abs(carSpeed) > 0.01) {
-        // Adjust rotation based on steering angle and speed (more speed = less turn influence needed for same radius)
-        // Simplified: Rotate directly by steering angle scaled by deltaTime and speed sign
-        activeCar.rotation.y += steeringAngle * deltaTime * Math.sign(carSpeed);
-    }
-
-    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(activeCar.quaternion).normalize();
-    activeCar.position.addScaledVector(forward, carSpeed * deltaTime);
 
     // --- Record Active Car State ---
     currentRecording.push({
@@ -330,7 +309,7 @@ export function updateCarPhysics(deltaTime) {
 
             // Find the two states surrounding the current elapsedTime
             let state1 = recording[0];
-            let state2 = recording[recording.length - 1]; // Default to last state if time exceeds recording
+            let state2 = recording[recording.length - 1]; // Default to last state
 
             for (let i = 0; i < recording.length - 1; i++) {
                 if (recording[i].time <= elapsedTime && recording[i + 1].time >= elapsedTime) {
@@ -346,7 +325,7 @@ export function updateCarPhysics(deltaTime) {
             if (timeDiff > 0) {
                 interpFactor = (elapsedTime - state1.time) / timeDiff;
             } else if (elapsedTime >= state2.time) {
-                interpFactor = 1; // If exactly on or past the last state
+                interpFactor = 1;
             }
 
             interpFactor = Math.max(0, Math.min(1, interpFactor)); // Clamp factor
@@ -359,73 +338,24 @@ export function updateCarPhysics(deltaTime) {
             carToReplay.quaternion.copy(tempReplayQuaternion);
 
         } else {
-             // If no recording, ensure it's visible but static at its starting point (or hide it)
              // carToReplay.visible = false; // Option to hide cars without recordings
         }
     }
 
 
     // --- Update Camera ---
-    // Calculate desired camera position: behind and above the car
-    const desiredCameraOffset = new THREE.Vector3(0, CAMERA_HEIGHT, -CAMERA_DISTANCE); // Offset in car's local space
-    const worldOffset = desiredCameraOffset.applyQuaternion(activeCar.quaternion); // Rotate offset to world space
-    const desiredCameraPosition = activeCar.position.clone().add(worldOffset); // Add world offset to car's world position
+    const desiredCameraOffset = new THREE.Vector3(0, CAMERA_HEIGHT, -CAMERA_DISTANCE);
+    const worldOffset = desiredCameraOffset.applyQuaternion(activeCar.quaternion);
+    const desiredCameraPosition = activeCar.position.clone().add(worldOffset);
+    const desiredLookAt = activeCar.position.clone();
 
-    // Calculate desired look-at point (car's position)
-    const desiredLookAt = activeCar.position.clone(); // Look directly at the car's current position
-
-    // Smoothly interpolate camera position
-    const lerpFactor = Math.min(CAMERA_FOLLOW_SPEED * deltaTime, 1); // Ensure lerp factor doesn't exceed 1
+    const lerpFactor = Math.min(CAMERA_FOLLOW_SPEED * deltaTime, 1);
     camera.position.lerp(desiredCameraPosition, lerpFactor);
-
-    // Set the OrbitControls target *after* lerping camera position
-    // This tells OrbitControls where the center of interest is, even if we don't use its movement.
     controls.target.copy(desiredLookAt);
-
-    // Ensure camera always looks at the target *after* interpolation and setting controls.target
     camera.lookAt(controls.target);
 
-
-    // --- Collision Detection (Active Car vs Replaying Cars) ---
-    activeCarBox.setFromObject(activeCar); // Bounding box of the player-controlled car
-    let collisionDetected = false;
-    let collidedOtherCar = null; // Keep track of which car collided
-
-    for (const key in loadedCarModels) {
-        const carIndex = parseInt(key);
-        if (carIndex === missionIndex) continue; // Don't check against self
-
-        const otherCar = loadedCarModels[carIndex];
-        if (!otherCar.visible) continue; // Skip inactive/hidden cars
-
-        // Use the current (potentially replaying) position for collision check
-        otherCarBox.setFromObject(otherCar); // Get bounding box based on current position
-
-        if (activeCarBox.intersectsBox(otherCarBox)) {
-            collisionDetected = true;
-            collidedOtherCar = otherCar; // Store the car that was hit
-            break; // Stop checking after first collision
-        }
-    }
-
-    // --- Collision Response ---
-    if (collisionDetected && collidedOtherCar) { // Ensure we have the other car
-        console.log("Collision!");
-        // Stop the active car's controlled movement
-        carSpeed = 0;
-
-        // --- Apply Impulse to Active Car ---
-        // Calculate collision vector (from other car center to active car center)
-        const activeCenter = activeCarBox.getCenter(new THREE.Vector3());
-        const otherCenter = otherCarBox.getCenter(new THREE.Vector3());
-        const impulseDirection = activeCenter.sub(otherCenter).normalize();
-
-        // Apply positional impulse (push the car)
-        // Using addScaledVector for a single frame push. Adjust magnitude as needed.
-        activeCar.position.addScaledVector(impulseDirection, COLLISION_IMPULSE_MAGNITUDE);
-        console.log(`Applying impulse in direction: ${impulseDirection.toArray()}`);
-        // --- End Apply Impulse ---
-    }
+    // --- Collision Detection and Response are now handled within CarPhysics.updatePhysics ---
+    // Remove the old collision detection/response block from here
 }
 
 /**
