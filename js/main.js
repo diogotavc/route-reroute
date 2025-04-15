@@ -125,8 +125,8 @@ window.addEventListener("keydown", (event) => {
         case "d":
             setTurningRight(true);
             break;
-        case "r": // Add key listener for rewind
-            setRewinding(true);
+        case "r": // Trigger rewind on keydown
+            setRewinding(); // Call without arguments
             break;
         // ... other cases
     }
@@ -150,8 +150,9 @@ window.addEventListener("keyup", (event) => {
         case "d":
             setTurningRight(false);
             break;
-        case "r": // Add key listener for rewind
-            setRewinding(false);
-            break;
+        // REMOVE the 'r' case from keyup
+        // case "r":
+        //     setRewinding(false);
+        //     break;
     }
 });
