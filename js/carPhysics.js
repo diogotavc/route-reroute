@@ -10,9 +10,136 @@ export const STEERING_FRICTION = 2; // How quickly steering returns to center
 const COLLISION_RESTITUTION = 0.4; // How much speed is reversed on collision (0=stop, 1=perfect bounce)
 const COLLISION_SEPARATION_FACTOR = 1.1; // Multiplier for separation push
 
-
+// --- Helper Variables ---
 let collisionNormal = new THREE.Vector3(); // Reuse vector for normal calculation
 let separationVector = new THREE.Vector3(); // Reuse vector for separation
+
+// --- SAT Helper Variables ---
+const satBoxA = { center: new THREE.Vector3(), halfExtents: new THREE.Vector3(), axes: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()] };
+const satBoxB = { center: new THREE.Vector3(), halfExtents: new THREE.Vector3(), axes: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()] };
+const satVec = new THREE.Vector3(); // General purpose vector
+const satCenterDiff = new THREE.Vector3(); // Difference between centers
+const satAxes = []; // Array to hold the 15 potential separating axes
+const satIntervalA = { min: 0, max: 0 }; // Projection interval for box A
+const satIntervalB = { min: 0, max: 0 }; // Projection interval for box B
+const satTempBox = new THREE.Box3(); // To calculate initial extents
+
+/**
+ * Gets OBB data (center, half-extents, local axes) for a car object.
+ * @param {THREE.Object3D} car - The car object.
+ * @param {object} obbData - The object to store OBB data in.
+ */
+function getOBBData(car, obbData) {
+    // Use Box3 to get initial size, assuming object origin is center
+    satTempBox.setFromObject(car); // Recalculate AABB each time for simplicity
+    satTempBox.getSize(obbData.halfExtents).multiplyScalar(0.5);
+    obbData.center.copy(car.position);
+
+    // Extract local axes from the car's world matrix
+    car.updateMatrixWorld(); // Ensure matrix is up-to-date
+    obbData.axes[0].setFromMatrixColumn(car.matrixWorld, 0).normalize(); // X-axis
+    obbData.axes[1].setFromMatrixColumn(car.matrixWorld, 1).normalize(); // Y-axis (usually up)
+    obbData.axes[2].setFromMatrixColumn(car.matrixWorld, 2).normalize(); // Z-axis (usually forward)
+}
+
+/**
+ * Projects an OBB onto a given axis and returns the interval [min, max].
+ * @param {object} obbData - OBB data { center, halfExtents, axes }.
+ * @param {THREE.Vector3} axis - The axis to project onto.
+ * @param {object} interval - The object to store the interval { min, max }.
+ */
+function projectOBB(obbData, axis, interval) {
+    // Project the center onto the axis
+    const centerProjection = obbData.center.dot(axis);
+
+    // Project the half-extents along the axes onto the separation axis
+    const extentProjection =
+        obbData.halfExtents.x * Math.abs(obbData.axes[0].dot(axis)) +
+        obbData.halfExtents.y * Math.abs(obbData.axes[1].dot(axis)) +
+        obbData.halfExtents.z * Math.abs(obbData.axes[2].dot(axis));
+
+    interval.min = centerProjection - extentProjection;
+    interval.max = centerProjection + extentProjection;
+}
+
+/**
+ * Calculates the overlap between two intervals.
+ * @param {object} intervalA - { min, max }.
+ * @param {object} intervalB - { min, max }.
+ * @returns {number} - The overlap amount, or 0 if no overlap.
+ */
+function getIntervalOverlap(intervalA, intervalB) {
+    const minMax = Math.min(intervalA.max, intervalB.max);
+    const maxMin = Math.max(intervalA.min, intervalB.min);
+    return Math.max(0, minMax - maxMin);
+}
+
+/**
+ * Checks for collision between two OBBs using the Separating Axis Theorem (SAT).
+ * @param {THREE.Object3D} carA
+ * @param {THREE.Object3D} carB
+ * @returns {object} - { collision: boolean, mtvAxis: THREE.Vector3 | null, mtvDepth: number | null }
+ */
+function checkOBBCollisionSAT(carA, carB) {
+    getOBBData(carA, satBoxA);
+    getOBBData(carB, satBoxB);
+
+    satAxes.length = 0; // Clear previous axes
+
+    // 1. Add axes from Box A
+    satAxes.push(satBoxA.axes[0]);
+    satAxes.push(satBoxA.axes[1]);
+    satAxes.push(satBoxA.axes[2]);
+
+    // 2. Add axes from Box B
+    satAxes.push(satBoxB.axes[0]);
+    satAxes.push(satBoxB.axes[1]);
+    satAxes.push(satBoxB.axes[2]);
+
+    // 3. Add cross products (only need 9 unique combinations)
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            satVec.crossVectors(satBoxA.axes[i], satBoxB.axes[j]);
+            // Avoid adding zero vectors or redundant axes
+            if (satVec.lengthSq() > 0.0001) {
+                satAxes.push(satVec.clone().normalize()); // Add normalized axis
+            }
+        }
+    }
+
+    let minOverlap = Infinity;
+    let mtvAxis = null;
+
+    // Test each axis
+    for (let i = 0; i < satAxes.length; i++) {
+        const axis = satAxes[i];
+        projectOBB(satBoxA, axis, satIntervalA);
+        projectOBB(satBoxB, axis, satIntervalB);
+
+        const overlap = getIntervalOverlap(satIntervalA, satIntervalB);
+
+        if (overlap === 0) {
+            // Found a separating axis, no collision
+            return { collision: false, mtvAxis: null, mtvDepth: null };
+        } else {
+            // Check if this is the minimum overlap so far
+            if (overlap < minOverlap) {
+                minOverlap = overlap;
+                mtvAxis = axis; // Store the axis associated with minimum overlap
+            }
+        }
+    }
+
+    // If we got here, intervals overlapped on all axes - collision detected.
+    // Ensure MTV axis points from B to A (or consistently)
+    satCenterDiff.subVectors(satBoxA.center, satBoxB.center);
+    if (satCenterDiff.dot(mtvAxis) < 0) {
+        mtvAxis.negate(); // Flip axis to point from B towards A
+    }
+
+    return { collision: true, mtvAxis: mtvAxis, mtvDepth: minOverlap };
+}
+
 
 /**
  * Updates the physics state of the active car based on input and deltaTime.
@@ -79,105 +206,69 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
     const originalPosition = activeCar.position.clone();
     const potentialNewPosition = activeCar.position.clone().addScaledVector(forward, speed * deltaTime);
 
-    // --- OBB Collision Detection Placeholder ---
-    // OBB (Oriented Bounding Box) detection is more accurate for rotated objects than AABB.
-    // It typically involves the Separating Axis Theorem (SAT).
-    // SAT checks for overlap along potential separating axes derived from both boxes' orientations.
-    // Implementation Steps:
-    // 1. Define OBBs: For each car, get center (position), orientation (quaternion/matrix), and half-extents (size/2).
-    //    - Calculate extents once or cache them. Use a Box3 helper initially:
-    //      const box = new THREE.Box3().setFromObject(car);
-    //      const halfExtents = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);
-    // 2. Implement SAT:
-    //    - Get the 15 potential separating axes (3 from car A, 3 from car B, 9 from cross products).
-    //    - For each axis, project both OBBs onto it to get intervals.
-    //    - If intervals don't overlap for *any* axis, there's no collision.
-    //    - If intervals overlap for *all* axes, there *is* a collision.
-    // 3. Calculate MTV (Minimum Translation Vector): The axis with the minimum overlap gives the direction
-    //    and magnitude to separate the boxes. This should ideally inform the collision response.
-
+    // --- OBB Collision Detection ---
     let collisionDetected = false;
     let collidedOtherCar = null;
-    let penetrationDepth = Infinity; // Will be calculated by SAT if implemented
-    // collisionNormal will be set by SAT (axis of minimum overlap)
+    let penetrationDepth = 0; // Reset penetration depth
+    collisionNormal.set(0, 0, 0); // Reset collision normal
 
-    // --- Placeholder Loop ---
-    // This loop structure remains, but the intersection test needs replacement.
+    // Move car to potential position for detection
+    activeCar.position.copy(potentialNewPosition);
+
     for (const key in otherCars) {
         const otherCar = otherCars[key];
         if (!otherCar || !otherCar.visible) continue;
 
-        // --- OBB Intersection Test (Placeholder) ---
-        // Replace this with your SAT implementation
-        // const areColliding = checkOBBCollision(activeCar, otherCar); // Your SAT function
-        const areColliding = false; // Default to no collision until SAT is implemented
+        // --- OBB Intersection Test using SAT ---
+        const collisionResult = checkOBBCollisionSAT(activeCar, otherCar);
 
-        if (areColliding) {
+        if (collisionResult.collision) {
             collisionDetected = true;
             collidedOtherCar = otherCar;
+            penetrationDepth = collisionResult.mtvDepth;
+            collisionNormal.copy(collisionResult.mtvAxis);
 
-            // --- Get Collision Details from SAT ---
-            // Your SAT function should ideally return the MTV (normal and depth)
-            // penetrationDepth = mtv.depth;
-            // collisionNormal.copy(mtv.axis);
-
-            // --- TEMPORARY: Keep AABB-based response calculation for now ---
-            // Recalculate original boxes at the point of impact (originalPosition)
-            // This response part should ideally use the OBB's MTV from SAT.
-            const tempActiveCarBox = new THREE.Box3().setFromObject(activeCar); // Need temporary boxes here
-            const tempOtherCarBox = new THREE.Box3().setFromObject(collidedOtherCar);
-            activeCar.position.copy(originalPosition); // Temporarily move back for AABB calculation
-            tempActiveCarBox.setFromObject(activeCar);     // Get full box at original pos
-            tempOtherCarBox.setFromObject(collidedOtherCar); // Get full box of the other car
-
-            // Calculate AABB overlap (as fallback/approximation)
-            const overlapX = Math.min(tempActiveCarBox.max.x, tempOtherCarBox.max.x) - Math.max(tempActiveCarBox.min.x, tempOtherCarBox.min.x);
-            const overlapZ = Math.min(tempActiveCarBox.max.z, tempOtherCarBox.max.z) - Math.max(tempActiveCarBox.min.z, tempOtherCarBox.min.z);
-
-            if (overlapX < overlapZ) {
-                penetrationDepth = overlapX;
-                const sign = Math.sign(tempActiveCarBox.getCenter(new THREE.Vector3()).x - tempOtherCarBox.getCenter(new THREE.Vector3()).x);
-                collisionNormal.set(sign, 0, 0);
-            } else {
-                penetrationDepth = overlapZ;
-                const sign = Math.sign(tempActiveCarBox.getCenter(new THREE.Vector3()).z - tempOtherCarBox.getCenter(new THREE.Vector3()).z);
-                collisionNormal.set(0, 0, sign);
-            }
-            // --- End of Temporary AABB response calculation ---
-
-
+            // Collision found, move car back to original position before applying response
+            activeCar.position.copy(originalPosition);
             break; // Handle one collision per frame
         }
     }
 
+    // If no collision was detected after checking all cars, keep the potential position
+    if (!collisionDetected) {
+         activeCar.position.copy(potentialNewPosition);
+    }
+
     // --- Collision Response ---
     if (collisionDetected && collidedOtherCar) {
-        console.log("Collision (OBB check placeholder)!");
+        console.log("Collision detected (OBB SAT)!");
 
-        // Ensure normal is valid (using the temporary AABB calculation for now)
-        if (collisionNormal.lengthSq() > 0.001 && penetrationDepth < Infinity && penetrationDepth > 0) {
-            // ... (rest of the response logic remains the same for now) ...
+        // Ensure MTV is valid
+        if (collisionNormal.lengthSq() > 0.001 && penetrationDepth > 0) {
             // Calculate how much the car was moving into the collision normal
+            // Use forward vector calculated before collision check
             const dot = forward.dot(collisionNormal);
 
-            // Apply bounce if moving towards
+            // Apply bounce if moving towards the collision normal
             if (dot < 0) {
                 speed *= -COLLISION_RESTITUTION;
                 console.log(`Collision bounce applied along ${collisionNormal.toArray().map(n=>n.toFixed(1))}. New speed: ${speed.toFixed(2)}`);
             } else {
-                speed *= (1 - COLLISION_RESTITUTION * 0.5); // Dampen speed even if not moving directly towards
+                // Optional: Dampen speed slightly even if not moving directly towards
+                 speed *= (1 - COLLISION_RESTITUTION * 0.1);
             }
 
-            // Apply separation push based on penetration depth
-            // Ideally, use penetrationDepth from SAT
+            // Apply separation push based on MTV depth
             separationVector.copy(collisionNormal).multiplyScalar(penetrationDepth * COLLISION_SEPARATION_FACTOR);
-            activeCar.position.add(separationVector); // Apply separation to originalPosition
+            activeCar.position.add(separationVector); // Apply separation push to the *original* position
             console.log(`Applying separation push: ${separationVector.toArray().map(n => n.toFixed(2)).join(',')}`);
 
         } else {
-            // Fallback (if temporary AABB calculation failed)
-            console.warn("Collision detected but MTV calculation failed or penetration zero. Applying fallback.");
-            speed *= -COLLISION_RESTITUTION;
+            // Fallback if MTV calculation somehow failed (shouldn't happen if collision=true)
+            console.warn("Collision detected but MTV invalid. Applying fallback response.");
+            speed *= -COLLISION_RESTITUTION; // Simple bounce
+            // Move car back to original position before fallback push
+            activeCar.position.copy(originalPosition);
             activeCar.position.x += (Math.random() - 0.5) * 0.1;
             activeCar.position.z += (Math.random() - 0.5) * 0.1;
         }
@@ -185,9 +276,6 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
         // After response (position adjusted, speed modified), we don't re-apply movement this frame.
         // The modified speed will affect the *next* frame's movement calculation.
 
-    } else {
-        // No collision detected, apply the potential movement
-        activeCar.position.copy(potentialNewPosition);
     }
 
     return {
