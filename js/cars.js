@@ -242,43 +242,20 @@ export function setTurningRight(value) {
 }
 
 // --- Rewind Control ---
-export function setRewinding(value) {
-    // When stopping rewind, truncate the recording
-    if (!value && isRewinding) { // Check if we were actually rewinding
-        let targetIndex = currentRecording.length - 1;
-        // Find the last state before or at the current rewind time
-        for (let i = 0; i < currentRecording.length - 1; i++) {
-            // Find the segment where elapsedTime falls
-            if (currentRecording[i].time <= elapsedTime && currentRecording[i + 1].time > elapsedTime) {
-                targetIndex = i;
-                break;
-            }
-            // If elapsedTime is exactly on a frame time
-            if (currentRecording[i].time === elapsedTime) {
-                targetIndex = i;
-                break;
-            }
-        }
-        // If elapsedTime is beyond the last recorded time (shouldn't happen if recording is continuous)
-        if (elapsedTime >= currentRecording[currentRecording.length - 1].time) {
-            targetIndex = currentRecording.length - 1;
-        }
-
-
-        // Keep states up to and including targetIndex
-        currentRecording = currentRecording.slice(0, targetIndex + 1);
-        console.log(`Rewind stopped. Recording truncated to ${currentRecording.length} states at time ${elapsedTime.toFixed(2)}s.`);
-
-        // Reset input flags AND physics state to prevent car lurching after rewind
+export function setRewinding() {
+    // Only start rewinding if not already doing so
+    if (!isRewinding) {
+        console.log("Starting rewind...");
+        isRewinding = true;
+        // Reset input flags immediately when starting rewind
+        // to prevent accidental input carrying over
         isAccelerating = false;
         isBraking = false;
         isTurningLeft = false;
         isTurningRight = false;
-        carSpeed = 0; // Reset speed
-        carAcceleration = 0; // Reset acceleration
-        steeringAngle = 0; // Reset steering
+    } else {
+        console.log("Rewind already in progress.");
     }
-    isRewinding = value;
 }
 
 
@@ -346,12 +323,24 @@ export function updateCarPhysics(deltaTime) {
             activeCar.quaternion.copy(currentRecording[0].rotation);
         }
 
-        // If we rewind to the beginning, stop rewinding
-        if (elapsedTime <= 0 && currentRecording.length > 0) { // Ensure there's a recording before stopping
+        // If we rewind to the beginning, stop rewinding and reset state
+        if (elapsedTime <= 0 && currentRecording.length > 0) {
+            console.log("Rewind finished.");
+            isRewinding = false; // Stop rewinding
+
             // Snap to the very first state precisely
             activeCar.position.copy(currentRecording[0].position);
             activeCar.quaternion.copy(currentRecording[0].rotation);
-            setRewinding(false); // Use the function to handle state change and cleanup
+
+            // Reset physics state after rewind completes
+            carSpeed = 0;
+            carAcceleration = 0;
+            steeringAngle = 0;
+            // Input flags are already reset when rewind starts
+
+            // Truncate recording to only the initial state
+            currentRecording = [currentRecording[0]];
+            console.log(`Recording reset to initial state at time 0.`);
         }
 
         // Skip physics, recording, and replay during rewind
