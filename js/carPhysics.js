@@ -8,38 +8,15 @@ export const STEERING_RATE = 1.5;
 export const FRICTION = 1; // Speed decay per second when not accelerating/braking
 export const STEERING_FRICTION = 2; // How quickly steering returns to center
 const COLLISION_RESTITUTION = 0.4; // How much speed is reversed on collision (0=stop, 1=perfect bounce)
-const COLLISION_SEPARATION_FACTOR = 1.1; // Multiplier for separation push (increase slightly from 1.05)
-const HITBOX_SHRINK_FACTOR = 0.75; // Shrink AABB size by this factor (e.g., 0.8 = 80% of original size)
+const COLLISION_SEPARATION_FACTOR = 1.1; // Multiplier for separation push
 
-// --- Helper Variables ---
-let activeCarBox = new THREE.Box3();
-let otherCarBox = new THREE.Box3();
+
 let collisionNormal = new THREE.Vector3(); // Reuse vector for normal calculation
 let separationVector = new THREE.Vector3(); // Reuse vector for separation
-let tempBox = new THREE.Box3(); // Temporary box for calculations
-let boxCenter = new THREE.Vector3(); // Reuse vector for box center
-let boxSize = new THREE.Vector3(); // Reuse vector for box size
-
-/**
- * Shrinks a Box3 towards its center by a given factor.
- * @param {THREE.Box3} box - The box to shrink.
- * @param {number} factor - The factor to shrink by (e.g., 0.8).
- * @returns {THREE.Box3} - The original box, now shrunk.
- */
-function shrinkBox(box, factor) {
-    if (factor >= 1.0 || factor <= 0) return box; // No shrinking or invalid factor
-    box.getCenter(boxCenter);
-    box.getSize(boxSize);
-    const newSize = boxSize.multiplyScalar(factor);
-    const halfNewSize = newSize.multiplyScalar(0.5);
-    box.min.copy(boxCenter).sub(halfNewSize);
-    box.max.copy(boxCenter).add(halfNewSize);
-    return box;
-}
 
 /**
  * Updates the physics state of the active car based on input and deltaTime.
- * Handles collision detection and response against other cars.
+ * Handles collision detection and response against other cars using OBB concept.
  * @param {THREE.Object3D} activeCar - The car object to update.
  * @param {object} physicsState - Current physics state { speed, acceleration, steeringAngle }.
  * @param {object} inputState - User input { isAccelerating, isBraking, isTurningLeft, isTurningRight }.
@@ -92,54 +69,82 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
 
     // --- Update Position & Rotation ---
     if (Math.abs(speed) > 0.01) {
-        activeCar.rotation.y += steeringAngle * deltaTime * Math.sign(speed);
+        // Apply rotation based on steering angle and speed direction
+        const rotationAmount = steeringAngle * deltaTime * Math.sign(speed);
+        const deltaRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAmount);
+        activeCar.quaternion.multiplyQuaternions(deltaRotation, activeCar.quaternion);
     }
 
     const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(activeCar.quaternion).normalize();
     const originalPosition = activeCar.position.clone();
     const potentialNewPosition = activeCar.position.clone().addScaledVector(forward, speed * deltaTime);
 
-    // --- Collision Detection ---
-    // Uses Axis-Aligned Bounding Boxes (AABB) shrunk slightly for detection.
-    // This is fast but less accurate for rotated objects.
-    // Consider Oriented Bounding Boxes (OBB) or Sphere collisions for more accuracy
-    // if needed, at the cost of performance.
+    // --- OBB Collision Detection Placeholder ---
+    // OBB (Oriented Bounding Box) detection is more accurate for rotated objects than AABB.
+    // It typically involves the Separating Axis Theorem (SAT).
+    // SAT checks for overlap along potential separating axes derived from both boxes' orientations.
+    // Implementation Steps:
+    // 1. Define OBBs: For each car, get center (position), orientation (quaternion/matrix), and half-extents (size/2).
+    //    - Calculate extents once or cache them. Use a Box3 helper initially:
+    //      const box = new THREE.Box3().setFromObject(car);
+    //      const halfExtents = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);
+    // 2. Implement SAT:
+    //    - Get the 15 potential separating axes (3 from car A, 3 from car B, 9 from cross products).
+    //    - For each axis, project both OBBs onto it to get intervals.
+    //    - If intervals don't overlap for *any* axis, there's no collision.
+    //    - If intervals overlap for *all* axes, there *is* a collision.
+    // 3. Calculate MTV (Minimum Translation Vector): The axis with the minimum overlap gives the direction
+    //    and magnitude to separate the boxes. This should ideally inform the collision response.
+
     let collisionDetected = false;
     let collidedOtherCar = null;
-    let penetrationDepth = Infinity;
+    let penetrationDepth = Infinity; // Will be calculated by SAT if implemented
+    // collisionNormal will be set by SAT (axis of minimum overlap)
 
-    // Calculate potential box for the active car *at its potential new position*
-    // Create a temporary object or manually calculate the box for the potential position
-    // For simplicity, let's calculate based on current position and check against others
-    // This isn't perfect but avoids predicting the box precisely.
-    // We will use the *shrunk* boxes for the intersection test.
-
-    activeCarBox.setFromObject(activeCar); // Get current full box
-    shrinkBox(activeCarBox, HITBOX_SHRINK_FACTOR); // Shrink it
-
+    // --- Placeholder Loop ---
+    // This loop structure remains, but the intersection test needs replacement.
     for (const key in otherCars) {
         const otherCar = otherCars[key];
         if (!otherCar || !otherCar.visible) continue;
 
-        // Calculate and shrink the other car's box
-        tempBox.setFromObject(otherCar);
-        shrinkBox(tempBox, HITBOX_SHRINK_FACTOR); // Use tempBox for the shrunk other car box
+        // --- OBB Intersection Test (Placeholder) ---
+        // Replace this with your SAT implementation
+        // const areColliding = checkOBBCollision(activeCar, otherCar); // Your SAT function
+        const areColliding = false; // Default to no collision until SAT is implemented
 
-        // Check intersection between the *shrunk* boxes
-        if (activeCarBox.intersectsBox(tempBox)) {
+        if (areColliding) {
             collisionDetected = true;
             collidedOtherCar = otherCar;
 
-            // --- IMPORTANT: For response, use the ORIGINAL (unshrunk) boxes ---
-            // Recalculate original boxes at the point of impact (originalPosition)
-            activeCar.position.copy(originalPosition); // Temporarily move back
-            activeCarBox.setFromObject(activeCar);     // Get full box at original pos
-            otherCarBox.setFromObject(collidedOtherCar); // Get full box of the other car
+            // --- Get Collision Details from SAT ---
+            // Your SAT function should ideally return the MTV (normal and depth)
+            // penetrationDepth = mtv.depth;
+            // collisionNormal.copy(mtv.axis);
 
-            // Restore potential position for further calculations if needed,
-            // or just proceed with response based on originalPosition.
-            // Let's proceed with response based on originalPosition.
-            // activeCar.position.copy(potentialNewPosition); // Not needed if we base response on original
+            // --- TEMPORARY: Keep AABB-based response calculation for now ---
+            // Recalculate original boxes at the point of impact (originalPosition)
+            // This response part should ideally use the OBB's MTV from SAT.
+            const tempActiveCarBox = new THREE.Box3().setFromObject(activeCar); // Need temporary boxes here
+            const tempOtherCarBox = new THREE.Box3().setFromObject(collidedOtherCar);
+            activeCar.position.copy(originalPosition); // Temporarily move back for AABB calculation
+            tempActiveCarBox.setFromObject(activeCar);     // Get full box at original pos
+            tempOtherCarBox.setFromObject(collidedOtherCar); // Get full box of the other car
+
+            // Calculate AABB overlap (as fallback/approximation)
+            const overlapX = Math.min(tempActiveCarBox.max.x, tempOtherCarBox.max.x) - Math.max(tempActiveCarBox.min.x, tempOtherCarBox.min.x);
+            const overlapZ = Math.min(tempActiveCarBox.max.z, tempOtherCarBox.max.z) - Math.max(tempActiveCarBox.min.z, tempOtherCarBox.min.z);
+
+            if (overlapX < overlapZ) {
+                penetrationDepth = overlapX;
+                const sign = Math.sign(tempActiveCarBox.getCenter(new THREE.Vector3()).x - tempOtherCarBox.getCenter(new THREE.Vector3()).x);
+                collisionNormal.set(sign, 0, 0);
+            } else {
+                penetrationDepth = overlapZ;
+                const sign = Math.sign(tempActiveCarBox.getCenter(new THREE.Vector3()).z - tempOtherCarBox.getCenter(new THREE.Vector3()).z);
+                collisionNormal.set(0, 0, sign);
+            }
+            // --- End of Temporary AABB response calculation ---
+
 
             break; // Handle one collision per frame
         }
@@ -147,27 +152,12 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
 
     // --- Collision Response ---
     if (collisionDetected && collidedOtherCar) {
-        console.log("Collision!");
+        console.log("Collision (OBB check placeholder)!");
 
-        // Calculate AABB overlap using the FULL boxes calculated above
-        const overlapX = Math.min(activeCarBox.max.x, otherCarBox.max.x) - Math.max(activeCarBox.min.x, otherCarBox.min.x);
-        const overlapZ = Math.min(activeCarBox.max.z, otherCarBox.max.z) - Math.max(activeCarBox.min.z, otherCarBox.min.z);
-
-        // Determine minimum penetration axis (X or Z) using FULL boxes
-        if (overlapX < overlapZ) {
-            penetrationDepth = overlapX;
-            const sign = Math.sign(activeCarBox.getCenter(new THREE.Vector3()).x - otherCarBox.getCenter(new THREE.Vector3()).x);
-            collisionNormal.set(sign, 0, 0);
-        } else {
-            penetrationDepth = overlapZ;
-            const sign = Math.sign(activeCarBox.getCenter(new THREE.Vector3()).z - otherCarBox.getCenter(new THREE.Vector3()).z);
-            collisionNormal.set(0, 0, sign);
-        }
-
-        // Ensure normal is valid
+        // Ensure normal is valid (using the temporary AABB calculation for now)
         if (collisionNormal.lengthSq() > 0.001 && penetrationDepth < Infinity && penetrationDepth > 0) {
+            // ... (rest of the response logic remains the same for now) ...
             // Calculate how much the car was moving into the collision normal
-            // Use forward vector calculated before collision check
             const dot = forward.dot(collisionNormal);
 
             // Apply bounce if moving towards
@@ -175,16 +165,17 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
                 speed *= -COLLISION_RESTITUTION;
                 console.log(`Collision bounce applied along ${collisionNormal.toArray().map(n=>n.toFixed(1))}. New speed: ${speed.toFixed(2)}`);
             } else {
-                speed *= (1 - COLLISION_RESTITUTION * 0.5);
+                speed *= (1 - COLLISION_RESTITUTION * 0.5); // Dampen speed even if not moving directly towards
             }
 
-            // Apply separation push based on penetration depth of FULL boxes
+            // Apply separation push based on penetration depth
+            // Ideally, use penetrationDepth from SAT
             separationVector.copy(collisionNormal).multiplyScalar(penetrationDepth * COLLISION_SEPARATION_FACTOR);
             activeCar.position.add(separationVector); // Apply separation to originalPosition
             console.log(`Applying separation push: ${separationVector.toArray().map(n => n.toFixed(2)).join(',')}`);
 
         } else {
-            // Fallback
+            // Fallback (if temporary AABB calculation failed)
             console.warn("Collision detected but MTV calculation failed or penetration zero. Applying fallback.");
             speed *= -COLLISION_RESTITUTION;
             activeCar.position.x += (Math.random() - 0.5) * 0.1;
