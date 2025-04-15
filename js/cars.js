@@ -70,6 +70,11 @@ let isBraking = false;
 let isTurningLeft = false;
 let isTurningRight = false;
 
+// Rewind State
+let isRewinding = false;
+const REWIND_SPEED_FACTOR = 3.0; // How much faster to rewind than real-time
+let elapsedTime = 0; // Tracks the current time for the active car's simulation/recording
+
 const CAMERA_FOLLOW_SPEED = 2.0; // How quickly the camera catches up (higher is faster)
 // Adjust these values for zoom and angle
 const CAMERA_DISTANCE = 18; // Increased distance for zoom out
@@ -109,7 +114,7 @@ export function loadCarModels(level) {
                     );
                     resolve();
                 },
-                (progress) => {},
+                (progress) => { },
                 (error) => {
                     console.error(`Error loading car model ${index}:`, error);
                     reject(error);
@@ -140,7 +145,9 @@ function setActiveCar(index) {
 
     // Reset recording for the NEW car
     currentRecording = [];
-    carStartTime = performance.now(); // Record the start time for this car's control period
+    // carStartTime = performance.now(); // No longer primary time source, but keep for potential reference
+    elapsedTime = 0; // Reset elapsed time for the new car
+    isRewinding = false; // Ensure rewind is off when switching cars
 
     var [modelName, character, backstory, startingPoint, finishingPoint] =
         levels[index];
@@ -164,7 +171,7 @@ function setActiveCar(index) {
     // Alternatively, hide all cars except the active one initially
     // Object.values(loadedCarModels).forEach((car, idx) => car.visible = (idx === index));
     if (previousMissionIndex !== index && loadedCarModels[previousMissionIndex]) {
-         loadedCarModels[previousMissionIndex].visible = true;
+        loadedCarModels[previousMissionIndex].visible = true;
     }
 
 
@@ -172,7 +179,7 @@ function setActiveCar(index) {
     const initialPosition = activeCar.position.clone();
     const initialRotation = activeCar.quaternion.clone();
     currentRecording.push({
-        time: 0,
+        time: 0, // Start time is 0
         position: initialPosition,
         rotation: initialRotation,
     });
@@ -234,6 +241,47 @@ export function setTurningRight(value) {
     isTurningRight = value;
 }
 
+// --- Rewind Control ---
+export function setRewinding(value) {
+    // When stopping rewind, truncate the recording
+    if (!value && isRewinding) { // Check if we were actually rewinding
+        let targetIndex = currentRecording.length - 1;
+        // Find the last state before or at the current rewind time
+        for (let i = 0; i < currentRecording.length - 1; i++) {
+            // Find the segment where elapsedTime falls
+            if (currentRecording[i].time <= elapsedTime && currentRecording[i + 1].time > elapsedTime) {
+                targetIndex = i;
+                break;
+            }
+            // If elapsedTime is exactly on a frame time
+            if (currentRecording[i].time === elapsedTime) {
+                targetIndex = i;
+                break;
+            }
+        }
+        // If elapsedTime is beyond the last recorded time (shouldn't happen if recording is continuous)
+        if (elapsedTime >= currentRecording[currentRecording.length - 1].time) {
+            targetIndex = currentRecording.length - 1;
+        }
+
+
+        // Keep states up to and including targetIndex
+        currentRecording = currentRecording.slice(0, targetIndex + 1);
+        console.log(`Rewind stopped. Recording truncated to ${currentRecording.length} states at time ${elapsedTime.toFixed(2)}s.`);
+
+        // Reset input flags AND physics state to prevent car lurching after rewind
+        isAccelerating = false;
+        isBraking = false;
+        isTurningLeft = false;
+        isTurningRight = false;
+        carSpeed = 0; // Reset speed
+        carAcceleration = 0; // Reset acceleration
+        steeringAngle = 0; // Reset steering
+    }
+    isRewinding = value;
+}
+
+
 // --- Physics Update ---
 
 let tempReplayPosition = new THREE.Vector3(); // Keep for replay interpolation
@@ -249,84 +297,27 @@ export function updateCarPhysics(deltaTime) {
     // --- Coordinate Logging ---
     logTimer += deltaTime;
     if (logTimer >= 1.0) {
-        console.log(`Active Car [${missionIndex}] Position: ${activeCar.position.toArray().map(p => p.toFixed(2)).join(', ')}`);
+        console.log(`Elapsed Time: ${elapsedTime.toFixed(2)}s, Rewinding: ${isRewinding}, Recording Length: ${currentRecording.length}`); // Log module-level elapsedTime
         logTimer %= 1.0; // Reset timer, keeping any excess time
     }
     // --- End Coordinate Logging ---
 
 
-    const currentTime = performance.now();
-    const elapsedTime = (currentTime - carStartTime) / 1000; // Elapsed time in seconds
+    if (isRewinding) {
+        // --- Handle Rewind ---
+        // Use module-level elapsedTime
+        elapsedTime -= deltaTime * REWIND_SPEED_FACTOR;
+        elapsedTime = Math.max(0, elapsedTime); // Clamp time to minimum 0
 
-    // --- Prepare data for physics update ---
-    const currentPhysicsState = {
-        speed: carSpeed,
-        acceleration: carAcceleration,
-        steeringAngle: steeringAngle
-    };
-    const currentInputState = {
-        isAccelerating: isAccelerating,
-        isBraking: isBraking,
-        isTurningLeft: isTurningLeft,
-        isTurningRight: isTurningRight
-    };
-    // Prepare list of other cars for collision detection
-    const otherCars = {};
-    for (const key in loadedCarModels) {
-        const carIndex = parseInt(key);
-        if (carIndex !== missionIndex) {
-            otherCars[carIndex] = loadedCarModels[carIndex];
-        }
-    }
-
-    // --- Call external physics update ---
-    const updatedPhysicsState = CarPhysics.updatePhysics(
-        activeCar,
-        currentPhysicsState,
-        currentInputState,
-        deltaTime,
-        otherCars // Pass other cars for collision detection
-    );
-
-    // --- Update local physics state from result ---
-    carSpeed = updatedPhysicsState.speed;
-    carAcceleration = updatedPhysicsState.acceleration;
-    steeringAngle = updatedPhysicsState.steeringAngle;
-
-    // Optional: Handle collision result if needed (e.g., specific game logic)
-    if (updatedPhysicsState.collisionDetected) {
-        // Collision response (like impulse) is handled within updatePhysics
-        // Add any additional game logic here if needed
-    }
-
-
-    // --- Record Active Car State ---
-    currentRecording.push({
-        time: elapsedTime,
-        position: activeCar.position.clone(),
-        rotation: activeCar.quaternion.clone(),
-    });
-
-
-    // --- Replay Inactive Cars ---
-    for (const key in loadedCarModels) {
-        const carIndex = parseInt(key);
-        if (carIndex === missionIndex) continue; // Skip the active car
-
-        const carToReplay = loadedCarModels[carIndex];
-        const recording = recordedMovements[carIndex];
-
-        if (recording && recording.length > 0) {
-            carToReplay.visible = true; // Ensure replaying cars are visible
-
+        if (currentRecording.length > 1) {
             // Find the two states surrounding the current elapsedTime
-            let state1 = recording[0];
-            let state2 = recording[recording.length - 1]; // Default to last state
+            let state1 = currentRecording[0];
+            let state2 = currentRecording[currentRecording.length - 1]; // Default to last state
 
-            for (let i = 0; i < recording.length - 1; i++) {
-                if (recording[i].time <= elapsedTime && recording[i + 1].time >= elapsedTime) {
-                    state1 = recording[i];
-                    state2 = recording[i + 1];
+            for (let i = 0; i < currentRecording.length - 1; i++) {
+                if (currentRecording[i].time <= elapsedTime && currentRecording[i + 1].time >= elapsedTime) {
+                    state1 = currentRecording[i];
+                    state2 = currentRecording[i + 1];
                     break;
                 }
             }
@@ -346,13 +337,126 @@ export function updateCarPhysics(deltaTime) {
             tempReplayQuaternion.slerpQuaternions(state1.rotation, state2.rotation, interpFactor);
 
             // Apply interpolated state
-            carToReplay.position.copy(tempReplayPosition);
-            carToReplay.quaternion.copy(tempReplayQuaternion);
+            activeCar.position.copy(tempReplayPosition);
+            activeCar.quaternion.copy(tempReplayQuaternion);
 
-        } else {
-             // carToReplay.visible = false; // Option to hide cars without recordings
+        } else if (currentRecording.length === 1) {
+            // Snap to the initial state if only one state is recorded
+            activeCar.position.copy(currentRecording[0].position);
+            activeCar.quaternion.copy(currentRecording[0].rotation);
         }
-    }
+
+        // If we rewind to the beginning, stop rewinding
+        if (elapsedTime <= 0 && currentRecording.length > 0) { // Ensure there's a recording before stopping
+            // Snap to the very first state precisely
+            activeCar.position.copy(currentRecording[0].position);
+            activeCar.quaternion.copy(currentRecording[0].rotation);
+            setRewinding(false); // Use the function to handle state change and cleanup
+        }
+
+        // Skip physics, recording, and replay during rewind
+
+    } else {
+        // --- Handle Normal Update and Recording ---
+        // Use module-level elapsedTime
+        elapsedTime += deltaTime;
+
+        // --- Prepare data for physics update ---
+        const currentPhysicsState = {
+            speed: carSpeed,
+            acceleration: carAcceleration,
+            steeringAngle: steeringAngle
+        };
+        const currentInputState = {
+            isAccelerating: isAccelerating,
+            isBraking: isBraking,
+            isTurningLeft: isTurningLeft,
+            isTurningRight: isTurningRight
+        };
+        // Prepare list of other cars for collision detection
+        const otherCars = {};
+        for (const key in loadedCarModels) {
+            const carIndex = parseInt(key);
+            if (carIndex !== missionIndex) {
+                otherCars[carIndex] = loadedCarModels[carIndex];
+            }
+        }
+
+        // --- Call external physics update ---
+        const updatedPhysicsState = CarPhysics.updatePhysics(
+            activeCar,
+            currentPhysicsState,
+            currentInputState,
+            deltaTime,
+            otherCars // Pass other cars for collision detection
+        );
+
+        // --- Update local physics state from result ---
+        carSpeed = updatedPhysicsState.speed;
+        carAcceleration = updatedPhysicsState.acceleration;
+        steeringAngle = updatedPhysicsState.steeringAngle;
+
+        // Optional: Handle collision result if needed (e.g., specific game logic)
+        if (updatedPhysicsState.collisionDetected) {
+            // Collision response (like impulse) is handled within updatePhysics
+            // Add any additional game logic here if needed
+        }
+
+
+        // --- Record Active Car State ---
+        currentRecording.push({
+            time: elapsedTime,
+            position: activeCar.position.clone(),
+            rotation: activeCar.quaternion.clone(),
+        });
+
+
+        // --- Replay Inactive Cars ---
+        for (const key in loadedCarModels) {
+            const carIndex = parseInt(key);
+            if (carIndex === missionIndex) continue; // Skip the active car
+
+            const carToReplay = loadedCarModels[carIndex];
+            const recording = recordedMovements[carIndex];
+
+            if (recording && recording.length > 0) {
+                carToReplay.visible = true; // Ensure replaying cars are visible
+
+                // Find the two states surrounding the current elapsedTime
+                let state1 = recording[0];
+                let state2 = recording[recording.length - 1]; // Default to last state
+
+                for (let i = 0; i < recording.length - 1; i++) {
+                    if (recording[i].time <= elapsedTime && recording[i + 1].time >= elapsedTime) {
+                        state1 = recording[i];
+                        state2 = recording[i + 1];
+                        break;
+                    }
+                }
+
+                // Interpolate between state1 and state2
+                const timeDiff = state2.time - state1.time;
+                let interpFactor = 0;
+                if (timeDiff > 0) {
+                    interpFactor = (elapsedTime - state1.time) / timeDiff;
+                } else if (elapsedTime >= state2.time) {
+                    interpFactor = 1;
+                }
+
+                interpFactor = Math.max(0, Math.min(1, interpFactor)); // Clamp factor
+
+                tempReplayPosition.lerpVectors(state1.position, state2.position, interpFactor);
+                tempReplayQuaternion.slerpQuaternions(state1.rotation, state2.rotation, interpFactor);
+
+                // Apply interpolated state
+                carToReplay.position.copy(tempReplayPosition);
+                carToReplay.quaternion.copy(tempReplayQuaternion);
+
+            } else {
+                // carToReplay.visible = false; // Option to hide cars without recordings
+            }
+        }
+    } // End of if(isRewinding) / else block
 
 
     // --- Update Camera ---
@@ -379,32 +483,32 @@ export function updateCarPhysics(deltaTime) {
 export function moveCurrentCar(destination, duration = 3000) {
     return new Promise((resolve) => {
         const car = loadedCarModels[missionIndex];
-        
+
         if (!car) {
             console.error("No current car to move");
             resolve(false);
             return;
         }
-        
+
         // Convert array to Vector3 if needed
-        const targetPos = Array.isArray(destination) 
+        const targetPos = Array.isArray(destination)
             ? new THREE.Vector3(destination[0], destination[1], destination[2])
             : destination;
-        
+
         // Store starting position
         const startPos = car.position.clone();
-        
+
         // Calculate distance to move
         const distance = startPos.distanceTo(targetPos);
-        
+
         // Start the animation
         const startTime = performance.now();
-        
+
         // Logarithmic animation function
         function animateMovement(currentTime) {
             // Calculate elapsed time
             const elapsedTime = currentTime - startTime;
-            
+
             if (elapsedTime >= duration) {
                 // Animation finished
                 car.position.copy(targetPos);
@@ -412,32 +516,32 @@ export function moveCurrentCar(destination, duration = 3000) {
                 resolve(true);
                 return;
             }
-            
+
             // Normalized time (0 to 1)
             const t = elapsedTime / duration;
-            
+
             // Logarithmic easing: starts fast and slows down
             // 1 - Math.log(1 + 9 * t) / Math.log(10) approximates 1 - log10(1 + 9t)
             // This gives us a curve that starts at 1 and goes to 0 in logarithmic fashion
             const progress = 1 - (1 - t) * (1 - Math.log(1 + 9 * t) / Math.log(10));
-            
+
             // Calculate new position
             const newPos = new THREE.Vector3(
                 startPos.x + (targetPos.x - startPos.x) * progress,
                 startPos.y + (targetPos.y - startPos.y) * progress,
                 startPos.z + (targetPos.z - startPos.z) * progress
             );
-            
+
             // Update car position
             car.position.copy(newPos);
-            
+
             // Continue the animation
             requestAnimationFrame(animateMovement);
         }
-        
+
         // Start the animation loop
         requestAnimationFrame(animateMovement);
-        
+
         console.log(`Moving car from ${startPos.toArray().join(',')} to ${targetPos.toArray().join(',')} over ${duration}ms`);
     });
 }
