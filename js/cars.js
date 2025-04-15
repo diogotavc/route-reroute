@@ -96,8 +96,16 @@ export function loadCarModels(level) {
                         }
                     });
 
+                    // --- Calculate and Store Local Half Extents ---
+                    // Calculate the AABB of the base model *before* scaling or positioning
+                    const box = new THREE.Box3().setFromObject(model);
+                    const size = box.getSize(new THREE.Vector3());
+                    model.userData.halfExtents = size.multiplyScalar(0.5);
+                    // --- End Calculation ---
+
+
                     model.visible = false;
-                    model.scale.set(1, 1, 1);
+                    model.scale.set(1, 1, 1); // Apply scaling *after* getting base size if needed
                     const startingPoint = mission[3];
                     model.position.set(
                         startingPoint[0],
