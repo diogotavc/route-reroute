@@ -11,8 +11,8 @@ export function setupLights(scene) {
     directionalLight.castShadow = true;
     
     // Configure shadow properties for better quality
-    directionalLight.shadow.mapSize.width = 2048;
-    directionalLight.shadow.mapSize.height = 2048;
+    directionalLight.shadow.mapSize.width = 2048; // Consider reducing (e.g., 1024) for performance
+    directionalLight.shadow.mapSize.height = 2048; // Consider reducing (e.g., 1024) for performance
     directionalLight.shadow.camera.near = 0.5;
     directionalLight.shadow.camera.far = 50;
     directionalLight.shadow.camera.left = -20;
@@ -35,15 +35,16 @@ export function setupLights(scene) {
     accentLight.castShadow = true;
     scene.add(accentLight);
 
-    directionalLight.shadow.mapSize.width = 4096;  // Increase resolution
-    directionalLight.shadow.mapSize.height = 4096; // Increase resolution
+    // Higher resolution shadows for the main directional light (can be demanding)
+    directionalLight.shadow.mapSize.width = 4096;  // High resolution - potentially expensive
+    directionalLight.shadow.mapSize.height = 4096; // High resolution - potentially expensive
     directionalLight.shadow.bias = -0.0005;        // Reduce shadow acne
     directionalLight.shadow.normalBias = 0.02;     // Helps with thin objects
     directionalLight.shadow.radius = 2;            // Blur shadow edges
     
-    // Same for your accent light
-    accentLight.shadow.mapSize.width = 2048;
-    accentLight.shadow.mapSize.height = 2048;
+    // Same for your accent light (consider lower resolution if performance is an issue)
+    accentLight.shadow.mapSize.width = 2048; // Consider reducing (e.g., 1024) for performance
+    accentLight.shadow.mapSize.height = 2048; // Consider reducing (e.g., 1024) for performance
     accentLight.shadow.bias = -0.0005;
     accentLight.shadow.normalBias = 0.02;
 

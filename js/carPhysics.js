@@ -100,6 +100,10 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
     const potentialNewPosition = activeCar.position.clone().addScaledVector(forward, speed * deltaTime);
 
     // --- Collision Detection ---
+    // Uses Axis-Aligned Bounding Boxes (AABB) shrunk slightly for detection.
+    // This is fast but less accurate for rotated objects.
+    // Consider Oriented Bounding Boxes (OBB) or Sphere collisions for more accuracy
+    // if needed, at the cost of performance.
     let collisionDetected = false;
     let collidedOtherCar = null;
     let penetrationDepth = Infinity;
