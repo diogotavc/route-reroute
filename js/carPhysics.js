@@ -9,6 +9,8 @@ export const FRICTION = 1; // Speed decay per second when not accelerating/braki
 export const STEERING_FRICTION = 2; // How quickly steering returns to center
 const COLLISION_RESTITUTION = 0.4; // How much speed is reversed on collision (0=stop, 1=perfect bounce)
 const COLLISION_SEPARATION_FACTOR = 1.1; // Multiplier for separation push
+const EPSILON = 0.0001; // Small value for float comparisons
+const HITBOX_SCALE_FACTOR = 0.8; // Adjusted scale factor - tune as needed
 
 // --- Helper Variables ---
 let collisionNormal = new THREE.Vector3(); // Reuse vector for normal calculation
@@ -26,20 +28,34 @@ const satTempBox = new THREE.Box3(); // To calculate initial extents
 
 /**
  * Gets OBB data (center, half-extents, local axes) for a car object.
+ * NOTE: Requires car.userData.halfExtents to be set during model loading
+ * with the model's local half-dimensions for accurate OBB.
  * @param {THREE.Object3D} car - The car object.
  * @param {object} obbData - The object to store OBB data in.
+ * @param {THREE.Vector3} [positionOverride] - Optional position to use instead of car.position.
  */
-function getOBBData(car, obbData) {
-    // Use Box3 to get initial size, assuming object origin is center
-    satTempBox.setFromObject(car); // Recalculate AABB each time for simplicity
-    satTempBox.getSize(obbData.halfExtents).multiplyScalar(0.5);
-    obbData.center.copy(car.position);
+function getOBBData(car, obbData, positionOverride = null) {
+    if (car.userData.halfExtents) {
+        // Use cached local half-extents if available (Preferred)
+        obbData.halfExtents.copy(car.userData.halfExtents);
+    } else {
+        // Fallback: Use Box3 size (Less accurate for rotated objects)
+        console.warn(`Car ${car.uuid} missing userData.halfExtents. Falling back to less accurate AABB sizing for OBB.`);
+        satTempBox.setFromObject(car); // Inefficient
+        satTempBox.getSize(obbData.halfExtents).multiplyScalar(0.5);
+    }
+
+    // --- Apply Scaling Factor ---
+    // Apply scaling *after* getting the base half-extents
+    obbData.halfExtents.multiplyScalar(HITBOX_SCALE_FACTOR);
+
+    obbData.center.copy(positionOverride ? positionOverride : car.position); // Use override if provided
 
     // Extract local axes from the car's world matrix
     car.updateMatrixWorld(); // Ensure matrix is up-to-date
-    obbData.axes[0].setFromMatrixColumn(car.matrixWorld, 0).normalize(); // X-axis
-    obbData.axes[1].setFromMatrixColumn(car.matrixWorld, 1).normalize(); // Y-axis (usually up)
-    obbData.axes[2].setFromMatrixColumn(car.matrixWorld, 2).normalize(); // Z-axis (usually forward)
+    obbData.axes[0].setFromMatrixColumn(car.matrixWorld, 0).normalize(); // World X-axis of car
+    obbData.axes[1].setFromMatrixColumn(car.matrixWorld, 1).normalize(); // World Y-axis of car
+    obbData.axes[2].setFromMatrixColumn(car.matrixWorld, 2).normalize(); // World Z-axis of car
 }
 
 /**
@@ -52,10 +68,10 @@ function projectOBB(obbData, axis, interval) {
     // Project the center onto the axis
     const centerProjection = obbData.center.dot(axis);
 
-    // Project the half-extents along the axes onto the separation axis
+    // Project the LOCAL half-extents along the OBB's WORLD axes onto the separation axis
     const extentProjection =
         obbData.halfExtents.x * Math.abs(obbData.axes[0].dot(axis)) +
-        obbData.halfExtents.y * Math.abs(obbData.axes[1].dot(axis)) +
+        obbData.halfExtents.y * Math.abs(obbData.axes[1].dot(axis)) + // Include Y extent
         obbData.halfExtents.z * Math.abs(obbData.axes[2].dot(axis));
 
     interval.min = centerProjection - extentProjection;
@@ -71,18 +87,21 @@ function projectOBB(obbData, axis, interval) {
 function getIntervalOverlap(intervalA, intervalB) {
     const minMax = Math.min(intervalA.max, intervalB.max);
     const maxMin = Math.max(intervalA.min, intervalB.min);
-    return Math.max(0, minMax - maxMin);
+    // Add epsilon check: if overlap is extremely small, treat as no overlap
+    const overlap = minMax - maxMin;
+    return overlap > EPSILON ? overlap : 0;
 }
 
 /**
  * Checks for collision between two OBBs using the Separating Axis Theorem (SAT).
  * @param {THREE.Object3D} carA
  * @param {THREE.Object3D} carB
+ * @param {THREE.Vector3} positionAOverride - Optional position override for carA.
  * @returns {object} - { collision: boolean, mtvAxis: THREE.Vector3 | null, mtvDepth: number | null }
  */
-function checkOBBCollisionSAT(carA, carB) {
-    getOBBData(carA, satBoxA);
-    getOBBData(carB, satBoxB);
+function checkOBBCollisionSAT(carA, carB, positionAOverride = null) {
+    getOBBData(carA, satBoxA, positionAOverride); // Use potential position for active car
+    getOBBData(carB, satBoxB); // Use current position for other car
 
     satAxes.length = 0; // Clear previous axes
 
@@ -113,6 +132,9 @@ function checkOBBCollisionSAT(carA, carB) {
     // Test each axis
     for (let i = 0; i < satAxes.length; i++) {
         const axis = satAxes[i];
+        // Ensure axis is valid before projecting
+        if (axis.lengthSq() < EPSILON * EPSILON) continue;
+
         projectOBB(satBoxA, axis, satIntervalA);
         projectOBB(satBoxB, axis, satIntervalB);
 
@@ -131,10 +153,16 @@ function checkOBBCollisionSAT(carA, carB) {
     }
 
     // If we got here, intervals overlapped on all axes - collision detected.
-    // Ensure MTV axis points from B to A (or consistently)
+    // Ensure MTV axis points consistently (e.g., from B to A)
     satCenterDiff.subVectors(satBoxA.center, satBoxB.center);
-    if (satCenterDiff.dot(mtvAxis) < 0) {
+    if (mtvAxis && satCenterDiff.dot(mtvAxis) < 0) { // Check mtvAxis is not null
         mtvAxis.negate(); // Flip axis to point from B towards A
+    }
+
+    // Check if mtvAxis is valid before returning
+    if (!mtvAxis || mtvAxis.lengthSq() < EPSILON * EPSILON) {
+         console.warn("SAT collision detected but MTV axis is invalid.");
+         return { collision: false, mtvAxis: null, mtvDepth: null }; // Treat as no collision if axis is bad
     }
 
     return { collision: true, mtvAxis: mtvAxis, mtvDepth: minOverlap };
@@ -194,33 +222,31 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
         speed = 0;
     }
 
-    // --- Update Position & Rotation ---
+    // --- Update Rotation ---
     if (Math.abs(speed) > 0.01) {
-        // Apply rotation based on steering angle and speed direction
         const rotationAmount = steeringAngle * deltaTime * Math.sign(speed);
         const deltaRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAmount);
         activeCar.quaternion.multiplyQuaternions(deltaRotation, activeCar.quaternion);
+        activeCar.updateMatrixWorld(); // Update matrix after rotation
     }
 
+    // --- Calculate Potential Position ---
     const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(activeCar.quaternion).normalize();
-    const originalPosition = activeCar.position.clone();
-    const potentialNewPosition = activeCar.position.clone().addScaledVector(forward, speed * deltaTime);
+    const originalPosition = activeCar.position.clone(); // Store position before potential collision response
+    const potentialNewPosition = originalPosition.clone().addScaledVector(forward, speed * deltaTime);
 
-    // --- OBB Collision Detection ---
+    // --- Predictive OBB Collision Detection ---
     let collisionDetected = false;
     let collidedOtherCar = null;
-    let penetrationDepth = 0; // Reset penetration depth
-    collisionNormal.set(0, 0, 0); // Reset collision normal
-
-    // Move car to potential position for detection
-    activeCar.position.copy(potentialNewPosition);
+    let penetrationDepth = 0;
+    collisionNormal.set(0, 0, 0);
 
     for (const key in otherCars) {
         const otherCar = otherCars[key];
         if (!otherCar || !otherCar.visible) continue;
 
-        // --- OBB Intersection Test using SAT ---
-        const collisionResult = checkOBBCollisionSAT(activeCar, otherCar);
+        // --- Check if potential position causes collision ---
+        const collisionResult = checkOBBCollisionSAT(activeCar, otherCar, potentialNewPosition);
 
         if (collisionResult.collision) {
             collisionDetected = true;
@@ -228,54 +254,55 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
             penetrationDepth = collisionResult.mtvDepth;
             collisionNormal.copy(collisionResult.mtvAxis);
 
-            // Collision found, move car back to original position before applying response
-            activeCar.position.copy(originalPosition);
-            break; // Handle one collision per frame
+            // Collision found, stop checking other cars for this frame
+            break;
         }
     }
 
-    // If no collision was detected after checking all cars, keep the potential position
-    if (!collisionDetected) {
-         activeCar.position.copy(potentialNewPosition);
-    }
-
-    // --- Collision Response ---
+    // --- Apply Movement or Response ---
     if (collisionDetected && collidedOtherCar) {
+        // --- Collision Response ---
         console.log("Collision detected (OBB SAT)!");
 
         // Ensure MTV is valid
-        if (collisionNormal.lengthSq() > 0.001 && penetrationDepth > 0) {
+        if (collisionNormal.lengthSq() > EPSILON * EPSILON && penetrationDepth > EPSILON) {
             // Calculate how much the car was moving into the collision normal
-            // Use forward vector calculated before collision check
-            const dot = forward.dot(collisionNormal);
+            const relativeVelocity = forward.clone().multiplyScalar(speed); // Use current speed
+            const separatingVelocity = relativeVelocity.dot(collisionNormal);
 
-            // Apply bounce if moving towards the collision normal
-            if (dot < 0) {
-                speed *= -COLLISION_RESTITUTION;
-                console.log(`Collision bounce applied along ${collisionNormal.toArray().map(n=>n.toFixed(1))}. New speed: ${speed.toFixed(2)}`);
-            } else {
-                // Optional: Dampen speed slightly even if not moving directly towards
-                 speed *= (1 - COLLISION_RESTITUTION * 0.1);
+            // Apply bounce only if moving towards each other along the normal
+            if (separatingVelocity < 0) {
+                 // Simplified impulse-like response
+                const restitution = COLLISION_RESTITUTION;
+                const impulseMagnitude = -(1 + restitution) * separatingVelocity;
+
+                // Apply impulse to speed along the collision normal
+                const impulse = collisionNormal.clone().multiplyScalar(impulseMagnitude);
+                const newVelocityVec = relativeVelocity.add(impulse);
+                speed = newVelocityVec.length() * Math.sign(newVelocityVec.dot(forward)); // Update speed based on new velocity vector
+                speed = Math.max(-MAX_SPEED / 2, Math.min(MAX_SPEED, speed)); // Re-clamp speed
+
+                console.log(`Collision bounce applied. New speed: ${speed.toFixed(2)}`);
             }
 
-            // Apply separation push based on MTV depth
+            // Apply separation push based on MTV depth to the *original* position
             separationVector.copy(collisionNormal).multiplyScalar(penetrationDepth * COLLISION_SEPARATION_FACTOR);
-            activeCar.position.add(separationVector); // Apply separation push to the *original* position
+            activeCar.position.copy(originalPosition).add(separationVector); // Apply separation from original position
             console.log(`Applying separation push: ${separationVector.toArray().map(n => n.toFixed(2)).join(',')}`);
 
         } else {
-            // Fallback if MTV calculation somehow failed (shouldn't happen if collision=true)
+            // Fallback if MTV calculation somehow failed
             console.warn("Collision detected but MTV invalid. Applying fallback response.");
             speed *= -COLLISION_RESTITUTION; // Simple bounce
-            // Move car back to original position before fallback push
-            activeCar.position.copy(originalPosition);
-            activeCar.position.x += (Math.random() - 0.5) * 0.1;
-            activeCar.position.z += (Math.random() - 0.5) * 0.1;
+            activeCar.position.copy(originalPosition); // Stay at original position before fallback push
+            activeCar.position.x += (Math.random() - 0.5) * 0.05; // Smaller random push
+            activeCar.position.z += (Math.random() - 0.5) * 0.05;
         }
+        // Car position is now set based on response
 
-        // After response (position adjusted, speed modified), we don't re-apply movement this frame.
-        // The modified speed will affect the *next* frame's movement calculation.
-
+    } else {
+        // No collision detected, apply the potential movement
+        activeCar.position.copy(potentialNewPosition);
     }
 
     return {
