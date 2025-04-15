@@ -11,6 +11,7 @@ import {
     setBraking,
     setTurningLeft,
     setTurningRight,
+    setRewinding, // Import the new function
     updateCarPhysics
 } from './cars.js';
 
@@ -100,6 +101,9 @@ window.addEventListener("resize", () => {
 });
 
 window.addEventListener("keydown", (event) => {
+    // Prevent default browser behavior for arrow keys, etc. if needed
+    // event.preventDefault();
+
     switch (event.key) {
         case "n":
             // if (nextCar() == -1) { end of the level }
@@ -121,6 +125,10 @@ window.addEventListener("keydown", (event) => {
         case "d":
             setTurningRight(true);
             break;
+        case "r": // Add key listener for rewind
+            setRewinding(true);
+            break;
+        // ... other cases
     }
 });
 
@@ -141,6 +149,9 @@ window.addEventListener("keyup", (event) => {
         case "ArrowRight":
         case "d":
             setTurningRight(false);
+            break;
+        case "r": // Add key listener for rewind
+            setRewinding(false);
             break;
     }
 });
