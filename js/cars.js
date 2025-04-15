@@ -59,7 +59,6 @@ let levels;
 // Recording and Replay State
 const recordedMovements = {}; // Stores recordings for completed cars { missionIndex: [ { time, position, rotation } ] }
 let currentRecording = []; // Stores the recording for the currently active car
-let carStartTime = 0; // Timestamp (performance.now()) when the current car became active
 
 // Physics State (managed per active car, but stored here for simplicity for now)
 let carSpeed = 0;
@@ -264,21 +263,9 @@ export function setRewinding() {
 let tempReplayPosition = new THREE.Vector3(); // Keep for replay interpolation
 let tempReplayQuaternion = new THREE.Quaternion(); // Keep for replay interpolation
 
-// Timer for logging coordinates
-let logTimer = 0;
-
 export function updateCarPhysics(deltaTime) {
     const activeCar = loadedCarModels[missionIndex];
     if (!activeCar) return;
-
-    // --- Coordinate Logging ---
-    logTimer += deltaTime;
-    if (logTimer >= 1.0) {
-        console.log(`Elapsed Time: ${elapsedTime.toFixed(2)}s, Rewinding: ${isRewinding}, Recording Length: ${currentRecording.length}`); // Log module-level elapsedTime
-        logTimer %= 1.0; // Reset timer, keeping any excess time
-    }
-    // --- End Coordinate Logging ---
-
 
     if (isRewinding) {
         // --- Handle Rewind ---

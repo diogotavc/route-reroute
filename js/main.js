@@ -72,8 +72,7 @@ const levels = [
 ];
 
 const testLevel = levels[0];
-// this is so janky lmao
-camera.position.set(testLevel[2][0], testLevel[2][1], testLevel[2][2]);
+
 // CAR MODEL CONFIGURATION
 loadCarModels(testLevel[0]).then(() => {
     console.debug("All car models loaded successfully.");
