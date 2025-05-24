@@ -6,16 +6,17 @@ export function setupLights(scene) {
     directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
     directionalLight.position.set(50, 50, 50);
     directionalLight.castShadow = true;
-    directionalLight.shadow.mapSize.width = 2048;
-    directionalLight.shadow.mapSize.height = 2048;
+    directionalLight.shadow.mapSize.width = 4096;
+    directionalLight.shadow.mapSize.height = 4096;
     directionalLight.shadow.camera.near = 0.5;
-    directionalLight.shadow.camera.far = 200;
-    directionalLight.shadow.camera.left = -100;
-    directionalLight.shadow.camera.right = 100;
-    directionalLight.shadow.camera.top = 100;
-    directionalLight.shadow.camera.bottom = -100;
-    directionalLight.shadow.bias = -0.0005;
-    directionalLight.shadow.normalBias = 0.02;
+    directionalLight.shadow.camera.far = 250;
+    directionalLight.shadow.camera.left = -70;
+    directionalLight.shadow.camera.right = 70;
+    directionalLight.shadow.camera.top = 70;
+    directionalLight.shadow.camera.bottom = -70;
+    directionalLight.shadow.bias = -0.0001;
+    directionalLight.shadow.normalBias = 0.01;
+    directionalLight.shadow.camera.updateProjectionMatrix();
     scene.add(directionalLight);
     return {
         ambientLight,
@@ -25,10 +26,15 @@ export function setupLights(scene) {
 export function updateDayNightCycle(scene, timeOfDay) {
     if (!ambientLight || !directionalLight) return;
     const sunAngle = (timeOfDay - 0.25) * Math.PI * 2;
+    const normalizedProgress = Math.max(0, Math.min(1, (timeOfDay - 0.25) / 0.5));
+    const sunXAmplitude = 70;
+    const sunYAmplitude = 50;
+    const sunZStart = -40;
+    const sunZEnd = 40;
     directionalLight.position.set(
-        Math.cos(sunAngle) * 70,
-        Math.sin(sunAngle) * 60,
-        40
+        Math.cos(sunAngle) * sunXAmplitude,
+        Math.sin(sunAngle) * sunYAmplitude,
+        sunZStart + normalizedProgress * (sunZEnd - sunZStart)
     );
     directionalLight.lookAt(scene.position);
     const noonFactor = Math.max(0, 1 - (Math.abs(timeOfDay - 0.5) / 0.28));

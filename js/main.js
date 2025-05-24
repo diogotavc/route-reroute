@@ -24,6 +24,8 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setAnimationLoop(animate);
 renderer.setClearColor(0x212121);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -134,7 +136,7 @@ const clock = new THREE.Clock();
 function animate() {
     const deltaTime = clock.getDelta();
 
-    currentTimeOfDay += deltaTime * 0.1;
+    currentTimeOfDay += deltaTime * 0.05;
     if (currentTimeOfDay > 1) currentTimeOfDay -= 1;
     updateDayNightCycle(scene, currentTimeOfDay);
 
