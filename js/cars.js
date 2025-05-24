@@ -60,6 +60,8 @@ const carModels = {
 const loadedCarModels = {};
 let missionIndex = 0;
 let levels;
+let currentFinishPointMarker = null; // To store the visual marker for the finish point
+let currentMissionDestination = null; // To store the Vector3 of the current destination
 
 // Recording and Replay State
 const recordedMovements = {}; // { missionIndex: [ { time, position, rotation } ] }
@@ -148,6 +150,32 @@ export function loadCarModels(processedLevelData) { // Renamed parameter for cla
     });
 }
 
+function createFinishPointMarker(position) {
+    if (currentFinishPointMarker) {
+        scene.remove(currentFinishPointMarker);
+        currentFinishPointMarker.geometry.dispose();
+        currentFinishPointMarker.material.dispose();
+        currentFinishPointMarker = null;
+    }
+
+    if (!position) {
+        console.log("createFinishPointMarker: No position provided, marker not created.");
+        return;
+    }
+
+    const markerGeometry = new THREE.CylinderGeometry(0.5, 0.5, 10, 16); // Radius top, radius bottom, height, radial segments
+    const markerMaterial = new THREE.MeshBasicMaterial({
+        color: 0x00ff00, // Bright green
+        transparent: true,
+        opacity: 0.5,
+        depthWrite: false // So it doesn't obscure things behind it as much
+    });
+    currentFinishPointMarker = new THREE.Mesh(markerGeometry, markerMaterial);
+    currentFinishPointMarker.position.set(position.x, position.y + 5, position.z); // Elevate slightly so it's visible
+    scene.add(currentFinishPointMarker);
+    console.log("createFinishPointMarker - Marker added to scene at:", currentFinishPointMarker.position, "Visible:", currentFinishPointMarker.visible);
+}
+
 function setActiveCar(index) {
     var carCount = Object.keys(loadedCarModels).length;
     if (index < 0 || index >= carCount) {
@@ -165,6 +193,7 @@ function setActiveCar(index) {
     currentRecording = [];
     elapsedTime = 0;
     isRewinding = false;
+    // currentMissionDestination = null; // Reset current destination - will be set below
 
     if (loadedCarModels[missionIndex] && missionIndex !== index) {
          //loadedCarModels[missionIndex].userData.isActiveCar = false; // Example flag
@@ -173,16 +202,32 @@ function setActiveCar(index) {
     const missionData = levels[index]; // 'levels' is the processed data from loadCarModels
     if (!missionData) {
         console.error(`setActiveCar: No mission data found for index ${index}.`);
+        currentMissionDestination = null; // Ensure it's null if no mission data
+        createFinishPointMarker(null); // Attempt to remove any existing marker
         return null; // or handle error appropriately
     }
+    console.log("setActiveCar - Full Mission Data for index", index, ":", missionData);
+
 
     var [modelName, character, backstory, startingPoint, finishingPoint, initialRotationY] = missionData;
+    console.log("setActiveCar - Raw finishingPoint from missionData:", finishingPoint);
+
     var characterName =
         String(character).charAt(0).toUpperCase() + String(character).slice(1);
     console.log(`${characterName}: ${backstory}`);
     console.log(
-        `Drive ${modelName} from ${startingPoint} to ${finishingPoint}.`,
+        `Drive ${modelName} from ${startingPoint.join(',')} to ${finishingPoint && Array.isArray(finishingPoint) ? finishingPoint.join(',') : 'an open area'}.`
     );
+
+    if (finishingPoint && Array.isArray(finishingPoint) && finishingPoint.length === 3) {
+        currentMissionDestination = new THREE.Vector3(finishingPoint[0], finishingPoint[1], finishingPoint[2]);
+        console.log("setActiveCar - currentMissionDestination successfully set to:", currentMissionDestination);
+        createFinishPointMarker(currentMissionDestination);
+    } else {
+        console.log("setActiveCar - No valid finishingPoint data. No destination marker will be created. finishingPoint was:", finishingPoint);
+        currentMissionDestination = null;
+        createFinishPointMarker(null); // This will call scene.remove if marker exists and then not create a new one
+    }
 
     const activeCar = loadedCarModels[index];
     activeCar.visible = true;
@@ -230,10 +275,20 @@ function setActiveCar(index) {
 export function nextCar() {
     var carCount = Object.keys(loadedCarModels).length;
     if (carCount == missionIndex + 1) {
+        console.log("All missions for this level completed!");
+        if (currentFinishPointMarker) {
+            scene.remove(currentFinishPointMarker);
+            currentFinishPointMarker.geometry.dispose();
+            currentFinishPointMarker.material.dispose();
+            currentFinishPointMarker = null;
+        }
+        currentMissionDestination = null;
+        // Potentially trigger level completion logic here in the future
         return -1; // Indicate last car reached
     }
     const nextIndex = (missionIndex + 1) % carCount;
-    return setActiveCar(nextIndex);
+    setActiveCar(nextIndex); // Directly call setActiveCar
+    return loadedCarModels[nextIndex]; // Return the new active car
 }
 
 // --- Input State Setters ---
@@ -288,8 +343,11 @@ export function updateCarPhysics(deltaTime) {
                 2
             )}, Z=${pos.z.toFixed(2)}`
         );
-        debug_timeSinceLastCoordinateLog -= debug_coordinateLogInterval; // Reset timer, subtracting to maintain accuracy if deltaTime > interval
-        // Or simply: debug_timeSinceLastCoordinateLog = 0; if precise timing isn't critical
+        if (currentMissionDestination) {
+            const distanceToDestination = pos.distanceTo(currentMissionDestination);
+            console.log(`  Mission Dest: ${currentMissionDestination.x.toFixed(2)},${currentMissionDestination.y.toFixed(2)},${currentMissionDestination.z.toFixed(2)}. Dist: ${distanceToDestination.toFixed(2)}`);
+        }
+        debug_timeSinceLastCoordinateLog -= debug_coordinateLogInterval; // Reset timer
     }
 
     if (isRewinding) {
@@ -348,6 +406,30 @@ export function updateCarPhysics(deltaTime) {
     } else {
         // --- Handle Normal Update and Recording ---
         elapsedTime += deltaTime;
+
+        // Mission Completion Check
+        if (currentMissionDestination) { // !isRewinding is implied by being in the else block
+            const distanceToDestination = activeCar.position.distanceTo(currentMissionDestination);
+            const completionThreshold = 2.0; // How close the car needs to be to finish (in world units)
+
+            if (distanceToDestination < completionThreshold) {
+                console.log(`Mission ${missionIndex + 1} (index ${missionIndex}) completed! Reached destination. Distance: ${distanceToDestination.toFixed(2)}`);
+                if (currentFinishPointMarker) {
+                    scene.remove(currentFinishPointMarker);
+                    currentFinishPointMarker.geometry.dispose();
+                    currentFinishPointMarker.material.dispose();
+                    currentFinishPointMarker = null;
+                }
+                currentMissionDestination = null; // Clear destination to prevent re-triggering
+
+                const nextCarResult = nextCar();
+                if (nextCarResult === -1) {
+                    console.log("All missions finished for the current level.");
+                    // Potentially disable controls or show a level complete message
+                }
+                return; // Skip the rest of the physics update for this frame as we are switching cars/ending
+            }
+        }
 
         const currentPhysicsState = { speed: carSpeed, acceleration: carAcceleration, steeringAngle: steeringAngle };
         const currentInputState = { isAccelerating, isBraking, isTurningLeft, isTurningRight };
