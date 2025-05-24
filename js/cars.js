@@ -331,7 +331,7 @@ export function setRewinding() {
 let tempReplayPosition = new THREE.Vector3();
 let tempReplayQuaternion = new THREE.Quaternion();
 
-export function updateCarPhysics(deltaTime) {
+export function updateCarPhysics(deltaTime, collidableMapTiles = []) { // Added collidableMapTiles parameter
     const activeCar = loadedCarModels[missionIndex];
     if (!activeCar) return;
 
@@ -449,7 +449,8 @@ export function updateCarPhysics(deltaTime) {
             currentPhysicsState,
             currentInputState,
             deltaTime,
-            otherCars
+            otherCars,
+            collidableMapTiles // Pass collidable map tiles here
         );
 
         // Update local physics state from result

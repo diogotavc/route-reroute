@@ -34,8 +34,14 @@ controls.enableRotate = false;
 // INIT CARS, LIGHTS AND ENVIRONMENT
 initCars(scene, camera, controls);
 
+let collidableMapElements = []; // Store collidable map elements here
+
 loadMap(scene, level1MapData).then((mapGroup) => { // mapGroup is returned
     console.log("Map loaded successfully!");
+    if (mapGroup && mapGroup.userData && mapGroup.userData.collidableTiles) {
+        collidableMapElements = mapGroup.userData.collidableTiles;
+        console.log(`Found ${collidableMapElements.length} collidable map elements.`);
+    }
     // You can store mapGroup if you need to reference the map tiles later
 
     // Initialize cars and lights *after* the map is loaded
@@ -135,7 +141,7 @@ function animate() {
     const deltaTime = clock.getDelta();
 
     if (currentLevelData) { // Only update physics if level and cars are ready
-        updateCarPhysics(deltaTime);
+        updateCarPhysics(deltaTime, collidableMapElements); // Pass collidable elements
     }
 
     renderer.render(scene, camera);

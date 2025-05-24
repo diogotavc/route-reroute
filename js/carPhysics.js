@@ -33,19 +33,23 @@ const satTempBox = new THREE.Box3();
  * @param {THREE.Object3D} car - The car object.
  * @param {object} obbData - The object to store OBB data in.
  * @param {THREE.Vector3} [positionOverride] - Optional position to use instead of car.position.
+ * @param {boolean} isStaticTile - Flag to indicate if the object is a static map tile.
  */
-function getOBBData(car, obbData, positionOverride = null) {
+function getOBBData(car, obbData, positionOverride = null, isStaticTile = false) {
     if (car.userData.halfExtents) {
         obbData.halfExtents.copy(car.userData.halfExtents);
     } else {
         // Fallback: Use Box3 size (Less accurate for rotated objects)
-        console.warn(`Car ${car.uuid} missing userData.halfExtents. Falling back to less accurate AABB sizing for OBB.`);
+        console.warn(`Object ${car.uuid} missing userData.halfExtents. Falling back to less accurate AABB sizing for OBB.`);
         satTempBox.setFromObject(car); // Inefficient - cache this if possible
         satTempBox.getSize(obbData.halfExtents).multiplyScalar(0.5);
     }
 
     // Apply scaling *after* getting the base half-extents
-    obbData.halfExtents.multiplyScalar(HITBOX_SCALE_FACTOR);
+    // For cars, apply HITBOX_SCALE_FACTOR. For static tiles, use their pre-calculated halfExtents as is.
+    if (!isStaticTile) {
+        obbData.halfExtents.multiplyScalar(HITBOX_SCALE_FACTOR);
+    }
 
     obbData.center.copy(positionOverride ? positionOverride : car.position);
 
@@ -94,11 +98,12 @@ function getIntervalOverlap(intervalA, intervalB) {
  * @param {THREE.Object3D} carA
  * @param {THREE.Object3D} carB
  * @param {THREE.Vector3} positionAOverride - Optional position override for carA.
+ * @param {boolean} isCarBStaticTile - Flag to indicate if carB is a static map tile.
  * @returns {object} - { collision: boolean, mtvAxis: THREE.Vector3 | null, mtvDepth: number | null }
  */
-function checkOBBCollisionSAT(carA, carB, positionAOverride = null) {
-    getOBBData(carA, satBoxA, positionAOverride);
-    getOBBData(carB, satBoxB);
+function checkOBBCollisionSAT(carA, carB, positionAOverride = null, isCarBStaticTile = false) {
+    getOBBData(carA, satBoxA, positionAOverride, false); // carA is always the dynamic car
+    getOBBData(carB, satBoxB, null, isCarBStaticTile); // carB might be a car or a static tile
 
     satAxes.length = 0; // Clear previous axes
 
@@ -172,9 +177,10 @@ function checkOBBCollisionSAT(carA, carB, positionAOverride = null) {
  * @param {object} inputState - User input { isAccelerating, isBraking, isTurningLeft, isTurningRight }.
  * @param {number} deltaTime - Time elapsed since the last frame.
  * @param {object} otherCars - Dictionary of other car objects { index: car }.
+ * @param {Array<THREE.Object3D>} collidableMapTiles - Array of collidable map tile objects.
  * @returns {object} - Updated physics state { speed, acceleration, steeringAngle, collisionDetected: boolean }.
  */
-export function updatePhysics(activeCar, physicsState, inputState, deltaTime, otherCars) {
+export function updatePhysics(activeCar, physicsState, inputState, deltaTime, otherCars, collidableMapTiles = []) {
     let { speed, acceleration, steeringAngle } = physicsState;
     const { isAccelerating, isBraking, isTurningLeft, isTurningRight } = inputState;
 
@@ -222,67 +228,116 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
     const potentialNewPosition = originalPosition.clone().addScaledVector(forward, speed * deltaTime);
 
     // Predictive OBB Collision Detection
-    let collisionDetected = false;
-    let collidedOtherCar = null;
+    let collisionDetectedThisFrame = false;
+    let collidedObject = null; // Can be another car or a map tile
+    let isStaticCollision = false;
     let penetrationDepth = 0;
     collisionNormal.set(0, 0, 0);
 
+    // 1. Check against other cars
     for (const key in otherCars) {
         const otherCar = otherCars[key];
-        if (!otherCar || !otherCar.visible) continue;
+        if (!otherCar || !otherCar.visible || otherCar === activeCar) continue;
 
-        // Check if potential position causes collision
-        const collisionResult = checkOBBCollisionSAT(activeCar, otherCar, potentialNewPosition);
+        const collisionResult = checkOBBCollisionSAT(activeCar, otherCar, potentialNewPosition, false);
 
         if (collisionResult.collision) {
-            collisionDetected = true;
-            collidedOtherCar = otherCar;
+            collisionDetectedThisFrame = true;
+            collidedObject = otherCar;
+            isStaticCollision = false;
             penetrationDepth = collisionResult.mtvDepth;
             collisionNormal.copy(collisionResult.mtvAxis);
-            break; // Handle one collision per frame
+            console.log("Collision with another car detected!");
+            break; 
+        }
+    }
+
+    // 2. Check against static map tiles (if no car collision yet)
+    if (!collisionDetectedThisFrame && collidableMapTiles) {
+        for (const tile of collidableMapTiles) {
+            if (!tile || !tile.visible || !tile.userData.isCollidable || !tile.userData.halfExtents) continue;
+
+            // Ensure tile's matrixWorld is up-to-date before OBB calculation
+            // For static tiles, this usually only needs to be done once after loading/positioning,
+            // but if their parent group is transformed, it needs to be updated.
+            tile.updateMatrixWorld(true); 
+
+            const collisionResult = checkOBBCollisionSAT(activeCar, tile, potentialNewPosition, true);
+
+            if (collisionResult.collision) {
+                collisionDetectedThisFrame = true;
+                collidedObject = tile;
+                isStaticCollision = true;
+                penetrationDepth = collisionResult.mtvDepth;
+                collisionNormal.copy(collisionResult.mtvAxis);
+                console.log("Collision with map tile detected! Tile:", tile.name || tile.uuid);
+                break; 
+            }
         }
     }
 
     // Apply Movement or Response
-    if (collisionDetected && collidedOtherCar) {
-        // Collision Response
-        console.log("Collision detected (OBB SAT)!");
-
+    if (collisionDetectedThisFrame && collidedObject) {
         if (collisionNormal.lengthSq() > EPSILON * EPSILON && penetrationDepth > EPSILON) {
             const relativeVelocity = forward.clone().multiplyScalar(speed);
             const separatingVelocity = relativeVelocity.dot(collisionNormal);
 
-            // Apply bounce only if moving towards each other along the normal
-            if (separatingVelocity < 0) {
+            if (!isStaticCollision && separatingVelocity < 0) { // Bounce for car-car if moving towards
                 const restitution = COLLISION_RESTITUTION;
-                // Simplified impulse calculation (assuming equal mass for now)
                 const impulseMagnitude = -(1 + restitution) * separatingVelocity;
                 const impulse = collisionNormal.clone().multiplyScalar(impulseMagnitude);
                 const newVelocityVec = relativeVelocity.add(impulse);
-                // Update speed based on the new velocity vector magnitude and direction relative to forward
                 speed = newVelocityVec.length() * Math.sign(newVelocityVec.dot(forward));
-                speed = Math.max(-MAX_SPEED / 2, Math.min(MAX_SPEED, speed)); // Re-clamp
+                speed = Math.max(-MAX_SPEED / 2, Math.min(MAX_SPEED, speed));
+                console.log(`Car-Car collision bounce. New speed: ${speed.toFixed(2)}`);
+            } else if (isStaticCollision && separatingVelocity < 0) { // Bounce for static collision if moving towards
+                const restitution = COLLISION_RESTITUTION;
+                // For a static object, the impulse effectively reverses the car's velocity component along the normal, scaled by restitution.
+                // The -(1 + restitution) * separatingVelocity formula assumes the other object (carB) also has a velocity component.
+                // For a static object, a simpler model is to reflect the velocity component.
+                // v_final_normal = -restitution * v_initial_normal
+                // impulse_normal = v_final_normal - v_initial_normal = (-restitution * v_initial_normal) - v_initial_normal = -(1 + restitution) * v_initial_normal
+                // Here, separatingVelocity is v_initial_normal for the car (relative to the static object).
+                const impulseMagnitude = -(1 + restitution) * separatingVelocity;
+                const impulse = collisionNormal.clone().multiplyScalar(impulseMagnitude);
+                const newVelocityVec = relativeVelocity.add(impulse);
 
-                console.log(`Collision bounce applied. New speed: ${speed.toFixed(2)}`);
+                // Update speed based on the new velocity vector
+                // Ensure the sign of the speed matches the direction of the new velocity vector relative to the car's forward.
+                const newSpeedMagnitude = newVelocityVec.length();
+                if (newSpeedMagnitude > EPSILON) {
+                    const directionSign = Math.sign(newVelocityVec.dot(forward));
+                    speed = newSpeedMagnitude * directionSign;
+                } else {
+                    speed = 0; // If new velocity is negligible, stop the car
+                }
+                speed = Math.max(-MAX_SPEED / 2, Math.min(MAX_SPEED, speed)); // Clamp speed
+                console.log(`Static collision bounce. New speed: ${speed.toFixed(2)}`);
+            } else if (isStaticCollision && separatingVelocity >= 0) {
+                // If moving away or parallel to static object surface, but still overlapping (e.g. sliding along)
+                // We might not want a bounce, just prevent further penetration.
+                // The separation push below will handle this.
+                // We could also apply friction here if desired.
+                console.log(`Static collision, but moving away or parallel. Speed: ${speed.toFixed(2)}`);
             }
 
-            // Apply separation push based on MTV depth to the *original* position
             separationVector.copy(collisionNormal).multiplyScalar(penetrationDepth * COLLISION_SEPARATION_FACTOR);
-            activeCar.position.copy(originalPosition).add(separationVector);
+            activeCar.position.copy(originalPosition).add(separationVector); // Apply separation push
+            // Ensure car is not pushed through other side of thin objects by clamping to potentialNewPosition if separation is too large
+            // This is a simplified check; a more robust solution might be needed for complex geometries.
+            if (activeCar.position.distanceToSquared(originalPosition) > originalPosition.distanceToSquared(potentialNewPosition) && speed < 0) {
+                 // If pushed back further than it moved forward, and was moving forward, might be an issue.
+                 // For now, the current separation is generally okay.
+            }
             console.log(`Applying separation push: ${separationVector.toArray().map(n => n.toFixed(2)).join(',')}`);
 
         } else {
-            // Fallback if MTV calculation somehow failed
             console.warn("Collision detected but MTV invalid. Applying fallback response.");
-            speed *= -COLLISION_RESTITUTION;
-            activeCar.position.copy(originalPosition); // Stay at original position
-            activeCar.position.x += (Math.random() - 0.5) * 0.05; // Small random push
-            activeCar.position.z += (Math.random() - 0.5) * 0.05;
+            if (!isStaticCollision) speed *= -COLLISION_RESTITUTION;
+            else speed = 0; // Stop against static object
+            activeCar.position.copy(originalPosition);
         }
-        // Position is now set based on response
-
     } else {
-        // No collision detected, apply the potential movement
         activeCar.position.copy(potentialNewPosition);
     }
 
@@ -290,6 +345,6 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
         speed: speed,
         acceleration: acceleration,
         steeringAngle: steeringAngle,
-        collisionDetected: collisionDetected
+        collisionDetected: collisionDetectedThisFrame
     };
 }
