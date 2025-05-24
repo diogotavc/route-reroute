@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DEBUG_GENERAL, DEBUG_MODEL_LOADING, DEBUG_MAP_LEVEL_LOGIC } from './config.js';
 
-import { setupLights } from './lights.js';
+import { setupLights, updateDayNightCycle } from './lights.js';
 import {
     initCars,
     loadCarModels,
@@ -98,14 +98,18 @@ function processLevelMissions(missions, mapDefinition) {
 }
 
 const levels = [
-    { missions: exampleLevel1_Missions, map: level1MapData, cameraStart: [0, 20, 30] },
+    { missions: exampleLevel1_Missions, map: level1MapData, cameraStart: [0, 20, 30], initialTimeOfDay: 0.25, timeIncrementPerMission: 0.05 }, // Starts at sunrise, increments time
 ];
 
 let currentLevelIndex = 0;
+let currentTimeOfDay = 0.25; // Default start time
 
 function loadCarModelsAndSetupLevel() {
     const levelConfig = levels[currentLevelIndex];
     currentLevelData = processLevelMissions(levelConfig.missions, levelConfig.map);
+
+    currentTimeOfDay = levelConfig.initialTimeOfDay !== undefined ? levelConfig.initialTimeOfDay : 0.25;
+    updateDayNightCycle(scene, currentTimeOfDay);
 
     if (levelConfig.cameraStart) {
         camera.position.set(...levelConfig.cameraStart);
@@ -130,6 +134,10 @@ const clock = new THREE.Clock();
 function animate() {
     const deltaTime = clock.getDelta();
 
+    currentTimeOfDay += deltaTime * 0.1;
+    if (currentTimeOfDay > 1) currentTimeOfDay -= 1;
+    updateDayNightCycle(scene, currentTimeOfDay);
+
     if (currentLevelData) {
         updateCarPhysics(deltaTime, collidableMapElements);
     }
@@ -149,6 +157,12 @@ window.addEventListener("keydown", (event) => {
             const nextCarResult = nextCar();
             if (nextCarResult === -1) {
                 if (DEBUG_MAP_LEVEL_LOGIC) console.log("End of missions for this level!");
+            } else {
+                // Increment time of day for next mission
+                const levelConfig = levels[currentLevelIndex];
+                currentTimeOfDay += levelConfig.timeIncrementPerMission !== undefined ? levelConfig.timeIncrementPerMission : 0.05;
+                if (currentTimeOfDay > 1) currentTimeOfDay -= 1; // Loop back to 0 if it exceeds 1
+                updateDayNightCycle(scene, currentTimeOfDay);
             }
             break;
         case "ArrowUp": case "w": setAccelerating(true); break;
