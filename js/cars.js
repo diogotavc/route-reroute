@@ -2,6 +2,11 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import * as CarPhysics from "./carPhysics.js";
 
+// DEBUG
+let debug_coordinateLogInterval = 1.0;
+let debug_timeSinceLastCoordinateLog = 0;
+
+
 let scene = null;
 let camera = null;
 let controls = null;
@@ -78,11 +83,20 @@ const CAMERA_FOLLOW_SPEED = 2.0;
 const CAMERA_DISTANCE = 18;
 const CAMERA_HEIGHT = 10;
 
-export function loadCarModels(level) {
-    levels = level;
-    const loadModelPromises = level.map((mission, index) => {
+export function loadCarModels(processedLevelData) { // Renamed parameter for clarity
+    levels = processedLevelData; // Store the processed data
+    const loadModelPromises = levels.map((mission, index) => {
+        if (!mission) return Promise.resolve(); // Skip if mission is null (e.g. due to processing error)
+
         const name = mission[0];
-        const path = carModels[name][0];
+        const path = carModels[name]?.[0]; // Use optional chaining for safety
+        if (!path) {
+            console.error(`Model path for "${name}" not found in carModels config.`);
+            return Promise.reject(`Missing model path for ${name}`);
+        }
+        const startingPoint = mission[3]; // This is now world coordinates
+        const initialRotationY = mission[5] !== undefined ? mission[5] : 0; // Get initial rotation
+
         return new Promise((resolve, reject) => {
             modelLoader.load(
                 path,
@@ -95,40 +109,41 @@ export function loadCarModels(level) {
                         }
                     });
 
-                    // Calculate and store local half-extents for OBB physics
                     const box = new THREE.Box3().setFromObject(model);
                     const size = box.getSize(new THREE.Vector3());
                     model.userData.halfExtents = size.multiplyScalar(0.5);
 
                     model.visible = false;
-                    model.scale.set(1, 1, 1);
-                    const startingPoint = mission[3];
+                    model.scale.set(1, 1, 1); // Ensure consistent scale
                     model.position.set(
                         startingPoint[0],
                         startingPoint[1],
                         startingPoint[2],
                     );
+                    // Apply initial rotation
+                    model.rotation.y = THREE.MathUtils.degToRad(initialRotationY);
+
 
                     scene.add(model);
                     loadedCarModels[index] = model;
 
                     console.debug(
-                        `Loaded car model ${index + 1}/${level.length} - ${name}`,
+                        `Loaded car model ${index + 1}/${levels.length} - ${name} at [${startingPoint.join(',')}] rotY: ${initialRotationY}`,
                     );
                     resolve();
                 },
-                (progress) => { },
+                undefined,
                 (error) => {
-                    console.error(`Error loading car model ${index}:`, error);
+                    console.error(`Error loading car model ${name} (index ${index}):`, error);
                     reject(error);
                 },
             );
         });
     });
 
-    return Promise.all(loadModelPromises).then(() => {
+    return Promise.all(loadModelPromises.filter(p => p)).then(() => { // Filter out any undefined promises
         if (Object.keys(loadedCarModels).length > 0) {
-            setActiveCar(0);
+            setActiveCar(0); // missionIndex is already 0 here
         }
     });
 }
@@ -151,8 +166,17 @@ function setActiveCar(index) {
     elapsedTime = 0;
     isRewinding = false;
 
-    var [modelName, character, backstory, startingPoint, finishingPoint] =
-        levels[index];
+    if (loadedCarModels[missionIndex] && missionIndex !== index) {
+         //loadedCarModels[missionIndex].userData.isActiveCar = false; // Example flag
+    }
+
+    const missionData = levels[index]; // 'levels' is the processed data from loadCarModels
+    if (!missionData) {
+        console.error(`setActiveCar: No mission data found for index ${index}.`);
+        return null; // or handle error appropriately
+    }
+
+    var [modelName, character, backstory, startingPoint, finishingPoint, initialRotationY] = missionData;
     var characterName =
         String(character).charAt(0).toUpperCase() + String(character).slice(1);
     console.log(`${characterName}: ${backstory}`);
@@ -170,6 +194,9 @@ function setActiveCar(index) {
         loadedCarModels[previousMissionIndex].visible = true;
     }
 
+    activeCar.position.set(startingPoint[0], startingPoint[1], startingPoint[2]);
+    activeCar.rotation.y = THREE.MathUtils.degToRad(initialRotationY || 0);         // 0 as fallback
+
     // Add initial state to the recording
     const initialPosition = activeCar.position.clone();
     const initialRotation = activeCar.quaternion.clone();
@@ -181,12 +208,11 @@ function setActiveCar(index) {
 
     // Instantly position camera behind the new car
     const desiredCameraOffset = new THREE.Vector3(0, CAMERA_HEIGHT, -CAMERA_DISTANCE);
-    const worldOffset = desiredCameraOffset.applyQuaternion(initialRotation);
-    const desiredCameraPosition = initialPosition.clone().add(worldOffset);
-    const desiredLookAt = initialPosition.clone();
+    const worldOffset = desiredCameraOffset.applyQuaternion(activeCar.quaternion);
+    const desiredCameraPosition = activeCar.position.clone().add(worldOffset);
 
     camera.position.copy(desiredCameraPosition);
-    controls.target.copy(desiredLookAt);
+    controls.target.copy(activeCar.position);
     camera.lookAt(controls.target);
 
     // Reset physics state
@@ -253,6 +279,18 @@ let tempReplayQuaternion = new THREE.Quaternion();
 export function updateCarPhysics(deltaTime) {
     const activeCar = loadedCarModels[missionIndex];
     if (!activeCar) return;
+
+    debug_timeSinceLastCoordinateLog += deltaTime;
+    if (debug_timeSinceLastCoordinateLog >= debug_coordinateLogInterval) {
+        const pos = activeCar.position;
+        console.log(
+            `Active Car Coords: X=${pos.x.toFixed(2)}, Y=${pos.y.toFixed(
+                2
+            )}, Z=${pos.z.toFixed(2)}`
+        );
+        debug_timeSinceLastCoordinateLog -= debug_coordinateLogInterval; // Reset timer, subtracting to maintain accuracy if deltaTime > interval
+        // Or simply: debug_timeSinceLastCoordinateLog = 0; if precise timing isn't critical
+    }
 
     if (isRewinding) {
         // --- Handle Rewind ---

@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 import { setupLights } from './lights.js';
-import { setupEnvironment } from './environment.js';
 import {
     initCars,
     loadCarModels,
@@ -11,9 +10,11 @@ import {
     setBraking,
     setTurningLeft,
     setTurningRight,
-    setRewinding, // Import the new function
+    setRewinding,
     updateCarPhysics
 } from './cars.js';
+import { loadMap, getWorldCoordinates } from './mapLoader.js'; // Import map loader
+import { mapData as level1MapData } from './maps/level1_map.js';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -32,63 +33,111 @@ controls.enableRotate = false;
 
 // INIT CARS, LIGHTS AND ENVIRONMENT
 initCars(scene, camera, controls);
-const lights = setupLights(scene);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-const environment = setupEnvironment(scene);
 
-// LEVELS
-// to be migrated to another file
-// Level[i] = [modelName, character, backstory, startingPoint, finishingPoint]
-const exampleLevel1 = [
-    ["ambulance", "Dr. Healmore", "Rushing to save a critical patient.", [-11.61, 0, -3.20], [-1.60, 0, 2.61]],
-    ["firetruck", "Chief Blaze", "A fire broke out in an apartment complex.", [-3.12, 0, -10.79], [4.17, 0, -8.25]],
-    ["police", "Officer Speed", "Chasing a getaway car!", [-3.20, 0, 4.26], [5.20, 0, -9.09]],
-    ["sedan", "Bob Commuter", "Late for an important meeting.", [12.94, 0, -8.84], [7.48, 0, 0.61]],
-    ["suv-luxury", "Mr. Richman", "Heading to a gala event.", [6.98, 0, 14.43], [0.04, 0, 6.21]],
-    ["tractor-police", "Deputy Plow", "Rural patrol duty.", [-4.22, 0, -3.11], [6.95, 0, 3.56]],
-    ["truck-flat", "Big Joe", "Delivering construction materials.", [3.25, 0, 8.53], [4.15, 0, -0.51]],
-    ["delivery", "Timmy Express", "Rush delivery of a fragile package.", [8.83, 0, -6.00], [-6.35, 0, 5.44]],
-    ["garbage-truck", "Oscar Binman", "Trash pickup for the whole neighborhood.", [11.33, 0, 2.85], [-6.23, 0, 1.08]],
-    ["race", "Lightning Fast", "Competing in the Grand Prix!", [-15.41, 0, -4.76], [-1.42, 0, -1.00]],
-    ["sedan-sports", "Speedy Greg", "Testing out his new turbo engine.", [15.33, 0, -8.44], [-4.08, 0, -9.03]],
-    ["taxi", "Manny Cab", "Picking up an important passenger.", [4.85, 0, -6.99], [-4.80, 0, 0.23]],
-    ["tractor-shovel", "Farmer Buck", "Clearing the field for planting.", [5.85, 0, -2.22], [8.89, 0, -6.32]],
-    ["van", "Sam Courier", "Delivering a mysterious package.", [-0.91, 0, -4.44], [-6.83, 0, 3.51]],
-    ["delivery-flat", "Flat Fred", "Transporting large furniture.", [11.14, 0, 6.77], [9.00, 0, -9.26]],
-    ["hatchback-sports", "Drift Queen", "Street racing at midnight.", [5.08, 0, 8.81], [3.20, 0, 7.23]],
-    ["race-future", "Neo Racer", "High-speed hover race through the city.", [-9.10, 0, 2.47], [6.33, 0, -6.56]],
-    ["suv", "Emma Explorer", "Going on an off-road adventure.", [-7.62, 0, 16.17], [2.83, 0, -5.07]],
-    ["tractor", "Old Mac", "Plowing the fields.", [10.13, 0, -7.10], [-2.44, 0, -6.36]],
-    ["truck", "Road King", "Long-haul delivery across the state.", [-8.34, 0, -8.72], [8.14, 0, 2.40]]
-];
-const exampleLevel2 = [
-    ["suv", "john doe", "he's a dumb ass", [10, 0, 3], "whatever1"],
-    ["tractor", "quem", "te perguntou", [0, 0, 0], "whatever2"]
-];
-const levels = [
-    [exampleLevel1, "map1", [0, 20, 30]],
-    [exampleLevel2, "map2", [0, 20, 30]]
-];
+loadMap(scene, level1MapData).then((mapGroup) => { // mapGroup is returned
+    console.log("Map loaded successfully!");
+    // You can store mapGroup if you need to reference the map tiles later
 
-const testLevel = levels[0];
+    // Initialize cars and lights *after* the map is loaded
+    // This ensures the scene is fully set up.
+    initCars(scene, camera, controls);
+    setupLights(scene); // Call setupLights after map might be added to scene
 
-// CAR MODEL CONFIGURATION
-loadCarModels(testLevel[0]).then(() => {
-    console.debug("All car models loaded successfully.");
+    loadCarModelsAndSetupLevel();
 }).catch(error => {
-    console.error("Failed to load all car models:", error);
+    console.error("Failed to load map in main.js:", error);
 });
+
+const exampleLevel1_Missions = [
+    // [modelName, character, backstory, startPointName, finishPointName]
+    ["ambulance", "Dr. Healmore", "Rushing to save a critical patient.", "start1", "finish1"],
+    ["firetruck", "Chief Blaze", "A fire broke out.", "start_fireStation", "finish_apartment"],
+];
+
+let currentLevelData;
+
+function processLevelMissions(missions, mapDefinition) {
+    return missions.map(mission => {
+        const [modelName, character, backstory, startPointName, finishPointName] = mission;
+        const startPointInfo = mapDefinition.startPoints[startPointName];
+        let finishPointInfo = null;
+
+        if (finishPointName) { // Check if finishPointName is provided and valid
+            finishPointInfo = mapDefinition.startPoints[finishPointName];
+        }
+
+        if (!startPointInfo) {
+            console.error(`Start point "${startPointName}" not found in map data for mission "${modelName}"! This mission will be skipped.`);
+            return null; // Critical error, skip this mission
+        }
+
+        if (finishPointName && !finishPointInfo) {
+             console.warn(`Finish point "${finishPointName}" for mission "${modelName}" not found in map data. Car will not have a specific destination.`);
+        }
+
+        const startWorldPos = getWorldCoordinates(startPointInfo.x, startPointInfo.z, mapDefinition);
+        startWorldPos.y = startPointInfo.yOffset || 0;
+
+        let finishWorldPosArray = null;
+        if (finishPointInfo) {
+            const finishWPos = getWorldCoordinates(finishPointInfo.x, finishPointInfo.z, mapDefinition);
+            finishWPos.y = finishPointInfo.yOffset || 0;
+            finishWorldPosArray = [finishWPos.x, finishWPos.y, finishWPos.z];
+        }
+
+        return [
+            modelName,
+            character,
+            backstory,
+            [startWorldPos.x, startWorldPos.y, startWorldPos.z],
+            finishWorldPosArray,
+            startPointInfo.carRotationY !== undefined ? startPointInfo.carRotationY : 0
+        ];
+    }).filter(mission => mission !== null); // Filter out missions that returned null
+}
+
+const levels = [
+    { missions: exampleLevel1_Missions, map: level1MapData, cameraStart: [0, 20, 30] },
+    // { missions: exampleLevel2_Missions, map: level2MapData, cameraStart: [0, 20, 30] }
+];
+
+let currentLevelIndex = 0;
+
+function loadCarModelsAndSetupLevel() {
+    const levelConfig = levels[currentLevelIndex];
+    currentLevelData = processLevelMissions(levelConfig.missions, levelConfig.map);
+
+    // Adjust camera position based on level's cameraStart or map features
+    if (levelConfig.cameraStart) {
+        camera.position.set(...levelConfig.cameraStart);
+    } else if (levelConfig.map.startPoints && levelConfig.map.startPoints.playerSpawn) {
+        // Example: position camera overlooking a specific spawn point
+        const spawnWorldPos = getWorldCoordinates(levelConfig.map.startPoints.playerSpawn.x, levelConfig.map.startPoints.playerSpawn.z, levelConfig.map);
+        camera.position.set(spawnWorldPos.x, 20, spawnWorldPos.z + 15);
+        controls.target.set(spawnWorldPos.x, 0, spawnWorldPos.z);
+    } else {
+        camera.position.set(0,20,30); // Default if no specific camera instruction
+    }
+    controls.update();
+
+
+    loadCarModels(currentLevelData).then(() => { // Pass the processed data to car loader
+        console.debug("All car models loaded successfully for the current level.");
+    }).catch(error => {
+        console.error("Failed to load all car models for the current level:", error);
+    });
+}
 
 // Clock for Delta Time
 const clock = new THREE.Clock();
 
 function animate() {
-    const deltaTime = clock.getDelta(); // Get time difference since last frame
+    const deltaTime = clock.getDelta();
 
-    updateCarPhysics(deltaTime); // Update car physics and camera
+    if (currentLevelData) { // Only update physics if level and cars are ready
+        updateCarPhysics(deltaTime);
+    }
 
-    // controls.update(); // Comment this out - let updateCarPhysics handle camera
     renderer.render(scene, camera);
 }
 
@@ -100,58 +149,26 @@ window.addEventListener("resize", () => {
 });
 
 window.addEventListener("keydown", (event) => {
-    // Prevent default browser behavior for arrow keys, etc. if needed
-    // event.preventDefault();
-
     switch (event.key) {
         case "n":
-            // if (nextCar() == -1) { end of the level }
-            nextCar();
+            const nextCarResult = nextCar();
+            if (nextCarResult === -1) {
+                console.log("End of missions for this level!");
+            }
             break;
-        case "ArrowUp":
-        case "w":
-            setAccelerating(true);
-            break;
-        case "ArrowDown":
-        case "s":
-            setBraking(true);
-            break;
-        case "ArrowLeft":
-        case "a":
-            setTurningLeft(true);
-            break;
-        case "ArrowRight":
-        case "d":
-            setTurningRight(true);
-            break;
-        case "r": // Trigger rewind on keydown
-            setRewinding(); // Call without arguments
-            break;
-        // ... other cases
+        case "ArrowUp": case "w": setAccelerating(true); break;
+        case "ArrowDown": case "s": setBraking(true); break;
+        case "ArrowLeft": case "a": setTurningLeft(true); break;
+        case "ArrowRight": case "d": setTurningRight(true); break;
+        case "r": setRewinding(); break;
     }
 });
 
 window.addEventListener("keyup", (event) => {
     switch (event.key) {
-        case "ArrowUp":
-        case "w":
-            setAccelerating(false);
-            break;
-        case "ArrowDown":
-        case "s":
-            setBraking(false);
-            break;
-        case "ArrowLeft":
-        case "a":
-            setTurningLeft(false);
-            break;
-        case "ArrowRight":
-        case "d":
-            setTurningRight(false);
-            break;
-        // REMOVE the 'r' case from keyup
-        // case "r":
-        //     setRewinding(false);
-        //     break;
+        case "ArrowUp": case "w": setAccelerating(false); break;
+        case "ArrowDown": case "s": setBraking(false); break;
+        case "ArrowLeft": case "a": setTurningLeft(false); break;
+        case "ArrowRight": case "d": setTurningRight(false); break;
     }
 });
