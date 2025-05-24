@@ -16,7 +16,8 @@ export const mapData = {
         [['road_bend', 90], ['road_crossroad', 0], ['road_straight', 90]],
         [['building_b', 0], ['road_straight', 0], null],
     ],
-    tileSize: 4, // Assuming Kenney assets are roughly 4x4 units, adjust as needed
+    tileSize: 12, // Assuming Kenney assets are roughly 4x4 units, adjust as needed
+    tileScale: { x: 6, y: 6, z: 6 }, // Added for scaling map assets
     startPoints: { // Define named start/finish points
         'start1': { x: 1, z: 0, carRotationY: 0 }, // Grid coordinates
         'finish1': { x: 1, z: 2, carRotationY: 90 },

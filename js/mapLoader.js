@@ -31,10 +31,10 @@ function loadTileModels(mapDefinition) {
                                 node.receiveShadow = true;
                             }
                         });
-                        // It's good practice to calculate and store halfExtents if these tiles
-                        // need to be involved in physics later (e.g., collision with environment)
-                        // const box = new THREE.Box3().setFromObject(model);
-                        // model.userData.halfExtents = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);
+                        // Calculate halfExtents for the *original* model here,
+                        // as a base for instances.
+                        const box = new THREE.Box3().setFromObject(model);
+                        model.userData.originalHalfExtents = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);
                         loadedTileModels[modelPath] = model;
                         console.debug(`Loaded map tile model: ${modelPath}`);
                         resolve();
@@ -66,7 +66,9 @@ function createMapLayout(scene, mapDefinition) { // Added scene parameter
 
     const layout = mapDefinition.layout;
     const tileSize = mapDefinition.tileSize;
+    const tileScale = mapDefinition.tileScale ? new THREE.Vector3(mapDefinition.tileScale.x, mapDefinition.tileScale.y, mapDefinition.tileScale.z) : new THREE.Vector3(1, 1, 1);
     const mapGroup = new THREE.Group(); // Group all map tiles for organization
+    mapGroup.userData.collidableTiles = []; // Array to store collidable tiles like buildings
 
     layout.forEach((row, z) => {
         row.forEach((tileInfo, x) => {
@@ -78,8 +80,27 @@ function createMapLayout(scene, mapDefinition) { // Added scene parameter
                 if (modelPath && loadedTileModels[modelPath]) {
                     const originalModel = loadedTileModels[modelPath];
                     const tileInstance = originalModel.clone();
+
+                    tileInstance.scale.copy(tileScale);
                     tileInstance.position.set(x * tileSize, 0, z * tileSize);
                     tileInstance.rotation.y = THREE.MathUtils.degToRad(rotationYDegrees);
+                    
+                    // Calculate and store world-scaled halfExtents for collision detection
+                    if (originalModel.userData.originalHalfExtents) {
+                        tileInstance.userData.halfExtents = originalModel.userData.originalHalfExtents.clone().multiply(tileScale);
+                    } else {
+                        // Fallback if originalHalfExtents wasn't calculated (should not happen with current logic)
+                        const box = new THREE.Box3().setFromObject(tileInstance); // Less efficient
+                        tileInstance.userData.halfExtents = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);
+                    }
+                    
+                    // Simple check if it's a building to mark as collidable
+                    // You might want a more robust way to define collidable types in mapData
+                    if (tileAssetName.startsWith('building_')) {
+                        tileInstance.userData.isCollidable = true;
+                        mapGroup.userData.collidableTiles.push(tileInstance);
+                    }
+
                     mapGroup.add(tileInstance);
                 } else {
                     console.warn(`Model for tile '${tileAssetName}' not found or not loaded.`);
