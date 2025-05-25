@@ -17,5 +17,5 @@ export const DAY_CYCLE = {
     DUSK_START: 0.70,     // 70% - evening begins (longer day)
     DUSK_END: 0.85,       // 85% - full night
     NOON: 0.5,            // 50% - peak sun
-    SPEED: 0.05          // Slower, smoother day/night cycle
+    SPEED: 0.05          // Even slower, smoother day/night cycle
 };

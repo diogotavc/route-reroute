@@ -44,10 +44,7 @@ export function updateDayNightCycle(scene, timeOfDay) {
     // Store current time for streetlight calculations
     currentTimeOfDay = timeOfDay;
     
-    // Simple sun position update
-    updateSunPosition(timeOfDay);
-    
-    // Update lighting based on phase
+    // Update lighting (which also updates sun position)
     updateLighting(timeOfDay);
     
     // Update environment (sky, fog)
@@ -58,14 +55,28 @@ export function updateDayNightCycle(scene, timeOfDay) {
 }
 
 function updateSunPosition(timeOfDay) {
-    // Smooth sun arc across the sky
-    const sunProgress = (timeOfDay + 0.5) % 1; // Offset so sun starts at east
-    const sunAngle = sunProgress * Math.PI * 2; // Full circle
+    // Sun follows a proper east-to-west arc during the day
+    // timeOfDay 0 = midnight, 0.25 = dawn, 0.5 = noon, 0.75 = dusk, 1 = midnight
     
-    const distance = 100;
-    const height = Math.max(5, Math.sin(sunAngle) * 60 + 20); // Keep sun above horizon
+    // Convert time to sun angle: sun rises at dawn (0.25), highest at noon (0.5), sets at dusk (0.75)
+    // Map timeOfDay to angle where 0 = east, π/2 = overhead, π = west
+    let sunAngle;
+    if (timeOfDay < 0.25) {
+        // Before dawn - sun is below eastern horizon
+        sunAngle = -Math.PI/4 + (timeOfDay / 0.25) * (Math.PI/4);
+    } else if (timeOfDay <= 0.75) {
+        // Dawn to dusk - sun travels from east (0) to west (π)
+        const dayProgress = (timeOfDay - 0.25) / 0.5; // 0 to 1 from dawn to dusk
+        sunAngle = dayProgress * Math.PI; // 0 to π
+    } else {
+        // After dusk - sun is below western horizon
+        sunAngle = Math.PI + ((timeOfDay - 0.75) / 0.25) * (Math.PI/4);
+    }
+    
+    const distance = 120;
+    const height = Math.sin(sunAngle) * 80 + 10; // Natural sine curve for height
     const x = Math.cos(sunAngle) * distance;
-    const z = Math.sin(sunAngle) * distance * 0.3; // Slight north-south movement
+    const z = 0; // Keep sun movement in the east-west plane
     
     directionalLight.position.set(x, height, z);
     directionalLight.target.position.set(0, 0, 0);
@@ -73,6 +84,12 @@ function updateSunPosition(timeOfDay) {
 }
 
 function updateLighting(timeOfDay) {
+    // First update sun position
+    updateSunPosition(timeOfDay);
+    
+    // Check if sun is above horizon
+    const sunAboveHorizon = directionalLight.position.y > 0;
+    
     // Smooth interpolation between lighting phases
     const phases = getDayPhase(timeOfDay);
     
@@ -83,7 +100,8 @@ function updateLighting(timeOfDay) {
     ambientLight.color.setHex(lighting.ambientColor);
     ambientLight.intensity = lighting.ambientIntensity;
     
-    directionalLight.visible = lighting.sunVisible;
+    // Only show sun if it's above horizon AND phase allows it
+    directionalLight.visible = lighting.sunVisible && sunAboveHorizon;
     directionalLight.intensity = lighting.sunIntensity;
     directionalLight.color.setHex(lighting.sunColor);
 }
@@ -369,3 +387,43 @@ window.debugDayPhase = (timeOfDay) => {
     console.log(`Dusk: ${DAY_CYCLE.DUSK_START.toFixed(2)} - ${DAY_CYCLE.DUSK_END.toFixed(2)}`);
     console.log(`Streetlights: ON from ${STREETLIGHT_TURN_ON_TIME.toFixed(2)} to ${STREETLIGHT_TURN_OFF_TIME.toFixed(2)}`);
 };
+
+// Debug sun position tracking
+window.debugSunPosition = (timeOfDay) => {
+    if (timeOfDay === undefined) {
+        console.log("Usage: debugSunPosition(timeOfDay) where timeOfDay is between 0 and 1");
+        return;
+    }
+    
+    // Calculate what the sun position would be
+    let sunAngle;
+    if (timeOfDay < 0.25) {
+        sunAngle = -Math.PI/4 + (timeOfDay / 0.25) * (Math.PI/4);
+    } else if (timeOfDay <= 0.75) {
+        const dayProgress = (timeOfDay - 0.25) / 0.5;
+        sunAngle = dayProgress * Math.PI;
+    } else {
+        sunAngle = Math.PI + ((timeOfDay - 0.75) / 0.25) * (Math.PI/4);
+    }
+    
+    const distance = 120;
+    const height = Math.sin(sunAngle) * 80 + 10;
+    const x = Math.cos(sunAngle) * distance;
+    
+    console.log(`Time: ${timeOfDay.toFixed(3)} | Angle: ${(sunAngle * 180 / Math.PI).toFixed(1)}° | Pos: (${x.toFixed(1)}, ${height.toFixed(1)}, 0)`);
+    
+    if (timeOfDay < 0.25) console.log("Phase: Before dawn (sun below eastern horizon)");
+    else if (timeOfDay <= 0.75) console.log("Phase: Dawn to dusk (sun visible)");
+    else console.log("Phase: After dusk (sun below western horizon)");
+};
+
+window.trackSunMovement = () => {
+    console.log("=== SUN MOVEMENT THROUGHOUT DAY ===");
+    for (let t = 0; t <= 1; t += 0.1) {
+        debugSunPosition(t);
+    }
+};
+
+console.log("Sun debug controls available:");
+console.log("- debugSunPosition(timeOfDay) - Show sun position for specific time");
+console.log("- trackSunMovement() - Show sun positions throughout full day");
