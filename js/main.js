@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { DEBUG_GENERAL, DEBUG_MODEL_LOADING, DEBUG_MAP_LEVEL_LOGIC } from './config.js';
+import { DEBUG_GENERAL, DEBUG_MODEL_LOADING, DEBUG_MAP_LEVEL_LOGIC, DAY_CYCLE } from './config.js';
 
 import { setupLights, updateDayNightCycle } from './lights.js';
 import {
@@ -138,7 +138,7 @@ const clock = new THREE.Clock();
 function animate() {
     const deltaTime = clock.getDelta();
 
-    currentTimeOfDay += deltaTime * 0.05;
+    currentTimeOfDay += deltaTime * DAY_CYCLE.SPEED;
     if (currentTimeOfDay > 1) currentTimeOfDay -= 1;
     updateDayNightCycle(scene, currentTimeOfDay);
 
@@ -185,3 +185,24 @@ window.addEventListener("keyup", (event) => {
         case "ArrowRight": case "d": setTurningRight(false); break;
     }
 });
+
+// Add time control functions for testing
+window.setTimeOfDay = (time) => {
+    if (time >= 0 && time <= 1) {
+        currentTimeOfDay = time;
+        updateDayNightCycle(scene, currentTimeOfDay);
+        console.log(`Time of day set to: ${time.toFixed(3)}`);
+    } else {
+        console.log("Time must be between 0 and 1");
+    }
+};
+
+window.getCurrentTimeOfDay = () => {
+    console.log(`Current time of day: ${currentTimeOfDay.toFixed(3)}`);
+    return currentTimeOfDay;
+};
+
+console.log("Time controls available:");
+console.log("- setTimeOfDay(0.0-1.0) - Set specific time of day");
+console.log("- getCurrentTimeOfDay() - Get current time");
+console.log("- debugDayPhase(time) - Debug lighting at specific time");
