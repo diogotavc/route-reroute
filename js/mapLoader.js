@@ -78,6 +78,16 @@ function createMapLayout(scene, mapDefinition) {
                         if (node.isMesh) {
                             node.castShadow = true;
                             node.receiveShadow = true;
+                            // Fix for striped shadows: ensure materials cast shadows from both sides
+                            if (node.material) {
+                                if (Array.isArray(node.material)) {
+                                    node.material.forEach(mat => {
+                                        mat.shadowSide = THREE.DoubleSide;
+                                    });
+                                } else {
+                                    node.material.shadowSide = THREE.DoubleSide;
+                                }
+                            }
                         }
                     });
 
@@ -128,6 +138,16 @@ function createMapLayout(scene, mapDefinition) {
                             if (node.isMesh) {
                                 node.castShadow = true;
                                 node.receiveShadow = true;
+                                // Fix for striped shadows: ensure materials cast shadows from both sides
+                                if (node.material) {
+                                    if (Array.isArray(node.material)) {
+                                        node.material.forEach(mat => {
+                                            mat.shadowSide = THREE.DoubleSide;
+                                        });
+                                    } else {
+                                        node.material.shadowSide = THREE.DoubleSide;
+                                    }
+                                }
                             }
                         });
 
@@ -174,10 +194,10 @@ function createMapLayout(scene, mapDefinition) {
                         spotlight.shadow.mapSize.height = 2048;
                         spotlight.shadow.camera.near = 0.5;
                         spotlight.shadow.camera.far = 25;
-                        spotlight.shadow.bias = -0.0005;  // Increased for better precision
-                        spotlight.shadow.normalBias = 0.02; // Reduced to minimize artifacts
-                        spotlight.shadow.radius = 4;      // Add soft shadow radius
-                        spotlight.shadow.blurSamples = 25; // Smooth shadow sampling
+                        spotlight.shadow.bias = -0.005;     // Improved bias for streetlights
+                        spotlight.shadow.normalBias = 0.03; // Balanced normal bias
+                        spotlight.shadow.radius = 4;       // Add soft shadow radius
+                        spotlight.shadow.blurSamples = 25;  // Smooth shadow sampling
 
                         scene.add(lightBulb);
                         scene.add(spotlight);

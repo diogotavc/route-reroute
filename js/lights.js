@@ -24,11 +24,9 @@ export function setupLights(scene) {
     directionalLight.shadow.camera.top = 100;
     directionalLight.shadow.camera.bottom = -100;
     
-    // Advanced shadow settings for smooth, high-quality shadows
-    directionalLight.shadow.bias = -0.0001;         // Reduced bias for accuracy
-    directionalLight.shadow.normalBias = 0.02;     // Normal bias to reduce acne
-    directionalLight.shadow.radius = 8;            // Soft shadow radius
-    directionalLight.shadow.blurSamples = 25;      // More samples for smoother blur
+    // Advanced shadow settings for crisp, artifact-free shadows
+    directionalLight.shadow.bias = -0.0005;        // Slightly higher bias to prevent striping
+    directionalLight.shadow.normalBias = 0.05;     // Higher normal bias for cleaner shadows
     
     directionalLight.shadow.camera.updateProjectionMatrix();
     scene.add(directionalLight);
