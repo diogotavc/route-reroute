@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 import { STREETLIGHT_INTENSITY, STREETLIGHT_TURN_ON_TIME, STREETLIGHT_TURN_OFF_TIME, DAY_CYCLE } from './config.js';
+
 let ambientLight, directionalLight;
 let streetLights = [];
 let streetLightsEnabled = true;
 let currentScene = null;
+let currentTimeOfDay = 0.5; // Track current time of day for streetlight calculations
 export function setupLights(scene) {
     currentScene = scene;
     ambientLight = new THREE.AmbientLight(0x404040, 0.5);
@@ -12,21 +14,21 @@ export function setupLights(scene) {
     directionalLight.position.set(50, 50, 50);
     directionalLight.castShadow = true;
     
-    // Optimized shadow settings to eliminate scan line artifacts
-    directionalLight.shadow.mapSize.width = 3072;  // Higher res for smoother gradients
-    directionalLight.shadow.mapSize.height = 3072;
+    // High-quality shadow settings
+    directionalLight.shadow.mapSize.width = 4096;   // Higher resolution for smoother shadows
+    directionalLight.shadow.mapSize.height = 4096;
     directionalLight.shadow.camera.near = 0.5;
-    directionalLight.shadow.camera.far = 200;      // Reduced from 250
-    directionalLight.shadow.camera.left = -60;     // Slightly tighter bounds
-    directionalLight.shadow.camera.right = 60;
-    directionalLight.shadow.camera.top = 60;
-    directionalLight.shadow.camera.bottom = -60;
+    directionalLight.shadow.camera.far = 200;
+    directionalLight.shadow.camera.left = -100;
+    directionalLight.shadow.camera.right = 100;
+    directionalLight.shadow.camera.top = 100;
+    directionalLight.shadow.camera.bottom = -100;
     
-    // Critical shadow bias settings to prevent scan lines
-    directionalLight.shadow.bias = -0.0005;        // Slightly less aggressive for smoother gradients
-    directionalLight.shadow.normalBias = 0.04;     // Reduced for softer edges
-    directionalLight.shadow.radius = 20;           // Very high blur radius for smooth gradients
-    directionalLight.shadow.blurSamples = 40;      // More samples for ultra-smooth gradients
+    // Advanced shadow settings for smooth, high-quality shadows
+    directionalLight.shadow.bias = -0.0001;         // Reduced bias for accuracy
+    directionalLight.shadow.normalBias = 0.02;     // Normal bias to reduce acne
+    directionalLight.shadow.radius = 8;            // Soft shadow radius
+    directionalLight.shadow.blurSamples = 25;      // More samples for smoother blur
     
     directionalLight.shadow.camera.updateProjectionMatrix();
     scene.add(directionalLight);
@@ -35,174 +37,223 @@ export function setupLights(scene) {
         directionalLight,
     };
 }
-// Helper function for smooth interpolation
-function smoothStep(edge0, edge1, x) {
-    const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
-    return t * t * (3 - 2 * t);
-}
-
-// Get the current phase of the day and transition factors
-function getDayPhase(timeOfDay) {
-    if (timeOfDay < DAY_CYCLE.DAWN_START || timeOfDay > DAY_CYCLE.DUSK_END) {
-        return { phase: 'night', factor: 1.0 };
-    } else if (timeOfDay < DAY_CYCLE.DAWN_END) {
-        // Dawn transition
-        const factor = smoothStep(DAY_CYCLE.DAWN_START, DAY_CYCLE.DAWN_END, timeOfDay);
-        return { phase: 'dawn', factor };
-    } else if (timeOfDay < DAY_CYCLE.DUSK_START) {
-        // Day time
-        const noonDistance = Math.abs(timeOfDay - DAY_CYCLE.NOON);
-        const maxDistance = DAY_CYCLE.DUSK_START - DAY_CYCLE.NOON;
-        const factor = 1 - (noonDistance / maxDistance);
-        return { phase: 'day', factor };
-    } else {
-        // Dusk transition
-        const factor = 1 - smoothStep(DAY_CYCLE.DUSK_START, DAY_CYCLE.DUSK_END, timeOfDay);
-        return { phase: 'dusk', factor };
-    }
-}
 
 export function updateDayNightCycle(scene, timeOfDay) {
     if (!ambientLight || !directionalLight) return;
     
-    const dayPhase = getDayPhase(timeOfDay);
+    // Store current time for streetlight calculations
+    currentTimeOfDay = timeOfDay;
     
-    // Update sun position with smooth arc
+    // Simple sun position update
     updateSunPosition(timeOfDay);
     
     // Update lighting based on phase
-    updateLighting(dayPhase);
+    updateLighting(timeOfDay);
     
     // Update environment (sky, fog)
-    updateEnvironment(scene, dayPhase, timeOfDay);
+    updateEnvironment(scene, timeOfDay);
     
-    // Update streetlights
-    const shouldBeOn = timeOfDay >= STREETLIGHT_TURN_ON_TIME || timeOfDay <= STREETLIGHT_TURN_OFF_TIME;
-    updateStreetLightsSimple(shouldBeOn);
+    // Update streetlights with smooth transitions
+    updateStreetLightsSmooth(timeOfDay);
 }
 
 function updateSunPosition(timeOfDay) {
-    // Create a smooth sun arc from east to west
-    const sunProgress = (timeOfDay - DAY_CYCLE.DAWN_START + 1) % 1;
-    const sunAngle = sunProgress * Math.PI; // Half circle from dawn to dusk
+    // Smooth sun arc across the sky
+    const sunProgress = (timeOfDay + 0.5) % 1; // Offset so sun starts at east
+    const sunAngle = sunProgress * Math.PI * 2; // Full circle
     
     const distance = 100;
-    const height = Math.sin(sunAngle) * 60; // Peak at noon
+    const height = Math.max(5, Math.sin(sunAngle) * 60 + 20); // Keep sun above horizon
     const x = Math.cos(sunAngle) * distance;
-    const z = 0;
+    const z = Math.sin(sunAngle) * distance * 0.3; // Slight north-south movement
     
-    directionalLight.position.set(x, Math.max(5, height), z);
-    directionalLight.lookAt(0, 0, 0);
+    directionalLight.position.set(x, height, z);
+    directionalLight.target.position.set(0, 0, 0);
+    directionalLight.target.updateMatrixWorld();
 }
 
-function updateLighting(dayPhase) {
-    switch (dayPhase.phase) {
-        case 'night':
-            // Deep night
-            ambientLight.color.setHSL(0.6, 0.6, 0.02);
-            ambientLight.intensity = 0.1;
-            directionalLight.visible = false;
-            break;
-            
-        case 'dawn':
-            // Dawn transition
-            const dawnAmbientHue = 0.6 + dayPhase.factor * -0.05; // Slight blue to neutral
-            const dawnAmbientSat = 0.6 - dayPhase.factor * 0.2;
-            const dawnAmbientLight = 0.02 + dayPhase.factor * 0.3;
-            
-            ambientLight.color.setHSL(dawnAmbientHue, dawnAmbientSat, dawnAmbientLight);
-            ambientLight.intensity = 0.1 + dayPhase.factor * 0.5;
-            
-            // Sun starts appearing
-            directionalLight.visible = dayPhase.factor > 0.3;
-            if (directionalLight.visible) {
-                directionalLight.intensity = (dayPhase.factor - 0.3) * 0.8;
-                directionalLight.color.setHSL(0.08, 0.8, 0.6); // Warm dawn light
-            }
-            break;
-            
-        case 'day':
-            // Full daylight with intensity based on noon proximity
-            ambientLight.color.setHSL(0.55, 0.3, 0.4 + dayPhase.factor * 0.2);
-            ambientLight.intensity = 0.6 + dayPhase.factor * 0.4;
-            
-            directionalLight.visible = true;
-            directionalLight.intensity = 0.8 + dayPhase.factor * 0.7;
-            directionalLight.color.setHSL(0.12, 0.2, 0.9); // Bright white daylight
-            break;
-            
-        case 'dusk':
-            // Dusk transition
-            const duskAmbientHue = 0.55 + (1 - dayPhase.factor) * 0.05;
-            const duskAmbientSat = 0.3 + (1 - dayPhase.factor) * 0.3;
-            const duskAmbientLight = 0.6 - (1 - dayPhase.factor) * 0.58;
-            
-            ambientLight.color.setHSL(duskAmbientHue, duskAmbientSat, duskAmbientLight);
-            ambientLight.intensity = 0.6 - (1 - dayPhase.factor) * 0.5;
-            
-            // Sun fading
-            directionalLight.visible = dayPhase.factor > 0.2;
-            if (directionalLight.visible) {
-                directionalLight.intensity = dayPhase.factor * 1.2;
-                directionalLight.color.setHSL(0.05, 0.9, 0.7); // Warm sunset light
-            }
-            break;
+function updateLighting(timeOfDay) {
+    // Smooth interpolation between lighting phases
+    const phases = getDayPhase(timeOfDay);
+    
+    // Get lighting parameters for current phase
+    const lighting = getLightingForPhase(phases.phase, phases.factor);
+    
+    // Apply smoothly interpolated lighting
+    ambientLight.color.setHex(lighting.ambientColor);
+    ambientLight.intensity = lighting.ambientIntensity;
+    
+    directionalLight.visible = lighting.sunVisible;
+    directionalLight.intensity = lighting.sunIntensity;
+    directionalLight.color.setHex(lighting.sunColor);
+}
+
+function getDayPhase(timeOfDay) {
+    if (timeOfDay < DAY_CYCLE.DAWN_START || timeOfDay > DAY_CYCLE.DUSK_END) {
+        // Night phase
+        if (timeOfDay > DAY_CYCLE.DUSK_END) {
+            // Late night (after dusk)
+            const factor = (timeOfDay - DAY_CYCLE.DUSK_END) / (1 - DAY_CYCLE.DUSK_END);
+            return { phase: 'night', factor: Math.min(factor, 1) };
+        } else {
+            // Early night (before dawn)
+            const factor = timeOfDay / DAY_CYCLE.DAWN_START;
+            return { phase: 'night', factor: Math.min(factor, 1) };
+        }
+    } else if (timeOfDay < DAY_CYCLE.DAWN_END) {
+        // Dawn phase
+        const factor = (timeOfDay - DAY_CYCLE.DAWN_START) / (DAY_CYCLE.DAWN_END - DAY_CYCLE.DAWN_START);
+        return { phase: 'dawn', factor: Math.min(Math.max(factor, 0), 1) };
+    } else if (timeOfDay < DAY_CYCLE.DUSK_START) {
+        // Day phase
+        const factor = (timeOfDay - DAY_CYCLE.DAWN_END) / (DAY_CYCLE.DUSK_START - DAY_CYCLE.DAWN_END);
+        return { phase: 'day', factor: Math.min(Math.max(factor, 0), 1) };
+    } else {
+        // Dusk phase
+        const factor = (timeOfDay - DAY_CYCLE.DUSK_START) / (DAY_CYCLE.DUSK_END - DAY_CYCLE.DUSK_START);
+        return { phase: 'dusk', factor: Math.min(Math.max(factor, 0), 1) };
     }
 }
 
-function updateEnvironment(scene, dayPhase, timeOfDay) {
-    // Ensure background exists
-    if (!scene.background || !(scene.background instanceof THREE.Color)) {
+function getLightingForPhase(phase, factor) {
+    // Smooth easing function for natural transitions
+    const easeInOut = (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    const smoothFactor = easeInOut(factor);
+    
+    switch (phase) {
+        case 'night':
+            return {
+                ambientColor: 0x0a0f2e,
+                ambientIntensity: 0.08,
+                sunVisible: false,
+                sunIntensity: 0,
+                sunColor: 0x4169e1
+            };
+            
+        case 'dawn':
+            // Transition from night to day colors
+            const dawnAmbientIntensity = 0.08 + smoothFactor * 0.22;
+            const dawnSunIntensity = smoothFactor * 0.85;
+            const dawnAmbientColor = interpolateColor(0x0a0f2e, 0xffd4a3, smoothFactor);
+            const dawnSunColor = interpolateColor(0x4169e1, 0xff8c42, smoothFactor);
+            
+            return {
+                ambientColor: dawnAmbientColor,
+                ambientIntensity: dawnAmbientIntensity,
+                sunVisible: smoothFactor > 0.1,
+                sunIntensity: dawnSunIntensity,
+                sunColor: dawnSunColor
+            };
+            
+        case 'day':
+            // Transition to pure daylight
+            const dayAmbientIntensity = 0.3 + smoothFactor * 0.1;
+            const dayAmbientColor = interpolateColor(0xffd4a3, 0xffffff, Math.min(smoothFactor * 2, 1));
+            const daySunColor = interpolateColor(0xff8c42, 0xffffff, Math.min(smoothFactor * 2, 1));
+            
+            return {
+                ambientColor: dayAmbientColor,
+                ambientIntensity: dayAmbientIntensity,
+                sunVisible: true,
+                sunIntensity: 0.85 + smoothFactor * 0.15,
+                sunColor: daySunColor
+            };
+            
+        case 'dusk':
+            // Transition from day to night colors
+            const duskAmbientIntensity = 0.4 - smoothFactor * 0.32;
+            const duskSunIntensity = (1 - smoothFactor) * 0.9;
+            const duskAmbientColor = interpolateColor(0xffffff, 0xff8c42, smoothFactor);
+            const duskSunColor = interpolateColor(0xffffff, 0xff6b35, smoothFactor);
+            
+            return {
+                ambientColor: duskAmbientColor,
+                ambientIntensity: duskAmbientIntensity,
+                sunVisible: smoothFactor < 0.9,
+                sunIntensity: duskSunIntensity,
+                sunColor: duskSunColor
+            };
+            
+        default:
+            return {
+                ambientColor: 0xffffff,
+                ambientIntensity: 0.4,
+                sunVisible: true,
+                sunIntensity: 1.0,
+                sunColor: 0xffffff
+            };
+    }
+}
+
+function interpolateColor(color1, color2, factor) {
+    // Convert hex to RGB
+    const r1 = (color1 >> 16) & 255;
+    const g1 = (color1 >> 8) & 255;
+    const b1 = color1 & 255;
+    
+    const r2 = (color2 >> 16) & 255;
+    const g2 = (color2 >> 8) & 255;
+    const b2 = color2 & 255;
+    
+    // Interpolate each channel
+    const r = Math.round(r1 + (r2 - r1) * factor);
+    const g = Math.round(g1 + (g2 - g1) * factor);
+    const b = Math.round(b1 + (b2 - b1) * factor);
+    
+    // Convert back to hex
+    return (r << 16) | (g << 8) | b;
+}
+
+function updateEnvironment(scene, timeOfDay) {
+    if (!scene.background) {
         scene.background = new THREE.Color();
     }
     
-    // Update sky color based on phase
-    switch (dayPhase.phase) {
-        case 'night':
-            scene.background.setHSL(0.65, 0.4, 0.03);
-            break;
-            
-        case 'dawn':
-            const dawnSkyHue = 0.65 - dayPhase.factor * 0.1;
-            const dawnSkySat = 0.4 + dayPhase.factor * 0.2;
-            const dawnSkyLight = 0.03 + dayPhase.factor * 0.35;
-            scene.background.setHSL(dawnSkyHue, dawnSkySat, dawnSkyLight);
-            break;
-            
-        case 'day':
-            scene.background.setHSL(0.55, 0.6, 0.4 + dayPhase.factor * 0.3);
-            break;
-            
-        case 'dusk':
-            const duskSkyHue = 0.05 + dayPhase.factor * 0.5;
-            const duskSkySat = 0.8 - dayPhase.factor * 0.2;
-            const duskSkyLight = 0.2 + dayPhase.factor * 0.5;
-            scene.background.setHSL(duskSkyHue, duskSkySat, duskSkyLight);
-            break;
-    }
+    // Smooth sky color transitions
+    const phases = getDayPhase(timeOfDay);
+    const skyColor = getSkyColorForPhase(phases.phase, phases.factor);
+    scene.background.setHex(skyColor);
     
-    // Update fog
+    // Dynamic fog that matches the sky
     if (!scene.fog) {
-        scene.fog = new THREE.Fog(0x000000, 30, 200);
+        scene.fog = new THREE.Fog(0x000000, 80, 250);
     }
-    
     scene.fog.color.copy(scene.background);
     
-    // Adjust fog density based on time
-    switch (dayPhase.phase) {
+    // Adjust fog density based on time of day
+    const baseFar = phases.phase === 'night' ? 200 : 250;
+    const fogFar = baseFar + Math.sin(timeOfDay * Math.PI * 2) * 30;
+    scene.fog.far = Math.max(150, fogFar);
+}
+
+function getSkyColorForPhase(phase, factor) {
+    const easeInOut = (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    const smoothFactor = easeInOut(factor);
+    
+    switch (phase) {
         case 'night':
-            scene.fog.near = 20;
-            scene.fog.far = 80;
-            break;
+            return 0x050820; // Deep night blue
+            
         case 'dawn':
-        case 'dusk':
-            scene.fog.near = 30 + dayPhase.factor * 30;
-            scene.fog.far = 100 + dayPhase.factor * 150;
-            break;
+            // Transition from night blue to warm dawn colors
+            return interpolateColor(0x050820, 0xff7f50, smoothFactor);
+            
         case 'day':
-            scene.fog.near = 60;
-            scene.fog.far = 250;
-            break;
+            // Transition from dawn to bright blue sky
+            return interpolateColor(0xff7f50, 0x87ceeb, Math.min(smoothFactor * 1.5, 1));
+            
+        case 'dusk':
+            // Transition from day blue to warm sunset colors
+            const midDusk = interpolateColor(0x87ceeb, 0xff9966, Math.min(smoothFactor * 1.2, 1));
+            if (smoothFactor > 0.7) {
+                // Late dusk - transition to night
+                const latePhase = (smoothFactor - 0.7) / 0.3;
+                return interpolateColor(midDusk, 0x1a0f2e, latePhase);
+            }
+            return midDusk;
+            
+        default:
+            return 0x87ceeb; // Default day sky
     }
 }
 
@@ -236,10 +287,30 @@ function updateStreetLights() {
     });
 }
 
-function updateStreetLightsSimple(shouldBeOn) {
+function updateStreetLightsSmooth(timeOfDay) {
+    if (!streetLightsEnabled) {
+        streetLights.forEach(light => { light.intensity = 0; });
+        return;
+    }
+    
+    // Smooth streetlight transitions based on actual lighting conditions
+    const phases = getDayPhase(timeOfDay);
+    let targetIntensity = 0;
+    
+    if (phases.phase === 'night') {
+        targetIntensity = STREETLIGHT_INTENSITY;
+    } else if (phases.phase === 'dawn') {
+        // Fade out streetlights as dawn progresses
+        targetIntensity = STREETLIGHT_INTENSITY * (1 - phases.factor * 1.2);
+    } else if (phases.phase === 'dusk') {
+        // Fade in streetlights as dusk progresses
+        targetIntensity = STREETLIGHT_INTENSITY * Math.max(0, phases.factor - 0.3) / 0.7;
+    }
+    
+    targetIntensity = Math.max(0, Math.min(targetIntensity, STREETLIGHT_INTENSITY));
+    
     streetLights.forEach(light => {
-        // Simple on/off behavior - full intensity when on, 0 when off
-        light.intensity = (streetLightsEnabled && shouldBeOn) ? STREETLIGHT_INTENSITY : 0;
+        light.intensity = targetIntensity;
     });
 }
 
@@ -253,102 +324,11 @@ window.forceStreetLightsOn = () => {
     });
     console.log("All streetlights forced to maximum intensity");
 };
-window.debugAllLights = () => {
-    if (!currentScene) {
-        console.log("Scene not available");
-        return;
-    }
-    const allLights = [];
-    currentScene.traverse((object) => {
-        if (object.isLight) {
-            allLights.push(object);
-        }
-    });
-    console.log(`Found ${allLights.length} lights in scene:`);
-    allLights.forEach((light, index) => {
-        console.log(`Light ${index}: Type ${light.type}, Intensity ${light.intensity}, Position (${light.position.x}, ${light.position.y}, ${light.position.z})`);
-    });
-    return allLights;
-};
-window.debugStreetLights = () => {
-    console.log(`Streetlights enabled: ${streetLightsEnabled}`);
-    console.log(`Number of streetlights: ${streetLights.length}`);
-    streetLights.forEach((light, index) => {
-        console.log(`Light ${index}: Intensity ${light.intensity}, Position (${light.position.x}, ${light.position.y}, ${light.position.z})`);
-    });
-};
-
-// Clean up debug objects and make position markers permanent
-window.cleanupDebugObjects = () => {
-    if (!currentScene) {
-        console.log("Scene not available");
-        return;
-    }
-    
-    let removedCount = 0;
-    const objectsToRemove = [];
-    
-    currentScene.traverse((object) => {
-        // Remove large red debug spheres (attached to streetlights)
-        if (object.isMesh && object.geometry instanceof THREE.SphereGeometry) {
-            const radius = object.geometry.parameters.radius;
-            const material = object.material;
-            
-            // Remove large red spheres (radius 3.0, red color)
-            if (radius === 3.0 && material.color && material.color.getHex() === 0xff0000) {
-                objectsToRemove.push(object);
-                removedCount++;
-            }
-            // Remove white test spheres (radius 5.0, white color)
-            else if (radius === 5.0 && material.color && material.color.getHex() === 0xffffff) {
-                objectsToRemove.push(object);
-                removedCount++;
-            }
-        }
-        
-        // Remove test point lights (red ones at position 0,10,0)
-        if (object.isLight && object.type === 'PointLight') {
-            if (object.color.getHex() === 0xff0000 && 
-                object.position.x === 0 && object.position.y === 10 && object.position.z === 0) {
-                objectsToRemove.push(object);
-                removedCount++;
-            }
-        }
-    });
-    
-    // Remove the objects
-    objectsToRemove.forEach(object => {
-        if (object.parent) {
-            object.parent.remove(object);
-        } else {
-            currentScene.remove(object);
-        }
-        
-        // Clean up geometry and material
-        if (object.geometry) object.geometry.dispose();
-        if (object.material) {
-            if (Array.isArray(object.material)) {
-                object.material.forEach(mat => mat.dispose());
-            } else {
-                object.material.dispose();
-            }
-        }
-    });
-    
-    console.log(`Cleaned up ${removedCount} debug objects from the scene`);
-    console.log("Cyan position markers are now permanent features");
-    return removedCount;
-};
 
 // Add helpful console info
 console.log("Streetlight controls available:");
 console.log("- toggleStreetLights() - Toggle streetlights on/off");
 console.log("- setStreetLightsEnabled(true/false) - Set streetlight state");
-console.log("- forceStreetLightsOn() - Force all lights to maximum intensity");
-console.log("- debugStreetLights() - Show streetlight debug info");
-console.log("- debugAllLights() - Show all lights in the scene");
-console.log("- debugDayPhase() - Show current day phase and lighting info");
-console.log("- debugSunShadows() - Show sun shadow settings");
 
 // Debug sun shadow settings specifically
 window.debugSunShadows = () => {
