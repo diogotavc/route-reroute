@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { STREETLIGHT_INTENSITY } from './config.js';
+import { STREETLIGHT_INTENSITY, STREETLIGHT_TURN_ON_TIME, STREETLIGHT_TURN_OFF_TIME } from './config.js';
 let ambientLight, directionalLight;
 let streetLights = [];
 let streetLightsEnabled = true;
@@ -46,9 +46,9 @@ export function updateDayNightCycle(scene, timeOfDay) {
     const dayFactor = Math.max(0, 1 - (Math.abs(timeOfDay - 0.5) / 0.3));
     const nightFactor = Math.max(0, (0.25 - Math.min(Math.abs(timeOfDay - 1), timeOfDay, Math.abs(timeOfDay))) / 0.25);
     
-    // Update streetlight intensity based on time of day
-    const isNightTime = timeOfDay < 0.22 || timeOfDay > 0.78;
-    updateStreetLightsDynamic(isNightTime ? 1.2 : 0.2);
+    // Simple on/off streetlight behavior
+    const shouldBeOn = timeOfDay >= STREETLIGHT_TURN_ON_TIME || timeOfDay <= STREETLIGHT_TURN_OFF_TIME;
+    updateStreetLightsSimple(shouldBeOn);
     
     if (timeOfDay > 0.2 && timeOfDay < 0.8) {
         const ambientDayLightness = 0.25 + dayFactor * 0.35;
@@ -134,13 +134,11 @@ function updateStreetLights() {
     });
 }
 
-function updateStreetLightsDynamic(intensity) {
-    if (streetLightsEnabled) {
-        streetLights.forEach(light => {
-            // Use the base intensity, slightly modified by time of day
-            light.intensity = STREETLIGHT_INTENSITY * (0.8 + intensity * 0.2);
-        });
-    }
+function updateStreetLightsSimple(shouldBeOn) {
+    streetLights.forEach(light => {
+        // Simple on/off behavior - full intensity when on, 0 when off
+        light.intensity = (streetLightsEnabled && shouldBeOn) ? STREETLIGHT_INTENSITY : 0;
+    });
 }
 
 // Make functions available globally for console access

@@ -7,3 +7,5 @@ export const DEBUG_REWIND = false;
 
 // Streetlight configuration
 export const STREETLIGHT_INTENSITY = 10; // Single source of truth for streetlight intensity
+export const STREETLIGHT_TURN_ON_TIME = 0.78;  // Turn on after 78% of day (evening)
+export const STREETLIGHT_TURN_OFF_TIME = 0.22; // Turn off at 22% of day (dawn)
