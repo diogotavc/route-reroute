@@ -76,8 +76,7 @@ let levels;
 let currentFinishPointMarker = null;
 let currentMissionDestination = null;
 
-// Headlight management
-let carHeadlights = {}; // Store headlights for each car
+let carHeadlights = {};
 let headlightsEnabled = HEADLIGHT_AUTO_MODE;
 let currentTimeOfDay = 0.5;
 
@@ -101,19 +100,15 @@ const CAMERA_DISTANCE = 18;
 const CAMERA_HEIGHT = 10;
 const LOOK_AT_Y_OFFSET = 3.5;
 
-// Create headlights for a car model
 function createHeadlights(carModel, carIndex) {
-    // Get car dimensions to position headlights correctly
     const bbox = new THREE.Box3().setFromObject(carModel);
     const size = bbox.getSize(new THREE.Vector3());
     const center = bbox.getCenter(new THREE.Vector3());
     
-    // More aggressive positioning - ensure headlights are at the very front
-    const frontDistance = size.z * 0.5; // Move further forward
-    const sideDistance = Math.max(size.x * 0.3, 0.4); // Ensure minimum spacing
-    const heightOffset = Math.max(size.y * 0.25, 0.3); // Ensure reasonable height
-    
-    // Left headlight
+    const frontDistance = size.z * 0.5;
+    const sideDistance = Math.max(size.x * 0.3, 0.4);
+    const heightOffset = Math.max(size.y * 0.25, 0.3);
+
     const leftHeadlight = new THREE.SpotLight(
         HEADLIGHT_COLOR,
         HEADLIGHT_INTENSITY,
@@ -121,8 +116,7 @@ function createHeadlights(carModel, carIndex) {
         HEADLIGHT_ANGLE,
         HEADLIGHT_PENUMBRA
     );
-    
-    // Right headlight
+
     const rightHeadlight = new THREE.SpotLight(
         HEADLIGHT_COLOR,
         HEADLIGHT_INTENSITY,
@@ -130,67 +124,58 @@ function createHeadlights(carModel, carIndex) {
         HEADLIGHT_ANGLE,
         HEADLIGHT_PENUMBRA
     );
-    
-    // Position headlights relative to car center, offset to car's local space
+
     leftHeadlight.position.set(-sideDistance, heightOffset, frontDistance);
     rightHeadlight.position.set(sideDistance, heightOffset, frontDistance);
-    
-    // Create targets for the headlights (where they point)
+
     const leftTarget = new THREE.Object3D();
     const rightTarget = new THREE.Object3D();
-    
-    // Position targets further ahead with slight inward angle for convergence
+
     const targetDistance = 15;
-    const convergenceAngle = 0.1; // Slight inward angle
+    const convergenceAngle = 0.1;
     leftTarget.position.set(
-        -sideDistance * 0.3, // Less spread at target
-        -0.5, // Point slightly down to hit the ground
+        -sideDistance * 0.3,
+        -0.5,
         frontDistance + targetDistance
     );
     rightTarget.position.set(
-        sideDistance * 0.3, // Less spread at target
-        -0.5, // Point slightly down to hit the ground
+        sideDistance * 0.3,
+        -0.5,
         frontDistance + targetDistance
     );
-    
-    // Set targets
+
     leftHeadlight.target = leftTarget;
     rightHeadlight.target = rightTarget;
-    
-    // Enable shadows for realistic lighting
+
     leftHeadlight.castShadow = true;
     rightHeadlight.castShadow = true;
-    
-    // Better shadow quality and settings
+
     leftHeadlight.shadow.mapSize.width = 2048;
     leftHeadlight.shadow.mapSize.height = 2048;
     leftHeadlight.shadow.camera.near = 0.1;
     leftHeadlight.shadow.camera.far = HEADLIGHT_DISTANCE;
     leftHeadlight.shadow.bias = -0.0001;
     leftHeadlight.shadow.normalBias = 0.02;
-    
+
     rightHeadlight.shadow.mapSize.width = 2048;
     rightHeadlight.shadow.mapSize.height = 2048;
     rightHeadlight.shadow.camera.near = 0.1;
     rightHeadlight.shadow.camera.far = HEADLIGHT_DISTANCE;
     rightHeadlight.shadow.bias = -0.0001;
     rightHeadlight.shadow.normalBias = 0.02;
-    
-    // Add to car model
+
     carModel.add(leftHeadlight);
     carModel.add(rightHeadlight);
     carModel.add(leftTarget);
     carModel.add(rightTarget);
-    
-    // Store headlights for this car
+
     carHeadlights[carIndex] = {
         left: leftHeadlight,
         right: rightHeadlight,
         leftTarget: leftTarget,
         rightTarget: rightTarget
     };
-    
-    // Start with headlights off (will be controlled by time of day)
+
     leftHeadlight.intensity = 0;
     rightHeadlight.intensity = 0;
     
@@ -241,7 +226,6 @@ export function loadCarModels(processedLevelData) {
                     );
                     model.rotation.y = THREE.MathUtils.degToRad(initialRotationY);
 
-                    // Add headlights to the car
                     createHeadlights(model, index);
 
                     scene.add(model);
@@ -426,17 +410,14 @@ export function setRewinding() {
     console.log(`Starting rewind. Initial elapsed time: ${elapsedTime.toFixed(2)}s`);
 }
 
-// Headlight control functions
 export function updateHeadlights(timeOfDay) {
     currentTimeOfDay = timeOfDay;
-    
+
     if (!HEADLIGHT_AUTO_MODE) return;
-    
-    // Determine if headlights should be on
+
     const shouldBeOn = timeOfDay >= HEADLIGHT_TURN_ON_TIME || timeOfDay <= HEADLIGHT_TURN_OFF_TIME;
     const targetIntensity = shouldBeOn ? HEADLIGHT_INTENSITY : 0;
-    
-    // Update all car headlights
+
     for (const carIndex in carHeadlights) {
         const headlightSet = carHeadlights[carIndex];
         headlightSet.left.intensity = targetIntensity;
@@ -447,13 +428,13 @@ export function updateHeadlights(timeOfDay) {
 export function toggleHeadlights() {
     headlightsEnabled = !headlightsEnabled;
     const targetIntensity = headlightsEnabled ? HEADLIGHT_INTENSITY : 0;
-    
+
     for (const carIndex in carHeadlights) {
         const headlightSet = carHeadlights[carIndex];
         headlightSet.left.intensity = targetIntensity;
         headlightSet.right.intensity = targetIntensity;
     }
-    
+
     console.log(`Headlights ${headlightsEnabled ? 'enabled' : 'disabled'}`);
 }
 
@@ -479,9 +460,7 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = []) {
     if (debug_timeSinceLastCoordinateLog >= debug_coordinateLogInterval) {
         const pos = activeCar.position;
         if (DEBUG_CAR_COORDS) console.log(
-            `Active Car Coords: X=${pos.x.toFixed(2)}, Y=${pos.y.toFixed(
-                2
-            )}, Z=${pos.z.toFixed(2)}`
+            `Active Car Coords: X=${pos.x.toFixed(2)}, Y=${pos.y.toFixed( 2 )}, Z=${pos.z.toFixed(2)}`
         );
         if (currentMissionDestination) {
             const distanceToDestination = pos.distanceTo(currentMissionDestination);
@@ -664,7 +643,6 @@ export function getOtherCarOBBs() {
     return obbs;
 }
 
-// Export variables for debugging
 export function getCarHeadlights() {
     return carHeadlights;
 }

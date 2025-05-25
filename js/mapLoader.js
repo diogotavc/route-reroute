@@ -57,11 +57,11 @@ function createMapLayout(scene, mapDefinition) {
     const tileScaleVec = mapDefinition.tileScale ? new THREE.Vector3(mapDefinition.tileScale.x, mapDefinition.tileScale.y, mapDefinition.tileScale.z) : new THREE.Vector3(1, 1, 1);
     const mapGroup = new THREE.Group();
     mapGroup.userData.collidableTiles = [];
-    mapGroup.userData.streetLights = []; // Initialize array for streetlights
+    mapGroup.userData.streetLights = [];
 
     layout.forEach((row, z) => {
         row.forEach((tileInfo, x) => {
-            if (tileInfo && tileInfo.length >= 2) { // Ensure tileInfo is valid
+            if (tileInfo && tileInfo.length >= 2) {
                 const tileAssetName = tileInfo[0];
                 const rotationYDegrees = tileInfo[1];
                 const modelPath = mapDefinition.tileAssets[tileAssetName];
@@ -74,11 +74,10 @@ function createMapLayout(scene, mapDefinition) {
                     tileInstance.position.set(x * tileSize, 0, z * tileSize);
                     tileInstance.rotation.y = THREE.MathUtils.degToRad(rotationYDegrees);
                     
-                    tileInstance.traverse(node => { // Ensure all children also cast/receive shadows
+                    tileInstance.traverse(node => {
                         if (node.isMesh) {
                             node.castShadow = true;
                             node.receiveShadow = true;
-                            // Fix for striped shadows: ensure materials cast shadows from both sides
                             if (node.material) {
                                 if (Array.isArray(node.material)) {
                                     node.material.forEach(mat => {
@@ -114,7 +113,7 @@ function createMapLayout(scene, mapDefinition) {
     if (mapDefinition.streetLightLayout) {
         mapDefinition.streetLightLayout.forEach((row, z) => {
             row.forEach((lightInfo, x) => {
-                if (lightInfo && lightInfo.length >= 2) { // [assetName, rotationY, offsetX, offsetZ]
+                if (lightInfo && lightInfo.length >= 2) {
                     const lightAssetName = lightInfo[0];
                     const rotationYDegrees = lightInfo[1];
                     const offsetX = lightInfo[2] || 0;
@@ -126,7 +125,6 @@ function createMapLayout(scene, mapDefinition) {
                         const lightInstance = originalModel.clone();
 
                         lightInstance.scale.copy(tileScaleVec);
-                        // Apply offsets relative to tile center, scaled by tileSize
                         lightInstance.position.set(
                             x * tileSize + offsetX * tileSize,
                             0, 
@@ -138,7 +136,6 @@ function createMapLayout(scene, mapDefinition) {
                             if (node.isMesh) {
                                 node.castShadow = true;
                                 node.receiveShadow = true;
-                                // Fix for striped shadows: ensure materials cast shadows from both sides
                                 if (node.material) {
                                     if (Array.isArray(node.material)) {
                                         node.material.forEach(mat => {
@@ -151,19 +148,16 @@ function createMapLayout(scene, mapDefinition) {
                             }
                         });
 
-                        // Set up collision detection for streetlights
                         if (originalModel.userData.originalHalfExtents) {
                             lightInstance.userData.halfExtents = originalModel.userData.originalHalfExtents.clone().multiply(tileScaleVec);
                         } else {
                             const box = new THREE.Box3().setFromObject(lightInstance);
                             lightInstance.userData.halfExtents = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);
                         }
-                        
-                        // Mark streetlights as collidable and add to collision system
+
                         lightInstance.userData.isCollidable = true;
                         mapGroup.userData.collidableTiles.push(lightInstance);
 
-                        // Create light bulb sphere that acts as the actual light source
                         const bulbGeometry = new THREE.SphereGeometry(0.12, 8, 6);
                         const bulbMaterial = new THREE.MeshBasicMaterial({ 
                             color: 0xffaa55,
@@ -175,8 +169,7 @@ function createMapLayout(scene, mapDefinition) {
                         const rotationRad = THREE.MathUtils.degToRad(rotationYDegrees);
                         const frontOffsetX = Math.sin(rotationRad) * (-1);
                         const frontOffsetZ = Math.cos(rotationRad) * (-1);
-                        
-                        // Different heights for different model types
+
                         const bulbHeight = lightAssetName.includes('curve') ? 3.93 : 3.48;
 
                         lightBulb.position.set(
@@ -185,31 +178,27 @@ function createMapLayout(scene, mapDefinition) {
                             z * tileSize + offsetZ * tileSize + frontOffsetZ
                         );
 
-                        // Create spotlight pointing downward with slight backward inclination
                         const spotlight = new THREE.SpotLight(0xffaa55, STREETLIGHT_INTENSITY, 25, Math.PI * 0.25, 0.3, 1.0);
                         spotlight.position.copy(lightBulb.position);
-                        
-                        // Point downward with slight backward inclination relative to model rotation
-                        // Light target is much further to create realistic street lighting spread
-                        const bulbOffsetDistance = 1; // Distance of bulb from model
-                        const lightTargetDistance = bulbOffsetDistance * 2; // 8x further for proper street coverage
+
+                        const bulbOffsetDistance = 1;
+                        const lightTargetDistance = bulbOffsetDistance * 2;
                         const targetPosition = new THREE.Vector3(
                             lightBulb.position.x + Math.sin(rotationRad) * (-lightTargetDistance),
-                            0, // Point to ground level
+                            0,
                             lightBulb.position.z + Math.cos(rotationRad) * (-lightTargetDistance)
                         );
                         spotlight.target.position.copy(targetPosition);
                         spotlight.castShadow = true;
-                        
-                        // Configure shadow properties for smoother lighting - optimized for spotlights
+
                         spotlight.shadow.mapSize.width = 2048;
                         spotlight.shadow.mapSize.height = 2048;
                         spotlight.shadow.camera.near = 0.5;
                         spotlight.shadow.camera.far = 25;
-                        spotlight.shadow.bias = -0.005;     // Improved bias for streetlights
-                        spotlight.shadow.normalBias = 0.03; // Balanced normal bias
-                        spotlight.shadow.radius = 4;       // Add soft shadow radius
-                        spotlight.shadow.blurSamples = 25;  // Smooth shadow sampling
+                        spotlight.shadow.bias = -0.005;
+                        spotlight.shadow.normalBias = 0.03;
+                        spotlight.shadow.radius = 4;
+                        spotlight.shadow.blurSamples = 25;
 
                         scene.add(lightBulb);
                         scene.add(spotlight);
@@ -226,8 +215,7 @@ function createMapLayout(scene, mapDefinition) {
     }
 
     scene.add(mapGroup);
-    
-    // Register streetlights with the lighting system
+
     if (mapGroup.userData.streetLights.length > 0) {
         registerStreetLights(mapGroup.userData.streetLights);
         if (DEBUG_GENERAL) console.log(`Registered ${mapGroup.userData.streetLights.length} streetlights with lighting and collision systems.`);
