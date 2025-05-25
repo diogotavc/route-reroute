@@ -154,7 +154,7 @@ function createMapLayout(scene, mapDefinition) {
                         // Create light bulb sphere that acts as the actual light source
                         const bulbGeometry = new THREE.SphereGeometry(0.12, 8, 6);
                         const bulbMaterial = new THREE.MeshBasicMaterial({ 
-                            color: 0xffffff,
+                            color: 0xffaa55,
                             transparent: true,
                             opacity: 0.7
                         });
