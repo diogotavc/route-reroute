@@ -11,16 +11,23 @@ export function setupLights(scene) {
     directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
     directionalLight.position.set(50, 50, 50);
     directionalLight.castShadow = true;
-    directionalLight.shadow.mapSize.width = 4096;
-    directionalLight.shadow.mapSize.height = 4096;
+    
+    // Optimized shadow settings to eliminate scan line artifacts
+    directionalLight.shadow.mapSize.width = 3072;  // Higher res for smoother gradients
+    directionalLight.shadow.mapSize.height = 3072;
     directionalLight.shadow.camera.near = 0.5;
-    directionalLight.shadow.camera.far = 250;
-    directionalLight.shadow.camera.left = -70;
-    directionalLight.shadow.camera.right = 70;
-    directionalLight.shadow.camera.top = 70;
-    directionalLight.shadow.camera.bottom = -70;
-    directionalLight.shadow.bias = -0.0001;
-    directionalLight.shadow.normalBias = 0.01;
+    directionalLight.shadow.camera.far = 200;      // Reduced from 250
+    directionalLight.shadow.camera.left = -60;     // Slightly tighter bounds
+    directionalLight.shadow.camera.right = 60;
+    directionalLight.shadow.camera.top = 60;
+    directionalLight.shadow.camera.bottom = -60;
+    
+    // Critical shadow bias settings to prevent scan lines
+    directionalLight.shadow.bias = -0.0005;        // Slightly less aggressive for smoother gradients
+    directionalLight.shadow.normalBias = 0.04;     // Reduced for softer edges
+    directionalLight.shadow.radius = 20;           // Very high blur radius for smooth gradients
+    directionalLight.shadow.blurSamples = 40;      // More samples for ultra-smooth gradients
+    
     directionalLight.shadow.camera.updateProjectionMatrix();
     scene.add(directionalLight);
     return {
@@ -341,6 +348,26 @@ console.log("- forceStreetLightsOn() - Force all lights to maximum intensity");
 console.log("- debugStreetLights() - Show streetlight debug info");
 console.log("- debugAllLights() - Show all lights in the scene");
 console.log("- debugDayPhase() - Show current day phase and lighting info");
+console.log("- debugSunShadows() - Show sun shadow settings");
+
+// Debug sun shadow settings specifically
+window.debugSunShadows = () => {
+    if (!directionalLight) {
+        console.log("Directional light not available");
+        return;
+    }
+    
+    console.log("=== SUN SHADOW SETTINGS ===");
+    console.log(`Shadow Map Size: ${directionalLight.shadow.mapSize.width}x${directionalLight.shadow.mapSize.height}`);
+    console.log(`Shadow Camera Bounds: ${directionalLight.shadow.camera.left} to ${directionalLight.shadow.camera.right} (X), ${directionalLight.shadow.camera.bottom} to ${directionalLight.shadow.camera.top} (Y)`);
+    console.log(`Shadow Camera Near/Far: ${directionalLight.shadow.camera.near} to ${directionalLight.shadow.camera.far}`);
+    console.log(`Shadow Bias: ${directionalLight.shadow.bias}`);
+    console.log(`Shadow Normal Bias: ${directionalLight.shadow.normalBias}`);
+    console.log(`Shadow Radius: ${directionalLight.shadow.radius || 'N/A'}`);
+    console.log(`Shadow Blur Samples: ${directionalLight.shadow.blurSamples || 'N/A'}`);
+    console.log(`Sun Position: (${directionalLight.position.x.toFixed(1)}, ${directionalLight.position.y.toFixed(1)}, ${directionalLight.position.z.toFixed(1)})`);
+    console.log(`Sun Intensity: ${directionalLight.intensity}`);
+};
 
 // Debug day phase
 window.debugDayPhase = (timeOfDay) => {
