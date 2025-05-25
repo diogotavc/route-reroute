@@ -20,3 +20,13 @@ export const DAY_CYCLE = {
     NOON: 0.5,            // 50% - peak sun
     SPEED: 0.05          // Even slower, smoother day/night cycle
 };
+
+// Headlight configuration
+export const HEADLIGHT_INTENSITY = 12;       // Increased intensity for better visibility
+export const HEADLIGHT_DISTANCE = 30;        // Slightly longer range
+export const HEADLIGHT_ANGLE = Math.PI / 5;  // 36 degrees - wider cone for better triangular effect
+export const HEADLIGHT_PENUMBRA = 0.4;       // More gradual edge falloff for smoother triangles
+export const HEADLIGHT_COLOR = 0xfff8dc;     // Warm white (cream color) for more realistic car lights
+export const HEADLIGHT_AUTO_MODE = true;     // Automatically turn on/off based on time of day
+export const HEADLIGHT_TURN_ON_TIME = 0.75;  // Turn on at dusk (75% of day)
+export const HEADLIGHT_TURN_OFF_TIME = 0.25; // Turn off at dawn (25% of day)

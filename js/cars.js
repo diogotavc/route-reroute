@@ -6,7 +6,15 @@ import {
     DEBUG_MODEL_LOADING, 
     DEBUG_MAP_LEVEL_LOGIC,
     DEBUG_REWIND,
-    DEBUG_GENERAL
+    DEBUG_GENERAL,
+    HEADLIGHT_INTENSITY,
+    HEADLIGHT_DISTANCE,
+    HEADLIGHT_ANGLE,
+    HEADLIGHT_PENUMBRA,
+    HEADLIGHT_COLOR,
+    HEADLIGHT_AUTO_MODE,
+    HEADLIGHT_TURN_ON_TIME,
+    HEADLIGHT_TURN_OFF_TIME
 } from './config.js';
 
 let debug_coordinateLogInterval = 1.0;
@@ -68,6 +76,11 @@ let levels;
 let currentFinishPointMarker = null;
 let currentMissionDestination = null;
 
+// Headlight management
+let carHeadlights = {}; // Store headlights for each car
+let headlightsEnabled = HEADLIGHT_AUTO_MODE;
+let currentTimeOfDay = 0.5;
+
 const recordedMovements = {};
 let currentRecording = [];
 
@@ -87,6 +100,107 @@ const CAMERA_FOLLOW_SPEED = 2.0;
 const CAMERA_DISTANCE = 18;
 const CAMERA_HEIGHT = 10;
 const LOOK_AT_Y_OFFSET = 3.5;
+
+// Create headlights for a car model
+function createHeadlights(carModel, carIndex) {
+    // Get car dimensions to position headlights correctly
+    const bbox = new THREE.Box3().setFromObject(carModel);
+    const size = bbox.getSize(new THREE.Vector3());
+    const center = bbox.getCenter(new THREE.Vector3());
+    
+    // More aggressive positioning - ensure headlights are at the very front
+    const frontDistance = size.z * 0.5; // Move further forward
+    const sideDistance = Math.max(size.x * 0.3, 0.4); // Ensure minimum spacing
+    const heightOffset = Math.max(size.y * 0.25, 0.3); // Ensure reasonable height
+    
+    // Left headlight
+    const leftHeadlight = new THREE.SpotLight(
+        HEADLIGHT_COLOR,
+        HEADLIGHT_INTENSITY,
+        HEADLIGHT_DISTANCE,
+        HEADLIGHT_ANGLE,
+        HEADLIGHT_PENUMBRA
+    );
+    
+    // Right headlight
+    const rightHeadlight = new THREE.SpotLight(
+        HEADLIGHT_COLOR,
+        HEADLIGHT_INTENSITY,
+        HEADLIGHT_DISTANCE,
+        HEADLIGHT_ANGLE,
+        HEADLIGHT_PENUMBRA
+    );
+    
+    // Position headlights relative to car center, offset to car's local space
+    leftHeadlight.position.set(-sideDistance, heightOffset, frontDistance);
+    rightHeadlight.position.set(sideDistance, heightOffset, frontDistance);
+    
+    // Create targets for the headlights (where they point)
+    const leftTarget = new THREE.Object3D();
+    const rightTarget = new THREE.Object3D();
+    
+    // Position targets further ahead with slight inward angle for convergence
+    const targetDistance = 15;
+    const convergenceAngle = 0.1; // Slight inward angle
+    leftTarget.position.set(
+        -sideDistance * 0.3, // Less spread at target
+        -0.5, // Point slightly down to hit the ground
+        frontDistance + targetDistance
+    );
+    rightTarget.position.set(
+        sideDistance * 0.3, // Less spread at target
+        -0.5, // Point slightly down to hit the ground
+        frontDistance + targetDistance
+    );
+    
+    // Set targets
+    leftHeadlight.target = leftTarget;
+    rightHeadlight.target = rightTarget;
+    
+    // Enable shadows for realistic lighting
+    leftHeadlight.castShadow = true;
+    rightHeadlight.castShadow = true;
+    
+    // Better shadow quality and settings
+    leftHeadlight.shadow.mapSize.width = 2048;
+    leftHeadlight.shadow.mapSize.height = 2048;
+    leftHeadlight.shadow.camera.near = 0.1;
+    leftHeadlight.shadow.camera.far = HEADLIGHT_DISTANCE;
+    leftHeadlight.shadow.bias = -0.0001;
+    leftHeadlight.shadow.normalBias = 0.02;
+    
+    rightHeadlight.shadow.mapSize.width = 2048;
+    rightHeadlight.shadow.mapSize.height = 2048;
+    rightHeadlight.shadow.camera.near = 0.1;
+    rightHeadlight.shadow.camera.far = HEADLIGHT_DISTANCE;
+    rightHeadlight.shadow.bias = -0.0001;
+    rightHeadlight.shadow.normalBias = 0.02;
+    
+    // Add to car model
+    carModel.add(leftHeadlight);
+    carModel.add(rightHeadlight);
+    carModel.add(leftTarget);
+    carModel.add(rightTarget);
+    
+    // Store headlights for this car
+    carHeadlights[carIndex] = {
+        left: leftHeadlight,
+        right: rightHeadlight,
+        leftTarget: leftTarget,
+        rightTarget: rightTarget
+    };
+    
+    // Start with headlights off (will be controlled by time of day)
+    leftHeadlight.intensity = 0;
+    rightHeadlight.intensity = 0;
+    
+    if (DEBUG_MODEL_LOADING) {
+        console.log(`Created headlights for car ${carIndex} (${carModel.name || 'unnamed'}) at positions:`, 
+                   `Left: (${leftHeadlight.position.x.toFixed(2)}, ${leftHeadlight.position.y.toFixed(2)}, ${leftHeadlight.position.z.toFixed(2)})`,
+                   `Right: (${rightHeadlight.position.x.toFixed(2)}, ${rightHeadlight.position.y.toFixed(2)}, ${rightHeadlight.position.z.toFixed(2)})`,
+                   `Car size: (${size.x.toFixed(2)}, ${size.y.toFixed(2)}, ${size.z.toFixed(2)})`);
+    }
+}
 
 export function loadCarModels(processedLevelData) {
     levels = processedLevelData;
@@ -127,6 +241,8 @@ export function loadCarModels(processedLevelData) {
                     );
                     model.rotation.y = THREE.MathUtils.degToRad(initialRotationY);
 
+                    // Add headlights to the car
+                    createHeadlights(model, index);
 
                     scene.add(model);
                     loadedCarModels[index] = model;
@@ -305,15 +421,50 @@ export function setTurningRight(value) {
 }
 
 export function setRewinding() {
-    if (!isRewinding) {
-        if (DEBUG_REWIND) console.log("Starting rewind...");
-        isRewinding = true;
-        isAccelerating = false;
-        isBraking = false;
-        isTurningLeft = false;
-        isTurningRight = false;
-    } else {
-        if (DEBUG_REWIND) console.log("Rewind already in progress.");
+    isRewinding = true;
+    elapsedTime = Math.max(0, currentRecording.length > 0 ? currentRecording[currentRecording.length - 1].time : 0);
+    console.log(`Starting rewind. Initial elapsed time: ${elapsedTime.toFixed(2)}s`);
+}
+
+// Headlight control functions
+export function updateHeadlights(timeOfDay) {
+    currentTimeOfDay = timeOfDay;
+    
+    if (!HEADLIGHT_AUTO_MODE) return;
+    
+    // Determine if headlights should be on
+    const shouldBeOn = timeOfDay >= HEADLIGHT_TURN_ON_TIME || timeOfDay <= HEADLIGHT_TURN_OFF_TIME;
+    const targetIntensity = shouldBeOn ? HEADLIGHT_INTENSITY : 0;
+    
+    // Update all car headlights
+    for (const carIndex in carHeadlights) {
+        const headlightSet = carHeadlights[carIndex];
+        headlightSet.left.intensity = targetIntensity;
+        headlightSet.right.intensity = targetIntensity;
+    }
+}
+
+export function toggleHeadlights() {
+    headlightsEnabled = !headlightsEnabled;
+    const targetIntensity = headlightsEnabled ? HEADLIGHT_INTENSITY : 0;
+    
+    for (const carIndex in carHeadlights) {
+        const headlightSet = carHeadlights[carIndex];
+        headlightSet.left.intensity = targetIntensity;
+        headlightSet.right.intensity = targetIntensity;
+    }
+    
+    console.log(`Headlights ${headlightsEnabled ? 'enabled' : 'disabled'}`);
+}
+
+export function setHeadlightsEnabled(enabled) {
+    headlightsEnabled = enabled;
+    const targetIntensity = enabled ? HEADLIGHT_INTENSITY : 0;
+    
+    for (const carIndex in carHeadlights) {
+        const headlightSet = carHeadlights[carIndex];
+        headlightSet.left.intensity = targetIntensity;
+        headlightSet.right.intensity = targetIntensity;
     }
 }
 
@@ -511,4 +662,21 @@ export function getOtherCarOBBs() {
         }
     }
     return obbs;
+}
+
+// Export variables for debugging
+export function getCarHeadlights() {
+    return carHeadlights;
+}
+
+export function getLoadedCarModels() {
+    return loadedCarModels;
+}
+
+export function getCurrentTimeOfDay() {
+    return currentTimeOfDay;
+}
+
+export function getHeadlightsEnabled() {
+    return headlightsEnabled;
 }

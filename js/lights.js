@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { STREETLIGHT_INTENSITY, STREETLIGHT_TURN_ON_TIME, STREETLIGHT_TURN_OFF_TIME, STREETLIGHT_SMOOTH_TRANSITIONS, DAY_CYCLE } from './config.js';
+import { STREETLIGHT_INTENSITY, STREETLIGHT_TURN_ON_TIME, STREETLIGHT_TURN_OFF_TIME, STREETLIGHT_SMOOTH_TRANSITIONS, DAY_CYCLE, HEADLIGHT_INTENSITY } from './config.js';
+import { updateHeadlights, toggleHeadlights, setHeadlightsEnabled, getCarHeadlights, getLoadedCarModels, getCurrentTimeOfDay, getHeadlightsEnabled } from './cars.js';
 
 let ambientLight, directionalLight;
 let streetLights = [];
@@ -54,6 +55,9 @@ export function updateDayNightCycle(scene, timeOfDay) {
     } else {
         updateStreetLightsInstant(timeOfDay);
     }
+    
+    // Update car headlights
+    updateHeadlights(timeOfDay);
 }
 
 function updateSunPosition(timeOfDay) {
@@ -359,11 +363,43 @@ window.forceStreetLightsOn = () => {
     console.log("All streetlights forced to maximum intensity");
 };
 
-// Add helpful console info
-console.log("Streetlight controls available:");
-console.log("- toggleStreetLights() - Toggle streetlights on/off");
-console.log("- setStreetLightsEnabled(true/false) - Set streetlight state");
-console.log(`- Current transition mode: ${STREETLIGHT_SMOOTH_TRANSITIONS ? 'SMOOTH' : 'INSTANT'}`);
+// Make headlight functions available globally
+window.toggleHeadlights = toggleHeadlights;
+window.setHeadlightsEnabled = setHeadlightsEnabled;
+
+// Debug function to test headlights
+window.debugHeadlights = () => {
+    console.log("=== Headlight Debug Info ===");
+    const carHeadlights = getCarHeadlights();
+    const loadedCarModels = getLoadedCarModels();
+    const currentTimeOfDay = getCurrentTimeOfDay();
+    const headlightsEnabled = getHeadlightsEnabled();
+    
+    for (const carIndex in carHeadlights) {
+        const headlightSet = carHeadlights[carIndex];
+        const car = loadedCarModels[carIndex];
+        console.log(`Car ${carIndex}:`, {
+            carVisible: car?.visible,
+            leftIntensity: headlightSet.left.intensity,
+            rightIntensity: headlightSet.right.intensity,
+            leftPosition: headlightSet.left.position,
+            rightPosition: headlightSet.right.position,
+            leftTargetPosition: headlightSet.leftTarget.position,
+            rightTargetPosition: headlightSet.rightTarget.position
+        });
+    }
+    console.log(`Current time: ${currentTimeOfDay}, Headlights enabled: ${headlightsEnabled}`);
+};
+
+window.forceHeadlightsOn = () => {
+    const carHeadlights = getCarHeadlights();
+    for (const carIndex in carHeadlights) {
+        const headlightSet = carHeadlights[carIndex];
+        headlightSet.left.intensity = HEADLIGHT_INTENSITY;
+        headlightSet.right.intensity = HEADLIGHT_INTENSITY;
+    }
+    console.log("All headlights forced to maximum intensity");
+};
 
 // Debug sun shadow settings specifically
 window.debugSunShadows = () => {
