@@ -126,42 +126,65 @@ function createMapLayout(scene, mapDefinition) {
 
                         lightInstance.traverse(node => {
                             if (node.isMesh) {
-                                node.castShadow = true; // Streetlights themselves can cast shadows
+                                node.castShadow = true;
                                 node.receiveShadow = true;
                             }
                         });
 
-                        // Add a PointLight to the streetlight model
-                        const pointLight = new THREE.PointLight(0xffaa55, 2.0, 20 * tileScaleVec.x, 1.0);
-                        pointLight.position.set(0, 2, 0);
-                        pointLight.castShadow = true;
-                        lightInstance.add(pointLight);
-                        lightInstance.userData.pointLight = pointLight;
-
-                        const markerGeometry = new THREE.SphereGeometry(0.12, 8, 6);
-                        const markerMaterial = new THREE.MeshBasicMaterial({ 
+                        // Create light bulb sphere that acts as the actual light source
+                        const bulbGeometry = new THREE.SphereGeometry(0.12, 8, 6);
+                        const bulbMaterial = new THREE.MeshBasicMaterial({ 
                             color: 0xffffff,
                             transparent: true,
                             opacity: 0.7
                         });
-                        const positionMarker = new THREE.Mesh(markerGeometry, markerMaterial);
+                        const lightBulb = new THREE.Mesh(bulbGeometry, bulbMaterial);
 
                         const rotationRad = THREE.MathUtils.degToRad(rotationYDegrees);
                         const frontOffsetX = Math.sin(rotationRad) * (-1);
                         const frontOffsetZ = Math.cos(rotationRad) * (-1);
                         
-                        // alguns modelos são diferentes a nível de altura
-                        const markerHeight = lightAssetName.includes('curve') ? 3.93 : 3.48;
+                        // Different heights for different model types
+                        const bulbHeight = lightAssetName.includes('curve') ? 3.93 : 3.48;
 
-                        positionMarker.position.set(
+                        lightBulb.position.set(
                             x * tileSize + offsetX * tileSize + frontOffsetX,
-                            markerHeight,
+                            bulbHeight,
                             z * tileSize + offsetZ * tileSize + frontOffsetZ
                         );
-                        scene.add(positionMarker);
+
+                        // Create spotlight pointing downward with slight backward inclination
+                        const spotlight = new THREE.SpotLight(0xffaa55, 5.0, 25, Math.PI * 0.25, 0.3, 1.0);
+                        spotlight.position.copy(lightBulb.position);
+                        
+                        // Point downward with slight backward inclination relative to model rotation
+                        // Light target is much further to create realistic street lighting spread
+                        const bulbOffsetDistance = 1; // Distance of bulb from model
+                        const lightTargetDistance = bulbOffsetDistance * 2; // 8x further for proper street coverage
+                        const targetPosition = new THREE.Vector3(
+                            lightBulb.position.x + Math.sin(rotationRad) * (-lightTargetDistance),
+                            0, // Point to ground level
+                            lightBulb.position.z + Math.cos(rotationRad) * (-lightTargetDistance)
+                        );
+                        spotlight.target.position.copy(targetPosition);
+                        spotlight.castShadow = true;
+                        
+                        // Configure shadow properties for smoother lighting - optimized for spotlights
+                        spotlight.shadow.mapSize.width = 2048;
+                        spotlight.shadow.mapSize.height = 2048;
+                        spotlight.shadow.camera.near = 0.5;
+                        spotlight.shadow.camera.far = 25;
+                        spotlight.shadow.bias = -0.0005;  // Increased for better precision
+                        spotlight.shadow.normalBias = 0.02; // Reduced to minimize artifacts
+                        spotlight.shadow.radius = 4;      // Add soft shadow radius
+                        spotlight.shadow.blurSamples = 25; // Smooth shadow sampling
+
+                        scene.add(lightBulb);
+                        scene.add(spotlight);
+                        scene.add(spotlight.target);
 
                         mapGroup.add(lightInstance);
-                        mapGroup.userData.streetLights.push(pointLight);
+                        mapGroup.userData.streetLights.push(spotlight);
                     } else {
                         if (DEBUG_MODEL_LOADING) console.warn(`Model for streetlight '${lightAssetName}' at [${x},${z}] not found or not loaded.`);
                     }
