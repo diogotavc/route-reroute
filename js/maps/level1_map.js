@@ -11,6 +11,10 @@ export const mapData = {
 
         'building_a': 'assets/kenney_city-kit-suburban/Models/building-type-a.glb',
         'building_b': 'assets/kenney_city-kit-suburban/Models/building-type-b.glb',
+
+        // Streetlights
+        'streetlight_curved': 'assets/kenney_city-kit-roads/Models/light-curved.glb',
+        'streetlight_square': 'assets/kenney_city-kit-roads/Models/light-square.glb',
     },
     layout: [
         [null, null, ['road_straight', 90], ['building_a', 90]],
@@ -21,6 +25,16 @@ export const mapData = {
         [['road_straight', 90], null, ['road_straight', 90], null],
         [['building_b', 0], null, ['road_straight', 90], null],
         [null, null, ['road_straight', 90], null],
+    ],
+    streetLightLayout: [
+        [null, null, ['streetlight_curved', 270, -0.45, 0.4], null], // Example: streetlight at tile (0,2)
+        [null, null, null, null],
+        [['streetlight_square', 270, -0.4, 0.4], null, ['streetlight_curved', 180, 0.4, -0.4], null], // Example: streetlight at tile (2,0) and (2,2)
+        [null, null, null, null],
+        [null, null, ['streetlight_curved', 0, 0.4, 0.4], null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, ['streetlight_square', 270, -0.4, -0.4], null],
     ],
     tileSize: 6,
     tileScale: { x: 6, y: 6, z: 6 },

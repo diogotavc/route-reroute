@@ -53,13 +53,14 @@ function createMapLayout(scene, mapDefinition) {
 
     const layout = mapDefinition.layout;
     const tileSize = mapDefinition.tileSize;
-    const tileScale = mapDefinition.tileScale ? new THREE.Vector3(mapDefinition.tileScale.x, mapDefinition.tileScale.y, mapDefinition.tileScale.z) : new THREE.Vector3(1, 1, 1);
+    const tileScaleVec = mapDefinition.tileScale ? new THREE.Vector3(mapDefinition.tileScale.x, mapDefinition.tileScale.y, mapDefinition.tileScale.z) : new THREE.Vector3(1, 1, 1);
     const mapGroup = new THREE.Group();
     mapGroup.userData.collidableTiles = [];
+    mapGroup.userData.streetLights = []; // Initialize array for streetlights
 
     layout.forEach((row, z) => {
         row.forEach((tileInfo, x) => {
-            if (tileInfo && tileInfo.length === 2) {
+            if (tileInfo && tileInfo.length >= 2) { // Ensure tileInfo is valid
                 const tileAssetName = tileInfo[0];
                 const rotationYDegrees = tileInfo[1];
                 const modelPath = mapDefinition.tileAssets[tileAssetName];
@@ -68,12 +69,19 @@ function createMapLayout(scene, mapDefinition) {
                     const originalModel = loadedTileModels[modelPath];
                     const tileInstance = originalModel.clone();
 
-                    tileInstance.scale.copy(tileScale);
+                    tileInstance.scale.copy(tileScaleVec);
                     tileInstance.position.set(x * tileSize, 0, z * tileSize);
                     tileInstance.rotation.y = THREE.MathUtils.degToRad(rotationYDegrees);
                     
+                    tileInstance.traverse(node => { // Ensure all children also cast/receive shadows
+                        if (node.isMesh) {
+                            node.castShadow = true;
+                            node.receiveShadow = true;
+                        }
+                    });
+
                     if (originalModel.userData.originalHalfExtents) {
-                        tileInstance.userData.halfExtents = originalModel.userData.originalHalfExtents.clone().multiply(tileScale);
+                        tileInstance.userData.halfExtents = originalModel.userData.originalHalfExtents.clone().multiply(tileScaleVec);
                     } else {
                         const box = new THREE.Box3().setFromObject(tileInstance);
                         tileInstance.userData.halfExtents = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);
@@ -86,11 +94,59 @@ function createMapLayout(scene, mapDefinition) {
 
                     mapGroup.add(tileInstance);
                 } else {
-                    if (DEBUG_MODEL_LOADING) console.warn(`Model for tile '${tileAssetName}' not found or not loaded.`);
+                    if (DEBUG_MODEL_LOADING) console.warn(`Model for tile '${tileAssetName}' at [${x},${z}] not found or not loaded.`);
                 }
             }
         });
     });
+
+    if (mapDefinition.streetLightLayout) {
+        mapDefinition.streetLightLayout.forEach((row, z) => {
+            row.forEach((lightInfo, x) => {
+                if (lightInfo && lightInfo.length >= 2) { // [assetName, rotationY, offsetX, offsetZ]
+                    const lightAssetName = lightInfo[0];
+                    const rotationYDegrees = lightInfo[1];
+                    const offsetX = lightInfo[2] || 0;
+                    const offsetZ = lightInfo[3] || 0;
+                    const modelPath = mapDefinition.tileAssets[lightAssetName];
+
+                    if (modelPath && loadedTileModels[modelPath]) {
+                        const originalModel = loadedTileModels[modelPath];
+                        const lightInstance = originalModel.clone();
+
+                        lightInstance.scale.copy(tileScaleVec);
+                        // Apply offsets relative to tile center, scaled by tileSize
+                        lightInstance.position.set(
+                            x * tileSize + offsetX * tileSize,
+                            0, 
+                            z * tileSize + offsetZ * tileSize
+                        );
+                        lightInstance.rotation.y = THREE.MathUtils.degToRad(rotationYDegrees);
+
+                        lightInstance.traverse(node => {
+                            if (node.isMesh) {
+                                node.castShadow = true; // Streetlights themselves can cast shadows
+                                node.receiveShadow = true;
+                            }
+                        });
+
+                        // Add a PointLight to the streetlight model
+                        const pointLight = new THREE.PointLight(0xffaa55, 0, 15 * tileScaleVec.x, 1.5); // Color, Intensity (initially 0), Distance, Decay
+                        pointLight.position.set(0, 2.5 * tileScaleVec.y, 0); // Adjust Y based on model height, relative to model origin
+                        pointLight.castShadow = false; // Light from streetlight bulb usually doesn't cast sharp shadows
+                        lightInstance.add(pointLight);
+                        lightInstance.userData.pointLight = pointLight; // Store reference for easy access
+
+                        mapGroup.add(lightInstance);
+                        mapGroup.userData.streetLights.push(pointLight); // Add the light itself to the list for toggling
+                    } else {
+                        if (DEBUG_MODEL_LOADING) console.warn(`Model for streetlight '${lightAssetName}' at [${x},${z}] not found or not loaded.`);
+                    }
+                }
+            });
+        });
+    }
+
     scene.add(mapGroup);
     if (DEBUG_GENERAL) console.log("Map layout created and added to scene.");
     return mapGroup;
