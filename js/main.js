@@ -33,6 +33,7 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
 controls.enableDamping = false;
 controls.enableRotate = false;
+controls.enableZoom = false;
 
 initCars(scene, camera, controls);
 
