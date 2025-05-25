@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DEBUG_MODEL_LOADING, DEBUG_GENERAL } from './config.js';
+import { DEBUG_MODEL_LOADING, DEBUG_GENERAL, STREETLIGHT_INTENSITY } from './config.js';
 import { registerStreetLights } from './lights.js';
 
 const modelLoader = new GLTFLoader();
@@ -154,7 +154,7 @@ function createMapLayout(scene, mapDefinition) {
                         );
 
                         // Create spotlight pointing downward with slight backward inclination
-                        const spotlight = new THREE.SpotLight(0xffaa55, 5.0, 25, Math.PI * 0.25, 0.3, 1.0);
+                        const spotlight = new THREE.SpotLight(0xffaa55, STREETLIGHT_INTENSITY, 25, Math.PI * 0.25, 0.3, 1.0);
                         spotlight.position.copy(lightBulb.position);
                         
                         // Point downward with slight backward inclination relative to model rotation

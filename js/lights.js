@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { STREETLIGHT_INTENSITY } from './config.js';
 let ambientLight, directionalLight;
 let streetLights = [];
 let streetLightsEnabled = true;
@@ -127,7 +128,7 @@ export function setStreetLightsEnabled(enabled) {
 function updateStreetLights() {
     console.log(`Updating streetlights: enabled=${streetLightsEnabled}, count=${streetLights.length}`);
     streetLights.forEach((light, index) => {
-        const newIntensity = streetLightsEnabled ? 2.0 : 0;
+        const newIntensity = streetLightsEnabled ? STREETLIGHT_INTENSITY : 0;
         light.intensity = newIntensity;
         console.log(`Light ${index} intensity set to ${newIntensity}`);
     });
@@ -136,7 +137,8 @@ function updateStreetLights() {
 function updateStreetLightsDynamic(intensity) {
     if (streetLightsEnabled) {
         streetLights.forEach(light => {
-            light.intensity = Math.max(intensity, 0.5); // Minimum intensity of 0.5 to always be visible
+            // Use the base intensity, slightly modified by time of day
+            light.intensity = STREETLIGHT_INTENSITY * (0.8 + intensity * 0.2);
         });
     }
 }
@@ -146,8 +148,8 @@ window.toggleStreetLights = toggleStreetLights;
 window.setStreetLightsEnabled = setStreetLightsEnabled;
 window.forceStreetLightsOn = () => {
     streetLights.forEach((light, index) => {
-        light.intensity = 3.0;
-        console.log(`Forced light ${index} to max intensity`);
+        light.intensity = STREETLIGHT_INTENSITY;
+        console.log(`Forced light ${index} to max intensity (${STREETLIGHT_INTENSITY})`);
     });
     console.log("All streetlights forced to maximum intensity");
 };
