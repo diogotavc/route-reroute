@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 let ambientLight, directionalLight;
+let streetLights = [];
+let streetLightsEnabled = true;
+let currentScene = null;
 export function setupLights(scene) {
+    currentScene = scene;
     ambientLight = new THREE.AmbientLight(0x404040, 0.5);
     scene.add(ambientLight);
     directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
@@ -40,6 +44,11 @@ export function updateDayNightCycle(scene, timeOfDay) {
     const noonFactor = Math.max(0, 1 - (Math.abs(timeOfDay - 0.5) / 0.28));
     const dayFactor = Math.max(0, 1 - (Math.abs(timeOfDay - 0.5) / 0.3));
     const nightFactor = Math.max(0, (0.25 - Math.min(Math.abs(timeOfDay - 1), timeOfDay, Math.abs(timeOfDay))) / 0.25);
+    
+    // Update streetlight intensity based on time of day
+    const isNightTime = timeOfDay < 0.22 || timeOfDay > 0.78;
+    updateStreetLightsDynamic(isNightTime ? 1.2 : 0.2);
+    
     if (timeOfDay > 0.2 && timeOfDay < 0.8) {
         const ambientDayLightness = 0.25 + dayFactor * 0.35;
         ambientLight.color.setHSL(0.58, 0.4, ambientDayLightness);
@@ -93,3 +102,146 @@ export function updateDayNightCycle(scene, timeOfDay) {
         updateDayNightCycle(scene, timeOfDay);
     }
 }
+
+// Streetlight management functions
+export function registerStreetLights(lights) {
+    streetLights = lights;
+    console.log(`Registering ${lights.length} streetlights:`, lights);
+    lights.forEach((light, index) => {
+        console.log(`Streetlight ${index}: Position (${light.position.x}, ${light.position.y}, ${light.position.z}), Intensity: ${light.intensity}`);
+    });
+    updateStreetLights();
+}
+
+export function toggleStreetLights() {
+    streetLightsEnabled = !streetLightsEnabled;
+    updateStreetLights();
+    console.log(`Streetlights ${streetLightsEnabled ? 'enabled' : 'disabled'}`);
+}
+
+export function setStreetLightsEnabled(enabled) {
+    streetLightsEnabled = enabled;
+    updateStreetLights();
+}
+
+function updateStreetLights() {
+    console.log(`Updating streetlights: enabled=${streetLightsEnabled}, count=${streetLights.length}`);
+    streetLights.forEach((light, index) => {
+        const newIntensity = streetLightsEnabled ? 2.0 : 0;
+        light.intensity = newIntensity;
+        console.log(`Light ${index} intensity set to ${newIntensity}`);
+    });
+}
+
+function updateStreetLightsDynamic(intensity) {
+    if (streetLightsEnabled) {
+        streetLights.forEach(light => {
+            light.intensity = Math.max(intensity, 0.5); // Minimum intensity of 0.5 to always be visible
+        });
+    }
+}
+
+// Make functions available globally for console access
+window.toggleStreetLights = toggleStreetLights;
+window.setStreetLightsEnabled = setStreetLightsEnabled;
+window.forceStreetLightsOn = () => {
+    streetLights.forEach((light, index) => {
+        light.intensity = 3.0;
+        console.log(`Forced light ${index} to max intensity`);
+    });
+    console.log("All streetlights forced to maximum intensity");
+};
+window.debugAllLights = () => {
+    if (!currentScene) {
+        console.log("Scene not available");
+        return;
+    }
+    const allLights = [];
+    currentScene.traverse((object) => {
+        if (object.isLight) {
+            allLights.push(object);
+        }
+    });
+    console.log(`Found ${allLights.length} lights in scene:`);
+    allLights.forEach((light, index) => {
+        console.log(`Light ${index}: Type ${light.type}, Intensity ${light.intensity}, Position (${light.position.x}, ${light.position.y}, ${light.position.z})`);
+    });
+    return allLights;
+};
+window.debugStreetLights = () => {
+    console.log(`Streetlights enabled: ${streetLightsEnabled}`);
+    console.log(`Number of streetlights: ${streetLights.length}`);
+    streetLights.forEach((light, index) => {
+        console.log(`Light ${index}: Intensity ${light.intensity}, Position (${light.position.x}, ${light.position.y}, ${light.position.z})`);
+    });
+};
+
+// Clean up debug objects and make position markers permanent
+window.cleanupDebugObjects = () => {
+    if (!currentScene) {
+        console.log("Scene not available");
+        return;
+    }
+    
+    let removedCount = 0;
+    const objectsToRemove = [];
+    
+    currentScene.traverse((object) => {
+        // Remove large red debug spheres (attached to streetlights)
+        if (object.isMesh && object.geometry instanceof THREE.SphereGeometry) {
+            const radius = object.geometry.parameters.radius;
+            const material = object.material;
+            
+            // Remove large red spheres (radius 3.0, red color)
+            if (radius === 3.0 && material.color && material.color.getHex() === 0xff0000) {
+                objectsToRemove.push(object);
+                removedCount++;
+            }
+            // Remove white test spheres (radius 5.0, white color)
+            else if (radius === 5.0 && material.color && material.color.getHex() === 0xffffff) {
+                objectsToRemove.push(object);
+                removedCount++;
+            }
+        }
+        
+        // Remove test point lights (red ones at position 0,10,0)
+        if (object.isLight && object.type === 'PointLight') {
+            if (object.color.getHex() === 0xff0000 && 
+                object.position.x === 0 && object.position.y === 10 && object.position.z === 0) {
+                objectsToRemove.push(object);
+                removedCount++;
+            }
+        }
+    });
+    
+    // Remove the objects
+    objectsToRemove.forEach(object => {
+        if (object.parent) {
+            object.parent.remove(object);
+        } else {
+            currentScene.remove(object);
+        }
+        
+        // Clean up geometry and material
+        if (object.geometry) object.geometry.dispose();
+        if (object.material) {
+            if (Array.isArray(object.material)) {
+                object.material.forEach(mat => mat.dispose());
+            } else {
+                object.material.dispose();
+            }
+        }
+    });
+    
+    console.log(`Cleaned up ${removedCount} debug objects from the scene`);
+    console.log("Cyan position markers are now permanent features");
+    return removedCount;
+};
+
+// Add helpful console info
+console.log("Streetlight controls available:");
+console.log("- toggleStreetLights() - Toggle streetlights on/off");
+console.log("- setStreetLightsEnabled(true/false) - Set streetlight state");
+console.log("- forceStreetLightsOn() - Force all lights to maximum intensity");
+console.log("- debugStreetLights() - Show streetlight debug info");
+console.log("- debugAllLights() - Show all lights in the scene");

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DEBUG_MODEL_LOADING, DEBUG_GENERAL } from './config.js';
+import { registerStreetLights } from './lights.js';
 
 const modelLoader = new GLTFLoader();
 const loadedTileModels = {};
@@ -131,14 +132,36 @@ function createMapLayout(scene, mapDefinition) {
                         });
 
                         // Add a PointLight to the streetlight model
-                        const pointLight = new THREE.PointLight(0xffaa55, 0, 15 * tileScaleVec.x, 1.5); // Color, Intensity (initially 0), Distance, Decay
-                        pointLight.position.set(0, 2.5 * tileScaleVec.y, 0); // Adjust Y based on model height, relative to model origin
-                        pointLight.castShadow = false; // Light from streetlight bulb usually doesn't cast sharp shadows
+                        const pointLight = new THREE.PointLight(0xffaa55, 2.0, 20 * tileScaleVec.x, 1.0);
+                        pointLight.position.set(0, 2, 0);
+                        pointLight.castShadow = true;
                         lightInstance.add(pointLight);
-                        lightInstance.userData.pointLight = pointLight; // Store reference for easy access
+                        lightInstance.userData.pointLight = pointLight;
+
+                        const markerGeometry = new THREE.SphereGeometry(0.12, 8, 6);
+                        const markerMaterial = new THREE.MeshBasicMaterial({ 
+                            color: 0xffffff,
+                            transparent: true,
+                            opacity: 0.7
+                        });
+                        const positionMarker = new THREE.Mesh(markerGeometry, markerMaterial);
+
+                        const rotationRad = THREE.MathUtils.degToRad(rotationYDegrees);
+                        const frontOffsetX = Math.sin(rotationRad) * (-1);
+                        const frontOffsetZ = Math.cos(rotationRad) * (-1);
+                        
+                        // alguns modelos são diferentes a nível de altura
+                        const markerHeight = lightAssetName.includes('curve') ? 3.93 : 3.48;
+
+                        positionMarker.position.set(
+                            x * tileSize + offsetX * tileSize + frontOffsetX,
+                            markerHeight,
+                            z * tileSize + offsetZ * tileSize + frontOffsetZ
+                        );
+                        scene.add(positionMarker);
 
                         mapGroup.add(lightInstance);
-                        mapGroup.userData.streetLights.push(pointLight); // Add the light itself to the list for toggling
+                        mapGroup.userData.streetLights.push(pointLight);
                     } else {
                         if (DEBUG_MODEL_LOADING) console.warn(`Model for streetlight '${lightAssetName}' at [${x},${z}] not found or not loaded.`);
                     }
@@ -148,6 +171,13 @@ function createMapLayout(scene, mapDefinition) {
     }
 
     scene.add(mapGroup);
+    
+    // Register streetlights with the lighting system
+    if (mapGroup.userData.streetLights.length > 0) {
+        registerStreetLights(mapGroup.userData.streetLights);
+        if (DEBUG_GENERAL) console.log(`Registered ${mapGroup.userData.streetLights.length} streetlights.`);
+    }
+    
     if (DEBUG_GENERAL) console.log("Map layout created and added to scene.");
     return mapGroup;
 }

@@ -100,7 +100,7 @@ function processLevelMissions(missions, mapDefinition) {
 }
 
 const levels = [
-    { missions: exampleLevel1_Missions, map: level1MapData, cameraStart: [0, 20, 30], initialTimeOfDay: 0.25, timeIncrementPerMission: 0.05 }, // Starts at sunrise, increments time
+    { missions: exampleLevel1_Missions, map: level1MapData, cameraStart: [0, 20, 30], initialTimeOfDay: 0.9, timeIncrementPerMission: 0.05 }, // Starts at night to see streetlights
 ];
 
 let currentLevelIndex = 0;
