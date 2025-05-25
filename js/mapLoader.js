@@ -151,6 +151,18 @@ function createMapLayout(scene, mapDefinition) {
                             }
                         });
 
+                        // Set up collision detection for streetlights
+                        if (originalModel.userData.originalHalfExtents) {
+                            lightInstance.userData.halfExtents = originalModel.userData.originalHalfExtents.clone().multiply(tileScaleVec);
+                        } else {
+                            const box = new THREE.Box3().setFromObject(lightInstance);
+                            lightInstance.userData.halfExtents = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);
+                        }
+                        
+                        // Mark streetlights as collidable and add to collision system
+                        lightInstance.userData.isCollidable = true;
+                        mapGroup.userData.collidableTiles.push(lightInstance);
+
                         // Create light bulb sphere that acts as the actual light source
                         const bulbGeometry = new THREE.SphereGeometry(0.12, 8, 6);
                         const bulbMaterial = new THREE.MeshBasicMaterial({ 
@@ -218,7 +230,7 @@ function createMapLayout(scene, mapDefinition) {
     // Register streetlights with the lighting system
     if (mapGroup.userData.streetLights.length > 0) {
         registerStreetLights(mapGroup.userData.streetLights);
-        if (DEBUG_GENERAL) console.log(`Registered ${mapGroup.userData.streetLights.length} streetlights.`);
+        if (DEBUG_GENERAL) console.log(`Registered ${mapGroup.userData.streetLights.length} streetlights with lighting and collision systems.`);
     }
     
     if (DEBUG_GENERAL) console.log("Map layout created and added to scene.");
