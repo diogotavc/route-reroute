@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { STREETLIGHT_INTENSITY, STREETLIGHT_TURN_ON_TIME, STREETLIGHT_TURN_OFF_TIME, DAY_CYCLE } from './config.js';
+import { STREETLIGHT_INTENSITY, STREETLIGHT_TURN_ON_TIME, STREETLIGHT_TURN_OFF_TIME, STREETLIGHT_SMOOTH_TRANSITIONS, DAY_CYCLE } from './config.js';
 
 let ambientLight, directionalLight;
 let streetLights = [];
@@ -50,8 +50,12 @@ export function updateDayNightCycle(scene, timeOfDay) {
     // Update environment (sky, fog)
     updateEnvironment(scene, timeOfDay);
     
-    // Update streetlights with smooth transitions
-    updateStreetLightsSmooth(timeOfDay);
+    // Update streetlights (smooth or instant based on config)
+    if (STREETLIGHT_SMOOTH_TRANSITIONS) {
+        updateStreetLightsSmooth(timeOfDay);
+    } else {
+        updateStreetLightsInstant(timeOfDay);
+    }
 }
 
 function updateSunPosition(timeOfDay) {
@@ -332,6 +336,20 @@ function updateStreetLightsSmooth(timeOfDay) {
     });
 }
 
+function updateStreetLightsInstant(timeOfDay) {
+    if (!streetLightsEnabled) {
+        streetLights.forEach(light => { light.intensity = 0; });
+        return;
+    }
+    
+    // Original instant on/off behavior based on time thresholds
+    const shouldBeOn = timeOfDay >= STREETLIGHT_TURN_ON_TIME || timeOfDay <= STREETLIGHT_TURN_OFF_TIME;
+    
+    streetLights.forEach(light => {
+        light.intensity = shouldBeOn ? STREETLIGHT_INTENSITY : 0;
+    });
+}
+
 // Make functions available globally for console access
 window.toggleStreetLights = toggleStreetLights;
 window.setStreetLightsEnabled = setStreetLightsEnabled;
@@ -347,6 +365,7 @@ window.forceStreetLightsOn = () => {
 console.log("Streetlight controls available:");
 console.log("- toggleStreetLights() - Toggle streetlights on/off");
 console.log("- setStreetLightsEnabled(true/false) - Set streetlight state");
+console.log(`- Current transition mode: ${STREETLIGHT_SMOOTH_TRANSITIONS ? 'SMOOTH' : 'INSTANT'}`);
 
 // Debug sun shadow settings specifically
 window.debugSunShadows = () => {
