@@ -344,6 +344,7 @@ function setActiveCar(index) {
         time: 0,
         position: initialPosition,
         rotation: initialRotation,
+        timeOfDay: window.getCurrentTimeOfDay(),
     });
 
     const desiredCameraOffset = new THREE.Vector3(0, CAMERA_HEIGHT, -CAMERA_DISTANCE);
@@ -491,12 +492,29 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = []) {
             tempReplayPosition.lerpVectors(state1.position, state2.position, interpFactor);
             tempReplayQuaternion.slerpQuaternions(state1.rotation, state2.rotation, interpFactor);
 
+            let interpolatedTimeOfDay;
+            if (state1.timeOfDay !== undefined && state2.timeOfDay !== undefined) {
+                let timeDiff = state2.timeOfDay - state1.timeOfDay;
+                if (timeDiff < -0.5) {
+                    timeDiff += 1.0;
+                } else if (timeDiff > 0.5) {
+                    timeDiff -= 1.0;
+                }
+                interpolatedTimeOfDay = state1.timeOfDay + (timeDiff * interpFactor);
+                if (interpolatedTimeOfDay < 0) interpolatedTimeOfDay += 1.0;
+                if (interpolatedTimeOfDay > 1) interpolatedTimeOfDay -= 1.0;
+                window.setTimeOfDay(interpolatedTimeOfDay);
+            }
+
             activeCar.position.copy(tempReplayPosition);
             activeCar.quaternion.copy(tempReplayQuaternion);
 
         } else if (currentRecording.length === 1) {
             activeCar.position.copy(currentRecording[0].position);
             activeCar.quaternion.copy(currentRecording[0].rotation);
+            if (currentRecording[0].timeOfDay !== undefined) {
+                window.setTimeOfDay(currentRecording[0].timeOfDay);
+            }
         }
 
         if (elapsedTime <= 0 && currentRecording.length > 0) {
@@ -505,6 +523,9 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = []) {
 
             activeCar.position.copy(currentRecording[0].position);
             activeCar.quaternion.copy(currentRecording[0].rotation);
+            if (currentRecording[0].timeOfDay !== undefined) {
+                window.setTimeOfDay(currentRecording[0].timeOfDay);
+            }
 
             carSpeed = 0;
             carAcceleration = 0;
@@ -567,6 +588,7 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = []) {
             time: elapsedTime,
             position: activeCar.position.clone(),
             rotation: activeCar.quaternion.clone(),
+            timeOfDay: window.getCurrentTimeOfDay(),
         });
 
         for (const key in loadedCarModels) {
