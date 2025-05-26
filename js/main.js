@@ -12,7 +12,8 @@ import {
     setTurningLeft,
     setTurningRight,
     setRewinding,
-    updateCarPhysics
+    updateCarPhysics,
+    isRewinding
 } from './cars.js';
 import { loadMap, getWorldCoordinates } from './mapLoader.js';
 import { mapData as level1MapData } from './maps/level1_map.js';
@@ -34,6 +35,34 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
+
+const rewindOverlay = document.createElement('div');
+rewindOverlay.id = 'rewind-overlay';
+rewindOverlay.textContent = 'Rewinding...';
+rewindOverlay.style.cssText = `
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: none;
+    pointer-events: none;
+    animation: rewindBlink 0.8s infinite;
+`;
+
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes rewindBlink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0.3; }
+    }
+`;
+document.head.appendChild(style);
+document.body.appendChild(rewindOverlay);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
@@ -151,6 +180,8 @@ function animate() {
     if (currentLevelData) {
         updateCarPhysics(deltaTime, collidableMapElements);
     }
+
+    rewindOverlay.style.display = isRewinding ? 'block' : 'none';
 
     renderer.render(scene, camera);
 }

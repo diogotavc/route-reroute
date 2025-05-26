@@ -680,3 +680,5 @@ export function getCurrentTimeOfDay() {
 export function getHeadlightsEnabled() {
     return headlightsEnabled;
 }
+
+export { isRewinding };
