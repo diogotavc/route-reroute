@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { 
     DEBUG_COLLISIONS, 
+    DEBUG_MODEL_LOADING,
     GRASS_SPEED_SCALE,
     GRASS_HEIGHT
 } from './config.js';
@@ -12,51 +13,140 @@ export const BRAKING_RATE = 10;
 export const STEERING_RATE = 1.5;
 export const FRICTION = 1;
 export const STEERING_FRICTION = 2;
-const COLLISION_BOUNCE_FACTOR = 0.5;
-const HITBOX_SCALE = 0.8;
+const COLLISION_RESTITUTION = 0.4;
+const COLLISION_SEPARATION_FACTOR = 1.1;
+const EPSILON = 0.0001; 
+const HITBOX_SCALE_FACTOR = 0.8; 
 
-// Reusable vectors for calculations
-const tempBox = new THREE.Box3();
-const tempVector = new THREE.Vector3();
+let collisionNormal = new THREE.Vector3();
+let separationVector = new THREE.Vector3();
 
-// Simple bounding box collision detection
-function checkCollision(carA, carB, positionOverride = null) {
-    // Get bounding boxes
-    tempBox.setFromObject(carA);
-    if (positionOverride) {
-        const offset = tempVector.subVectors(positionOverride, carA.position);
-        tempBox.translate(offset);
+const satBoxA = { center: new THREE.Vector3(), halfExtents: new THREE.Vector3(), axes: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()] };
+const satBoxB = { center: new THREE.Vector3(), halfExtents: new THREE.Vector3(), axes: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()] };
+const satVec = new THREE.Vector3();
+const satCenterDiff = new THREE.Vector3();
+const satAxes = [];
+const satIntervalA = { min: 0, max: 0 };
+const satIntervalB = { min: 0, max: 0 };
+const satTempBox = new THREE.Box3();
+
+function getOBBData(car, obbData, positionOverride = null, isStaticTile = false) {
+    if (car.userData.halfExtents) {
+        obbData.halfExtents.copy(car.userData.halfExtents);
+    } else {
+        if (DEBUG_MODEL_LOADING) console.warn(`Object ${car.uuid} missing userData.halfExtents. Falling back to less accurate AABB sizing for OBB.`);
+        satTempBox.setFromObject(car); 
+        satTempBox.getSize(obbData.halfExtents).multiplyScalar(0.5);
     }
-    tempBox.expandByScalar(-tempBox.getSize(tempVector).length() * (1 - HITBOX_SCALE) * 0.5);
-    
-    const boxB = new THREE.Box3().setFromObject(carB);
-    
-    return tempBox.intersectsBox(boxB);
+
+    if (!isStaticTile) {
+        obbData.halfExtents.multiplyScalar(HITBOX_SCALE_FACTOR);
+    }
+
+    obbData.center.copy(positionOverride ? positionOverride : car.position);
+
+    obbData.axes[0].setFromMatrixColumn(car.matrixWorld, 0).normalize();
+    obbData.axes[1].setFromMatrixColumn(car.matrixWorld, 1).normalize();
+    obbData.axes[2].setFromMatrixColumn(car.matrixWorld, 2).normalize();
+}
+
+function projectOBB(obbData, axis, interval) {
+    const centerProjection = obbData.center.dot(axis);
+
+    const extentProjection =
+        obbData.halfExtents.x * Math.abs(obbData.axes[0].dot(axis)) +
+        obbData.halfExtents.y * Math.abs(obbData.axes[1].dot(axis)) +
+        obbData.halfExtents.z * Math.abs(obbData.axes[2].dot(axis));
+
+    interval.min = centerProjection - extentProjection;
+    interval.max = centerProjection + extentProjection;
+}
+
+function getIntervalOverlap(intervalA, intervalB) {
+    const minMax = Math.min(intervalA.max, intervalB.max);
+    const maxMin = Math.max(intervalA.min, intervalB.min);
+    const overlap = minMax - maxMin;
+    return overlap > EPSILON ? overlap : 0;
+}
+
+function checkOBBCollisionSAT(carA, carB, positionAOverride = null, isCarBStaticTile = false) {
+    getOBBData(carA, satBoxA, positionAOverride, false); 
+    getOBBData(carB, satBoxB, null, isCarBStaticTile); 
+
+    satAxes.length = 0; 
+
+    satAxes.push(satBoxA.axes[0]);
+    satAxes.push(satBoxA.axes[1]);
+    satAxes.push(satBoxA.axes[2]);
+
+    satAxes.push(satBoxB.axes[0]);
+    satAxes.push(satBoxB.axes[1]);
+    satAxes.push(satBoxB.axes[2]);
+
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            satVec.crossVectors(satBoxA.axes[i], satBoxB.axes[j]);
+            if (satVec.lengthSq() > EPSILON * EPSILON) { 
+                satAxes.push(satVec.clone().normalize());
+            }
+        }
+    }
+
+    let minOverlap = Infinity;
+    let mtvAxis = null;
+
+    for (let i = 0; i < satAxes.length; i++) {
+        const axis = satAxes[i];
+        if (axis.lengthSq() < EPSILON * EPSILON) continue; 
+
+        projectOBB(satBoxA, axis, satIntervalA);
+        projectOBB(satBoxB, axis, satIntervalB);
+
+        const overlap = getIntervalOverlap(satIntervalA, satIntervalB);
+
+        if (overlap === 0) {
+            return { collision: false, mtvAxis: null, mtvDepth: null };
+        } else {
+            if (overlap < minOverlap) {
+                minOverlap = overlap;
+                mtvAxis = axis;
+            }
+        }
+    }
+
+    satCenterDiff.subVectors(satBoxA.center, satBoxB.center);
+    if (mtvAxis && satCenterDiff.dot(mtvAxis) < 0) {
+        mtvAxis.negate();
+    }
+
+    if (!mtvAxis || mtvAxis.lengthSq() < EPSILON * EPSILON) {
+         if (DEBUG_COLLISIONS) console.warn("SAT collision detected but MTV axis is invalid.");
+         return { collision: false, mtvAxis: null, mtvDepth: null };
+    }
+
+    return { collision: true, mtvAxis: mtvAxis, mtvDepth: minOverlap };
 }
 
 export function updatePhysics(activeCar, physicsState, inputState, deltaTime, otherCars, collidableMapTiles = [], mapDefinition = null) {
     let { speed, acceleration, steeringAngle } = physicsState;
     const { isAccelerating, isBraking, isTurningLeft, isTurningRight } = inputState;
 
-    // Handle steering
-    if (isTurningLeft) steeringAngle += STEERING_RATE * deltaTime;
-    if (isTurningRight) steeringAngle -= STEERING_RATE * deltaTime;
-    
-    // Apply steering friction when not turning
-    if (!isTurningLeft && !isTurningRight) {
-        steeringAngle *= Math.max(0, 1 - STEERING_FRICTION * deltaTime);
-    }
-    
-    // Clamp steering angle
-    steeringAngle = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, steeringAngle));
+    let steeringChange = 0;
+    if (isTurningLeft) steeringChange += STEERING_RATE * deltaTime;
+    if (isTurningRight) steeringChange -= STEERING_RATE * deltaTime;
+    steeringAngle += steeringChange;
 
-    // Handle acceleration
+    if (!isTurningLeft && !isTurningRight) {
+        steeringAngle -= steeringAngle * STEERING_FRICTION * deltaTime;
+        if (Math.abs(steeringAngle) < 0.01) steeringAngle = 0;
+    }
+    steeringAngle = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, steeringAngle)); 
+
     if (isAccelerating) {
         acceleration = ACCELERATION_RATE;
     } else if (isBraking) {
         acceleration = -BRAKING_RATE;
     } else {
-        // Natural friction
         acceleration = -Math.sign(speed) * FRICTION;
         if (Math.abs(speed) < FRICTION * deltaTime) {
             speed = 0;
@@ -66,95 +156,121 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
     
     speed += acceleration * deltaTime;
 
-    // Apply terrain speed limits
-    let maxSpeed = MAX_SPEED;
+    let maxSpeedForTerrain = MAX_SPEED;
     if (mapDefinition && isOnGrass(activeCar.position.x, activeCar.position.z, mapDefinition)) {
-        maxSpeed *= GRASS_SPEED_SCALE;
+        maxSpeedForTerrain = MAX_SPEED * GRASS_SPEED_SCALE;
     }
     
-    speed = Math.max(-maxSpeed / 2, Math.min(maxSpeed, speed));
-    
-    // Hard stop when braking at low speeds
-    if (isBraking && Math.abs(speed) < 0.1) speed = 0;
+    speed = Math.max(-maxSpeedForTerrain / 2, Math.min(maxSpeedForTerrain, speed)); 
+    if (isBraking && Math.abs(speed) < 0.1) speed = 0; 
 
-    // Apply rotation if moving
     if (Math.abs(speed) > 0.01) {
         const rotationAmount = steeringAngle * deltaTime * Math.sign(speed);
-        activeCar.rotateY(rotationAmount);
+        const deltaRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAmount);
+        activeCar.quaternion.multiplyQuaternions(deltaRotation, activeCar.quaternion);
+        activeCar.updateMatrixWorld();
     }
 
-    // Calculate new position
-    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(activeCar.quaternion);
+    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(activeCar.quaternion).normalize();
     const originalPosition = activeCar.position.clone();
-    const newPosition = originalPosition.clone().addScaledVector(forward, speed * deltaTime);
+    const potentialNewPosition = originalPosition.clone().addScaledVector(forward, speed * deltaTime);
 
-    // Check collisions
-    let hasCollision = false;
+    let collisionDetectedThisFrame = false;
+    let collidedObject = null; 
+    let isStaticCollision = false;
+    let penetrationDepth = 0;
+    collisionNormal.set(0, 0, 0);
 
-    // Check car-to-car collisions
-    for (const otherCar of Object.values(otherCars)) {
-        if (otherCar && otherCar.visible && otherCar !== activeCar) {
-            if (checkCollision(activeCar, otherCar, newPosition)) {
-                hasCollision = true;
-                if (DEBUG_COLLISIONS) {
-                    console.log("Car collision detected with:", {
-                        name: otherCar.name || "unnamed car",
-                        uuid: otherCar.uuid,
-                        position: otherCar.position,
-                        activeCar: activeCar.name || activeCar.uuid,
-                        activeCarPos: activeCar.position,
-                        newPosition: newPosition
-                    });
-                }
-                break;
-            }
+    for (const key in otherCars) {
+        const otherCar = otherCars[key];
+        if (!otherCar || !otherCar.visible || otherCar === activeCar) continue;
+
+        const collisionResult = checkOBBCollisionSAT(activeCar, otherCar, potentialNewPosition, false);
+
+        if (collisionResult.collision) {
+            collisionDetectedThisFrame = true;
+            collidedObject = otherCar;
+            isStaticCollision = false;
+            penetrationDepth = collisionResult.mtvDepth;
+            collisionNormal.copy(collisionResult.mtvAxis);
+            if (DEBUG_COLLISIONS) console.log("Collision with another car detected!");
+            break; 
         }
     }
 
-    // Check map tile collisions
-    if (!hasCollision && collidableMapTiles) {
+    if (!collisionDetectedThisFrame && collidableMapTiles) {
         for (const tile of collidableMapTiles) {
-            if (tile?.visible && tile.userData?.isCollidable) {
-                if (checkCollision(activeCar, tile, newPosition)) {
-                    hasCollision = true;
-                    if (DEBUG_COLLISIONS) {
-                        console.log("Map collision detected with:", {
-                            name: tile.name || "unnamed tile",
-                            uuid: tile.uuid,
-                            position: tile.position,
-                            userData: tile.userData,
-                            activeCar: activeCar.name || activeCar.uuid,
-                            activeCarPos: activeCar.position,
-                            newPosition: newPosition
-                        });
-                    }
-                    break;
-                }
+            if (!tile || !tile.visible || !tile.userData.isCollidable || !tile.userData.halfExtents) continue;
+
+            const collisionResult = checkOBBCollisionSAT(activeCar, tile, potentialNewPosition, true);
+
+            if (collisionResult.collision) {
+                collisionDetectedThisFrame = true;
+                collidedObject = tile;
+                isStaticCollision = true;
+                penetrationDepth = collisionResult.mtvDepth;
+                collisionNormal.copy(collisionResult.mtvAxis);
+                if (DEBUG_COLLISIONS) console.log("Collision with map tile detected! Tile:", tile.name || tile.uuid);
+                break; 
             }
         }
     }
 
-    // Handle collision response
-    if (hasCollision) {
-        // Simple bounce back
-        speed *= -COLLISION_BOUNCE_FACTOR;
-        // Keep original position
-        activeCar.position.copy(originalPosition);
+    if (collisionDetectedThisFrame && collidedObject) {
+        if (collisionNormal.lengthSq() > EPSILON * EPSILON && penetrationDepth > EPSILON) {
+            const relativeVelocity = forward.clone().multiplyScalar(speed); 
+            const separatingVelocity = relativeVelocity.dot(collisionNormal); 
+
+            if (separatingVelocity < 0) { 
+                const restitution = COLLISION_RESTITUTION;
+                const impulseMagnitude = -(1 + restitution) * separatingVelocity;
+                const impulse = collisionNormal.clone().multiplyScalar(impulseMagnitude);
+
+                const newVelocityVec = relativeVelocity.add(impulse); 
+
+                const newSpeedMagnitude = newVelocityVec.length();
+                if (newSpeedMagnitude > EPSILON) {
+                    const directionSign = Math.sign(newVelocityVec.dot(forward)); 
+                    speed = newSpeedMagnitude * directionSign;
+                } else {
+                    speed = 0; 
+                }
+                speed = Math.max(-MAX_SPEED / 2, Math.min(MAX_SPEED, speed));
+
+                if (isStaticCollision) {
+                    if (DEBUG_COLLISIONS) console.log(`Static collision bounce. New speed: ${speed.toFixed(2)}`);
+                } else {
+                    if (DEBUG_COLLISIONS) console.log(`Car-Car collision bounce. New speed: ${speed.toFixed(2)}`);
+                }
+            } else if (isStaticCollision && separatingVelocity >= 0) {
+                if (DEBUG_COLLISIONS) console.log(`Static collision, but moving away or parallel. Speed: ${speed.toFixed(2)}`);
+            }
+
+            separationVector.copy(collisionNormal).multiplyScalar(penetrationDepth * COLLISION_SEPARATION_FACTOR);
+            activeCar.position.copy(originalPosition).add(separationVector); 
+            
+            if (DEBUG_COLLISIONS) console.log(`Applying separation push: ${separationVector.toArray().map(n => n.toFixed(2)).join(',')}`);
+
+        } else {
+            if (DEBUG_COLLISIONS) console.warn("Collision detected but MTV invalid. Applying fallback response.");
+            if (!isStaticCollision) speed *= -COLLISION_RESTITUTION;
+            else speed = 0; 
+            activeCar.position.copy(originalPosition);
+        }
     } else {
-        // Move to new position
-        activeCar.position.copy(newPosition);
+        activeCar.position.copy(potentialNewPosition);
     }
 
-    // Set height based on terrain
     if (mapDefinition) {
-        const onGrass = isOnGrass(activeCar.position.x, activeCar.position.z, mapDefinition);
-        activeCar.position.y = onGrass ? GRASS_HEIGHT : 0;
+        const isCarOnGrass = isOnGrass(activeCar.position.x, activeCar.position.z, mapDefinition);
+        const targetHeight = isCarOnGrass ? GRASS_HEIGHT : 0;
+        activeCar.position.y = targetHeight;
     }
 
     return {
-        speed,
-        acceleration,
-        steeringAngle,
-        collisionDetected: hasCollision
+        speed: speed,
+        acceleration: acceleration,
+        steeringAngle: steeringAngle,
+        collisionDetected: collisionDetectedThisFrame
     };
 }
