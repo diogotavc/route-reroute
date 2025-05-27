@@ -54,7 +54,9 @@ function createMapLayout(scene, mapDefinition) {
 
     const layout = mapDefinition.layout;
     const tileSize = mapDefinition.tileSize;
-    const tileScaleVec = mapDefinition.tileScale ? new THREE.Vector3(mapDefinition.tileScale.x, mapDefinition.tileScale.y, mapDefinition.tileScale.z) : new THREE.Vector3(1, 1, 1);
+    const tileScaleVec = mapDefinition.tileScale ? 
+        new THREE.Vector3(mapDefinition.tileScale.x, mapDefinition.tileScale.y, mapDefinition.tileScale.z) : 
+        new THREE.Vector3(tileSize, tileSize, tileSize);
     const mapGroup = new THREE.Group();
     mapGroup.userData.collidableTiles = [];
     mapGroup.userData.streetLights = [];
@@ -158,7 +160,9 @@ function createMapLayout(scene, mapDefinition) {
                         lightInstance.userData.isCollidable = true;
                         mapGroup.userData.collidableTiles.push(lightInstance);
 
-                        const bulbGeometry = new THREE.SphereGeometry(0.12, 8, 6);
+                        const baseBulbRadius = 0.02;
+                        const bulbRadius = baseBulbRadius * tileSize;
+                        const bulbGeometry = new THREE.SphereGeometry(bulbRadius, 8, 6);
                         const bulbMaterial = new THREE.MeshBasicMaterial({ 
                             color: 0xffaa55,
                             transparent: true,
@@ -167,10 +171,13 @@ function createMapLayout(scene, mapDefinition) {
                         const lightBulb = new THREE.Mesh(bulbGeometry, bulbMaterial);
 
                         const rotationRad = THREE.MathUtils.degToRad(rotationYDegrees);
-                        const frontOffsetX = Math.sin(rotationRad) * (-1);
-                        const frontOffsetZ = Math.cos(rotationRad) * (-1);
+                        const baseFrontOffset = -0.167;
+                        const frontOffset = baseFrontOffset * tileSize;
+                        const frontOffsetX = Math.sin(rotationRad) * frontOffset;
+                        const frontOffsetZ = Math.cos(rotationRad) * frontOffset;
 
-                        const bulbHeight = lightAssetName.includes('curve') ? 3.93 : 3.48;
+                        const baseBulbHeight = lightAssetName.includes('curve') ? 0.655 : 0.58;
+                        const bulbHeight = baseBulbHeight * tileSize;
 
                         lightBulb.position.set(
                             x * tileSize + offsetX * tileSize + frontOffsetX,
@@ -178,10 +185,13 @@ function createMapLayout(scene, mapDefinition) {
                             z * tileSize + offsetZ * tileSize + frontOffsetZ
                         );
 
-                        const spotlight = new THREE.SpotLight(0xffaa55, STREETLIGHT_INTENSITY, 25, Math.PI * 0.25, 0.3, 1.0);
+                        const baseLightRange = 4.17;
+                        const lightRange = baseLightRange * tileSize;
+                        const spotlight = new THREE.SpotLight(0xffaa55, STREETLIGHT_INTENSITY, lightRange, Math.PI * 0.25, 0.3, 1.0);
                         spotlight.position.copy(lightBulb.position);
 
-                        const bulbOffsetDistance = 1;
+                        const baseBulbOffsetDistance = 0.167;
+                        const bulbOffsetDistance = baseBulbOffsetDistance * tileSize;
                         const lightTargetDistance = bulbOffsetDistance * 2;
                         const targetPosition = new THREE.Vector3(
                             lightBulb.position.x + Math.sin(rotationRad) * (-lightTargetDistance),
@@ -194,7 +204,7 @@ function createMapLayout(scene, mapDefinition) {
                         spotlight.shadow.mapSize.width = 2048;
                         spotlight.shadow.mapSize.height = 2048;
                         spotlight.shadow.camera.near = 0.5;
-                        spotlight.shadow.camera.far = 25;
+                        spotlight.shadow.camera.far = lightRange;
                         spotlight.shadow.bias = -0.005;
                         spotlight.shadow.normalBias = 0.03;
                         spotlight.shadow.radius = 4;

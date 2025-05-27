@@ -27,18 +27,17 @@ export const mapData = {
         [null, null, ['road_straight', 90], null],
     ],
     streetLightLayout: [
-        [null, null, ['streetlight_curved', 270, -0.45, 0.4], null], // Example: streetlight at tile (0,2)
+        [null, null, ['streetlight_curved', 270, -0.45, 0.4], null],
         [null, null, null, null],
-        [['streetlight_square', 270, -0.4, 0.4], null, ['streetlight_curved', 180, 0.4, -0.4], null], // Example: streetlight at tile (2,0) and (2,2)
+        [['streetlight_square', 270, -0.4, 0.4], null, ['streetlight_curved', 180, 0.4, -0.4], null],
         [null, null, null, null],
         [null, null, ['streetlight_curved', 0, 0.4, 0.4], null],
         [null, null, null, null],
         [null, null, null, null],
         [null, null, ['streetlight_square', 270, -0.4, -0.4], null],
     ],
-    tileSize: 6,
-    tileScale: { x: 6, y: 6, z: 6 },
-    startPoints: {      // COORDENADAS DO GRID, MULTIPLICAR PELA ESCALA
+    tileSize: 20,
+    startPoints: {
         'start1': { x: 1.84, z: 0, carRotationY: 0 },
         'finish1': { x: 2.15, z: 7, carRotationY: 90 },
         'start_fireStation': { x: 0, z: 2, carRotationY: 180, yOffset: 0 },
