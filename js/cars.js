@@ -15,7 +15,8 @@ import {
     HEADLIGHT_AUTO_MODE,
     HEADLIGHT_TURN_ON_TIME,
     HEADLIGHT_TURN_OFF_TIME,
-    TARGET_REWIND_DURATION
+    TARGET_REWIND_DURATION,
+    REWIND_INTERPOLATION
 } from './config.js';
 
 let debug_coordinateLogInterval = 1.0;
@@ -413,7 +414,7 @@ export function setRewinding() {
 
     rewindSpeedFactor = totalRecordedTime > 0 ? totalRecordedTime / TARGET_REWIND_DURATION : 1.0;
     
-    console.log(`Starting rewind. Total recorded time: ${totalRecordedTime.toFixed(2)}s, Speed factor: ${rewindSpeedFactor.toFixed(2)}, Rewind duration: ${TARGET_REWIND_DURATION}s`);
+    console.log(`Starting rewind. Total recorded time: ${totalRecordedTime.toFixed(2)}s, Speed factor: ${rewindSpeedFactor.toFixed(2)}, Rewind duration: ${TARGET_REWIND_DURATION}s, Interpolation: ${REWIND_INTERPOLATION}`);
 }
 
 export function updateHeadlights(timeOfDay) {
@@ -458,6 +459,23 @@ export function setHeadlightsEnabled(enabled) {
 let tempReplayPosition = new THREE.Vector3();
 let tempReplayQuaternion = new THREE.Quaternion();
 
+function applyEasing(t, type) {
+    switch (type) {
+        case 'linear':
+            return t;
+        case 'ease':
+            return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        case 'ease-in':
+            return t * t * t;
+        case 'ease-out':
+            return 1 - Math.pow(1 - t, 3);
+        case 'ease-in-out':
+            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        default:
+            return t;
+    }
+}
+
 export function updateCarPhysics(deltaTime, collidableMapTiles = []) {
     const activeCar = loadedCarModels[missionIndex];
     if (!activeCar) return;
@@ -476,14 +494,22 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = []) {
     }
 
     if (isRewinding) {
+        const totalRecordedTime = currentRecording.length > 0 ? currentRecording[currentRecording.length - 1].time : 0;
+        const rawProgress = totalRecordedTime > 0 ? (totalRecordedTime - elapsedTime) / totalRecordedTime : 0;
+
+        const easedProgress = applyEasing(Math.max(0, Math.min(1, rawProgress)), REWIND_INTERPOLATION);
+
+        const easedElapsedTime = totalRecordedTime * (1 - easedProgress);
+
         elapsedTime -= deltaTime * rewindSpeedFactor;
         elapsedTime = Math.max(0, elapsedTime);
 
         if (currentRecording.length > 1) {
             let state1 = currentRecording[0];
             let state2 = currentRecording[currentRecording.length - 1];
+
             for (let i = 0; i < currentRecording.length - 1; i++) {
-                if (currentRecording[i].time <= elapsedTime && currentRecording[i + 1].time >= elapsedTime) {
+                if (currentRecording[i].time <= easedElapsedTime && currentRecording[i + 1].time >= easedElapsedTime) {
                     state1 = currentRecording[i];
                     state2 = currentRecording[i + 1];
                     break;
@@ -491,7 +517,7 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = []) {
             }
 
             const timeDiff = state2.time - state1.time;
-            let interpFactor = (timeDiff > 0) ? (elapsedTime - state1.time) / timeDiff : (elapsedTime >= state2.time ? 1 : 0);
+            let interpFactor = (timeDiff > 0) ? (easedElapsedTime - state1.time) / timeDiff : (easedElapsedTime >= state2.time ? 1 : 0);
             interpFactor = Math.max(0, Math.min(1, interpFactor));
 
             tempReplayPosition.lerpVectors(state1.position, state2.position, interpFactor);
@@ -620,6 +646,9 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = []) {
                 let interpFactor = (timeDiff > 0) ? (elapsedTime - state1.time) / timeDiff : (elapsedTime >= state2.time ? 1 : 0);
                 interpFactor = Math.max(0, Math.min(1, interpFactor));
 
+                const easingType = REWIND_INTERPOLATION;
+                interpFactor = applyEasing(interpFactor, easingType);
+
                 tempReplayPosition.lerpVectors(state1.position, state2.position, interpFactor);
                 tempReplayQuaternion.slerpQuaternions(state1.rotation, state2.rotation, interpFactor);
 
@@ -687,3 +716,7 @@ export function getHeadlightsEnabled() {
 }
 
 export { isRewinding };
+
+export function getCurrentRewindInterpolation() {
+    return REWIND_INTERPOLATION;
+}

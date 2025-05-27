@@ -180,8 +180,8 @@ function animate() {
     if (currentLevelData) {
         updateCarPhysics(deltaTime, collidableMapElements);
     }
-
-    rewindOverlay.style.display = isRewinding ? 'block' : 'none';
+    
+        rewindOverlay.style.display = isRewinding ? 'block' : 'none';
 
     renderer.render(scene, camera);
 }
