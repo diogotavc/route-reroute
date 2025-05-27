@@ -54,6 +54,11 @@ function createMapLayout(scene, mapDefinition) {
 
     const layout = mapDefinition.layout;
     const tileSize = mapDefinition.tileSize;
+
+    const roadScale = mapDefinition.roadScale || tileSize;
+    const streetlightScale = mapDefinition.streetlightScale || tileSize;
+    const buildingScale = mapDefinition.buildingScale || tileSize;
+    
     const tileScaleVec = mapDefinition.tileScale ? 
         new THREE.Vector3(mapDefinition.tileScale.x, mapDefinition.tileScale.y, mapDefinition.tileScale.z) : 
         new THREE.Vector3(tileSize, tileSize, tileSize);
@@ -72,7 +77,16 @@ function createMapLayout(scene, mapDefinition) {
                     const originalModel = loadedTileModels[modelPath];
                     const tileInstance = originalModel.clone();
 
-                    tileInstance.scale.copy(tileScaleVec);
+                    let assetScale;
+                    if (tileAssetName.startsWith('road_')) {
+                        assetScale = roadScale;
+                    } else if (tileAssetName.startsWith('building_')) {
+                        assetScale = buildingScale;
+                    } else {
+                        assetScale = tileSize;          // FALLBACK
+                    }
+                    
+                    tileInstance.scale.set(assetScale, assetScale, assetScale);
                     tileInstance.position.set(x * tileSize, 0, z * tileSize);
                     tileInstance.rotation.y = THREE.MathUtils.degToRad(rotationYDegrees);
                     
@@ -93,7 +107,8 @@ function createMapLayout(scene, mapDefinition) {
                     });
 
                     if (originalModel.userData.originalHalfExtents) {
-                        tileInstance.userData.halfExtents = originalModel.userData.originalHalfExtents.clone().multiply(tileScaleVec);
+                        const scaleVec = new THREE.Vector3(assetScale, assetScale, assetScale);
+                        tileInstance.userData.halfExtents = originalModel.userData.originalHalfExtents.clone().multiply(scaleVec);
                     } else {
                         const box = new THREE.Box3().setFromObject(tileInstance);
                         tileInstance.userData.halfExtents = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);
@@ -126,7 +141,7 @@ function createMapLayout(scene, mapDefinition) {
                         const originalModel = loadedTileModels[modelPath];
                         const lightInstance = originalModel.clone();
 
-                        lightInstance.scale.copy(tileScaleVec);
+                        lightInstance.scale.set(streetlightScale, streetlightScale, streetlightScale);
                         lightInstance.position.set(
                             x * tileSize + offsetX * tileSize,
                             0, 
@@ -151,7 +166,8 @@ function createMapLayout(scene, mapDefinition) {
                         });
 
                         if (originalModel.userData.originalHalfExtents) {
-                            lightInstance.userData.halfExtents = originalModel.userData.originalHalfExtents.clone().multiply(tileScaleVec);
+                            const streetlightScaleVec = new THREE.Vector3(streetlightScale, streetlightScale, streetlightScale);
+                            lightInstance.userData.halfExtents = originalModel.userData.originalHalfExtents.clone().multiply(streetlightScaleVec);
                         } else {
                             const box = new THREE.Box3().setFromObject(lightInstance);
                             lightInstance.userData.halfExtents = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);
@@ -161,7 +177,7 @@ function createMapLayout(scene, mapDefinition) {
                         mapGroup.userData.collidableTiles.push(lightInstance);
 
                         const baseBulbRadius = 0.02;
-                        const bulbRadius = baseBulbRadius * tileSize;
+                        const bulbRadius = baseBulbRadius * streetlightScale;
                         const bulbGeometry = new THREE.SphereGeometry(bulbRadius, 8, 6);
                         const bulbMaterial = new THREE.MeshBasicMaterial({ 
                             color: 0xffaa55,
@@ -172,12 +188,12 @@ function createMapLayout(scene, mapDefinition) {
 
                         const rotationRad = THREE.MathUtils.degToRad(rotationYDegrees);
                         const baseFrontOffset = -0.167;
-                        const frontOffset = baseFrontOffset * tileSize;
+                        const frontOffset = baseFrontOffset * streetlightScale;
                         const frontOffsetX = Math.sin(rotationRad) * frontOffset;
                         const frontOffsetZ = Math.cos(rotationRad) * frontOffset;
 
                         const baseBulbHeight = lightAssetName.includes('curve') ? 0.655 : 0.58;
-                        const bulbHeight = baseBulbHeight * tileSize;
+                        const bulbHeight = baseBulbHeight * streetlightScale;
 
                         lightBulb.position.set(
                             x * tileSize + offsetX * tileSize + frontOffsetX,
@@ -186,12 +202,12 @@ function createMapLayout(scene, mapDefinition) {
                         );
 
                         const baseLightRange = 4.17;
-                        const lightRange = baseLightRange * tileSize;
+                        const lightRange = baseLightRange * streetlightScale;
                         const spotlight = new THREE.SpotLight(0xffaa55, STREETLIGHT_INTENSITY, lightRange, Math.PI * 0.25, 0.3, 1.0);
                         spotlight.position.copy(lightBulb.position);
 
                         const baseBulbOffsetDistance = 0.167;
-                        const bulbOffsetDistance = baseBulbOffsetDistance * tileSize;
+                        const bulbOffsetDistance = baseBulbOffsetDistance * streetlightScale;
                         const lightTargetDistance = bulbOffsetDistance * 2;
                         const targetPosition = new THREE.Vector3(
                             lightBulb.position.x + Math.sin(rotationRad) * (-lightTargetDistance),
