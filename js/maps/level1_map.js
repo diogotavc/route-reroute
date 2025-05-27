@@ -36,10 +36,7 @@ export const mapData = {
         [null, null, null, null],
         [null, null, ['streetlight_square', 270, -0.4, -0.4], null],
     ],
-    tileSize: 10,
-    roadScale: 10,
-    streetlightScale: 6,
-    buildingScale: 6,
+    tileSize: 6,
     startPoints: {
         'start1': { x: 1.84, z: 0, carRotationY: 0 },
         'finish1': { x: 2.15, z: 7, carRotationY: 90 },
