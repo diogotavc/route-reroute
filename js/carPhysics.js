@@ -96,7 +96,16 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
         if (otherCar && otherCar.visible && otherCar !== activeCar) {
             if (checkCollision(activeCar, otherCar, newPosition)) {
                 hasCollision = true;
-                if (DEBUG_COLLISIONS) console.log("Car collision detected");
+                if (DEBUG_COLLISIONS) {
+                    console.log("Car collision detected with:", {
+                        name: otherCar.name || "unnamed car",
+                        uuid: otherCar.uuid,
+                        position: otherCar.position,
+                        activeCar: activeCar.name || activeCar.uuid,
+                        activeCarPos: activeCar.position,
+                        newPosition: newPosition
+                    });
+                }
                 break;
             }
         }
@@ -108,7 +117,17 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
             if (tile?.visible && tile.userData?.isCollidable) {
                 if (checkCollision(activeCar, tile, newPosition)) {
                     hasCollision = true;
-                    if (DEBUG_COLLISIONS) console.log("Map collision detected");
+                    if (DEBUG_COLLISIONS) {
+                        console.log("Map collision detected with:", {
+                            name: tile.name || "unnamed tile",
+                            uuid: tile.uuid,
+                            position: tile.position,
+                            userData: tile.userData,
+                            activeCar: activeCar.name || activeCar.uuid,
+                            activeCarPos: activeCar.position,
+                            newPosition: newPosition
+                        });
+                    }
                     break;
                 }
             }
