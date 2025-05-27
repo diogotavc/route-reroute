@@ -21,6 +21,9 @@ export const DAY_CYCLE = {
     SPEED: 0.05
 };
 
+export const TILE_SIZE = 6;
+export const TARGET_REWIND_DURATION = 2.0;
+
 export const DEBUG_GENERAL = false;
 export const DEBUG_CAR_COORDS = false;
 export const DEBUG_COLLISIONS = false;

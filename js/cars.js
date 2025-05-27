@@ -14,7 +14,8 @@ import {
     HEADLIGHT_COLOR,
     HEADLIGHT_AUTO_MODE,
     HEADLIGHT_TURN_ON_TIME,
-    HEADLIGHT_TURN_OFF_TIME
+    HEADLIGHT_TURN_OFF_TIME,
+    TARGET_REWIND_DURATION
 } from './config.js';
 
 let debug_coordinateLogInterval = 1.0;
@@ -92,7 +93,7 @@ let isTurningLeft = false;
 let isTurningRight = false;
 
 let isRewinding = false;
-let rewindSpeedFactor = 3.0;
+let rewindSpeedFactor;
 let elapsedTime = 0;
 
 const CAMERA_FOLLOW_SPEED = 2.0;
@@ -410,10 +411,9 @@ export function setRewinding() {
     const totalRecordedTime = Math.max(0, currentRecording.length > 0 ? currentRecording[currentRecording.length - 1].time : 0);
     elapsedTime = totalRecordedTime;
 
-    const targetRewindDuration = 2.0;
-    rewindSpeedFactor = totalRecordedTime > 0 ? totalRecordedTime / targetRewindDuration : 1.0;
+    rewindSpeedFactor = totalRecordedTime > 0 ? totalRecordedTime / TARGET_REWIND_DURATION : 1.0;
     
-    console.log(`Starting rewind. Total recorded time: ${totalRecordedTime.toFixed(2)}s, Speed factor: ${rewindSpeedFactor.toFixed(2)}, Rewind duration: ${targetRewindDuration}s`);
+    console.log(`Starting rewind. Total recorded time: ${totalRecordedTime.toFixed(2)}s, Speed factor: ${rewindSpeedFactor.toFixed(2)}, Rewind duration: ${TARGET_REWIND_DURATION}s`);
 }
 
 export function updateHeadlights(timeOfDay) {
