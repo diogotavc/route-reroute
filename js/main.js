@@ -232,7 +232,6 @@ window.setTimeOfDay = (time) => {
 };
 
 window.getCurrentTimeOfDay = () => {
-    console.log(`Current time of day: ${currentTimeOfDay.toFixed(3)}`);
     return currentTimeOfDay;
 };
 
