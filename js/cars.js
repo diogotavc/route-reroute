@@ -92,7 +92,7 @@ let isTurningLeft = false;
 let isTurningRight = false;
 
 let isRewinding = false;
-const REWIND_SPEED_FACTOR = 3.0;
+let rewindSpeedFactor = 3.0;
 let elapsedTime = 0;
 
 const CAMERA_FOLLOW_SPEED = 2.0;
@@ -407,8 +407,13 @@ export function setTurningRight(value) {
 
 export function setRewinding() {
     isRewinding = true;
-    elapsedTime = Math.max(0, currentRecording.length > 0 ? currentRecording[currentRecording.length - 1].time : 0);
-    console.log(`Starting rewind. Initial elapsed time: ${elapsedTime.toFixed(2)}s`);
+    const totalRecordedTime = Math.max(0, currentRecording.length > 0 ? currentRecording[currentRecording.length - 1].time : 0);
+    elapsedTime = totalRecordedTime;
+
+    const targetRewindDuration = 2.0;
+    rewindSpeedFactor = totalRecordedTime > 0 ? totalRecordedTime / targetRewindDuration : 1.0;
+    
+    console.log(`Starting rewind. Total recorded time: ${totalRecordedTime.toFixed(2)}s, Speed factor: ${rewindSpeedFactor.toFixed(2)}, Rewind duration: ${targetRewindDuration}s`);
 }
 
 export function updateHeadlights(timeOfDay) {
@@ -471,7 +476,7 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = []) {
     }
 
     if (isRewinding) {
-        elapsedTime -= deltaTime * REWIND_SPEED_FACTOR;
+        elapsedTime -= deltaTime * rewindSpeedFactor;
         elapsedTime = Math.max(0, elapsedTime);
 
         if (currentRecording.length > 1) {
