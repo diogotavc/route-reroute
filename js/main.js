@@ -13,7 +13,8 @@ import {
     setTurningRight,
     setRewinding,
     updateCarPhysics,
-    isRewinding
+    isRewinding,
+    toggleCameraMode
 } from './cars.js';
 import { loadMap, getWorldCoordinates } from './mapLoader.js';
 import { mapData as level1MapData } from './maps/level1_map.js';
@@ -212,6 +213,7 @@ window.addEventListener("keydown", (event) => {
         case "ArrowLeft": case "a": setTurningLeft(true); break;
         case "ArrowRight": case "d": setTurningRight(true); break;
         case "r": setRewinding(); break;
+        case "c": toggleCameraMode(); break;
     }
 });
 

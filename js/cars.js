@@ -102,6 +102,11 @@ const CAMERA_DISTANCE = 18;
 const CAMERA_HEIGHT = 10;
 const LOOK_AT_Y_OFFSET = 3.5;
 
+const FIRST_PERSON_HEIGHT_OFFSET = 1.2;
+const FIRST_PERSON_FORWARD_OFFSET = 0.3;
+
+let isFirstPersonMode = false;
+
 function createHeadlights(carModel, carIndex) {
     const bbox = new THREE.Box3().setFromObject(carModel);
     const size = bbox.getSize(new THREE.Vector3());
@@ -329,7 +334,6 @@ function setActiveCar(index) {
     }
 
     const activeCar = loadedCarModels[index];
-    activeCar.visible = true;
     const previousMissionIndex = missionIndex;
     missionIndex = index;
 
@@ -349,16 +353,35 @@ function setActiveCar(index) {
         timeOfDay: window.getCurrentTimeOfDay(),
     });
 
-    const desiredCameraOffset = new THREE.Vector3(0, CAMERA_HEIGHT, -CAMERA_DISTANCE);
-    const worldOffset = desiredCameraOffset.applyQuaternion(activeCar.quaternion);
-    const desiredCameraPosition = activeCar.position.clone().add(worldOffset);
+    if (isFirstPersonMode) {
+        const firstPersonOffset = new THREE.Vector3(0, FIRST_PERSON_HEIGHT_OFFSET, FIRST_PERSON_FORWARD_OFFSET);
+        const worldOffset = firstPersonOffset.applyQuaternion(activeCar.quaternion);
+        const desiredCameraPosition = activeCar.position.clone().add(worldOffset);
 
-    camera.position.copy(desiredCameraPosition);
+        camera.position.copy(desiredCameraPosition);
 
-    const initialLookAtPoint = activeCar.position.clone();
-    initialLookAtPoint.y += LOOK_AT_Y_OFFSET;
-    controls.target.copy(initialLookAtPoint);
-    camera.lookAt(controls.target);
+        const forward = new THREE.Vector3(0, 0, 10).applyQuaternion(activeCar.quaternion);
+        const lookAtPoint = activeCar.position.clone().add(forward);
+        lookAtPoint.y += FIRST_PERSON_HEIGHT_OFFSET;
+
+        controls.target.copy(lookAtPoint);
+        camera.lookAt(controls.target);
+
+        activeCar.visible = false;
+    } else {
+        const desiredCameraOffset = new THREE.Vector3(0, CAMERA_HEIGHT, -CAMERA_DISTANCE);
+        const worldOffset = desiredCameraOffset.applyQuaternion(activeCar.quaternion);
+        const desiredCameraPosition = activeCar.position.clone().add(worldOffset);
+
+        camera.position.copy(desiredCameraPosition);
+
+        const initialLookAtPoint = activeCar.position.clone();
+        initialLookAtPoint.y += LOOK_AT_Y_OFFSET;
+        controls.target.copy(initialLookAtPoint);
+        camera.lookAt(controls.target);
+        
+        activeCar.visible = true;
+    }
 
     carSpeed = 0;
     carAcceleration = 0;
@@ -405,6 +428,21 @@ export function setTurningLeft(value) {
 
 export function setTurningRight(value) {
     isTurningRight = value;
+}
+
+export function toggleCameraMode() {
+    const activeCar = loadedCarModels[missionIndex];
+    if (!activeCar) return;
+    
+    isFirstPersonMode = !isFirstPersonMode;
+    
+    if (isFirstPersonMode) {
+        activeCar.visible = false;
+        console.log("Switched to first-person camera mode");
+    } else {
+        activeCar.visible = true;
+        console.log("Switched to third-person camera mode");
+    }
 }
 
 export function setRewinding() {
@@ -663,15 +701,29 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefiniti
         }
     }
 
-    const desiredCameraOffset = new THREE.Vector3(0, CAMERA_HEIGHT, -CAMERA_DISTANCE);
-    const worldOffset = desiredCameraOffset.applyQuaternion(activeCar.quaternion);
-    const desiredCameraPosition = activeCar.position.clone().add(worldOffset);
+    if (isFirstPersonMode) {
+        const firstPersonOffset = new THREE.Vector3(0, FIRST_PERSON_HEIGHT_OFFSET, FIRST_PERSON_FORWARD_OFFSET);
+        const worldOffset = firstPersonOffset.applyQuaternion(activeCar.quaternion);
+        const desiredCameraPosition = activeCar.position.clone().add(worldOffset);
 
-    camera.position.lerp(desiredCameraPosition, deltaTime * CAMERA_FOLLOW_SPEED);
+        camera.position.copy(desiredCameraPosition);
 
-    const desiredLookAtPoint = activeCar.position.clone();
-    desiredLookAtPoint.y += LOOK_AT_Y_OFFSET;
-    controls.target.lerp(desiredLookAtPoint, deltaTime * CAMERA_FOLLOW_SPEED);
+        const forward = new THREE.Vector3(0, 0, 10).applyQuaternion(activeCar.quaternion);
+        const lookAtPoint = activeCar.position.clone().add(forward);
+        lookAtPoint.y += FIRST_PERSON_HEIGHT_OFFSET;
+        
+        controls.target.copy(lookAtPoint);
+    } else {
+        const desiredCameraOffset = new THREE.Vector3(0, CAMERA_HEIGHT, -CAMERA_DISTANCE);
+        const worldOffset = desiredCameraOffset.applyQuaternion(activeCar.quaternion);
+        const desiredCameraPosition = activeCar.position.clone().add(worldOffset);
+
+        camera.position.lerp(desiredCameraPosition, deltaTime * CAMERA_FOLLOW_SPEED);
+
+        const desiredLookAtPoint = activeCar.position.clone();
+        desiredLookAtPoint.y += LOOK_AT_Y_OFFSET;
+        controls.target.lerp(desiredLookAtPoint, deltaTime * CAMERA_FOLLOW_SPEED);
+    }
     camera.lookAt(controls.target);
 }
 
