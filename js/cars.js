@@ -476,7 +476,7 @@ function applyEasing(t, type) {
     }
 }
 
-export function updateCarPhysics(deltaTime, collidableMapTiles = []) {
+export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefinition = null) {
     const activeCar = loadedCarModels[missionIndex];
     if (!activeCar) return;
 
@@ -608,7 +608,8 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = []) {
             currentInputState,
             deltaTime,
             otherCars,
-            collidableMapTiles
+            collidableMapTiles,
+            mapDefinition
         );
 
         carSpeed = updatedPhysicsState.speed;

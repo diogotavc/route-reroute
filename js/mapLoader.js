@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DEBUG_MODEL_LOADING, DEBUG_GENERAL, STREETLIGHT_INTENSITY } from './config.js';
+import { DEBUG_MODEL_LOADING, DEBUG_GENERAL, STREETLIGHT_INTENSITY, GRASS_HEIGHT, GRASS_COLOR } from './config.js';
 import { registerStreetLights } from './lights.js';
 
 const modelLoader = new GLTFLoader();
@@ -63,6 +63,9 @@ function createMapLayout(scene, mapDefinition) {
 
     layout.forEach((row, z) => {
         row.forEach((tileInfo, x) => {
+            const grass = createGrassPlane(x, z, tileSize);
+            mapGroup.add(grass);
+            
             if (tileInfo && tileInfo.length >= 2) {
                 const tileAssetName = tileInfo[0];
                 const rotationYDegrees = tileInfo[1];
@@ -256,4 +259,43 @@ export function getWorldCoordinates(gridX, gridZ, mapDefinition) {
         0,
         gridZ * tileSize
     );
+}
+
+export function getGridCoordinates(worldX, worldZ, mapDefinition) {
+    const tileSize = mapDefinition.tileSize;
+    return {
+        x: Math.floor((worldX + tileSize / 2) / tileSize),
+        z: Math.floor((worldZ + tileSize / 2) / tileSize)
+    };
+}
+
+export function isOnGrass(worldX, worldZ, mapDefinition) {
+    const gridCoords = getGridCoordinates(worldX, worldZ, mapDefinition);
+    const layout = mapDefinition.layout;
+
+    // THIS IS FOR OUT OF BOUNDS. NEEDS CHECKING LATER
+    if (gridCoords.z < 0 || gridCoords.z >= layout.length || 
+        gridCoords.x < 0 || gridCoords.x >= layout[0].length) {
+        return true;
+    }
+
+    const tileInfo = layout[gridCoords.z][gridCoords.x];
+    const onGrass = tileInfo === null;
+
+    return onGrass;
+}
+
+function createGrassPlane(x, z, tileSize) {
+    const grassGeometry = new THREE.PlaneGeometry(tileSize, tileSize);
+    const grassMaterial = new THREE.MeshLambertMaterial({ 
+        color: GRASS_COLOR,
+        side: THREE.DoubleSide
+    });
+    const grassPlane = new THREE.Mesh(grassGeometry, grassMaterial);
+    
+    grassPlane.position.set(x * tileSize, GRASS_HEIGHT, z * tileSize);
+    grassPlane.rotation.x = -Math.PI / 2;
+    grassPlane.receiveShadow = true;
+    
+    return grassPlane;
 }

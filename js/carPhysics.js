@@ -1,8 +1,11 @@
 import * as THREE from "three";
 import { 
     DEBUG_COLLISIONS, 
-    DEBUG_MODEL_LOADING 
+    DEBUG_MODEL_LOADING,
+    GRASS_SPEED_SCALE,
+    GRASS_HEIGHT
 } from './config.js';
+import { isOnGrass } from './mapLoader.js';
 
 export const MAX_SPEED = 15;
 export const ACCELERATION_RATE = 5;
@@ -124,7 +127,7 @@ function checkOBBCollisionSAT(carA, carB, positionAOverride = null, isCarBStatic
     return { collision: true, mtvAxis: mtvAxis, mtvDepth: minOverlap };
 }
 
-export function updatePhysics(activeCar, physicsState, inputState, deltaTime, otherCars, collidableMapTiles = []) {
+export function updatePhysics(activeCar, physicsState, inputState, deltaTime, otherCars, collidableMapTiles = [], mapDefinition = null) {
     let { speed, acceleration, steeringAngle } = physicsState;
     const { isAccelerating, isBraking, isTurningLeft, isTurningRight } = inputState;
 
@@ -150,8 +153,15 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
             acceleration = 0;
         }
     }
+    
     speed += acceleration * deltaTime;
-    speed = Math.max(-MAX_SPEED / 2, Math.min(MAX_SPEED, speed)); 
+
+    let maxSpeedForTerrain = MAX_SPEED;
+    if (mapDefinition && isOnGrass(activeCar.position.x, activeCar.position.z, mapDefinition)) {
+        maxSpeedForTerrain = MAX_SPEED * GRASS_SPEED_SCALE;
+    }
+    
+    speed = Math.max(-maxSpeedForTerrain / 2, Math.min(maxSpeedForTerrain, speed)); 
     if (isBraking && Math.abs(speed) < 0.1) speed = 0; 
 
     if (Math.abs(speed) > 0.01) {
@@ -249,6 +259,12 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
         }
     } else {
         activeCar.position.copy(potentialNewPosition);
+    }
+
+    if (mapDefinition) {
+        const isCarOnGrass = isOnGrass(activeCar.position.x, activeCar.position.z, mapDefinition);
+        const targetHeight = isCarOnGrass ? GRASS_HEIGHT : 0;
+        activeCar.position.y = targetHeight;
     }
 
     return {

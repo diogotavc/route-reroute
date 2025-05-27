@@ -142,10 +142,12 @@ const levels = [
 
 let currentLevelIndex = 0;
 let currentTimeOfDay = 0.25;
+let currentMapDefinition = null;
 
 function loadCarModelsAndSetupLevel() {
     const levelConfig = levels[currentLevelIndex];
     currentLevelData = processLevelMissions(levelConfig.missions, levelConfig.map);
+    currentMapDefinition = levelConfig.map;
 
     currentTimeOfDay = levelConfig.initialTimeOfDay !== undefined ? levelConfig.initialTimeOfDay : 0.25;
     updateDayNightCycle(scene, currentTimeOfDay);
@@ -178,7 +180,7 @@ function animate() {
     updateDayNightCycle(scene, currentTimeOfDay);
 
     if (currentLevelData) {
-        updateCarPhysics(deltaTime, collidableMapElements);
+        updateCarPhysics(deltaTime, collidableMapElements, currentMapDefinition);
     }
     
         rewindOverlay.style.display = isRewinding ? 'block' : 'none';

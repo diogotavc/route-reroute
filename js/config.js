@@ -22,6 +22,11 @@ export const DAY_CYCLE = {
 };
 
 export const TILE_SIZE = 6;
+
+export const GRASS_HEIGHT = -0.1;
+export const GRASS_COLOR = 0x4a7c59;
+export const GRASS_SPEED_SCALE = 0.5;
+
 export const TARGET_REWIND_DURATION = 2.0;
 export const REWIND_INTERPOLATION = 'ease-in-out';     // 'linear', 'ease', 'ease-in', 'ease-out', 'ease-in-out'
 
