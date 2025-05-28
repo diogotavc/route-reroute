@@ -1,16 +1,19 @@
 import * as THREE from 'three';
-import { STREETLIGHT_INTENSITY, STREETLIGHT_TURN_ON_TIME, STREETLIGHT_TURN_OFF_TIME, STREETLIGHT_SMOOTH_TRANSITIONS, DAY_CYCLE, HEADLIGHT_INTENSITY } from './config.js';
+import { STREETLIGHT_INTENSITY, STREETLIGHT_TURN_ON_TIME, STREETLIGHT_TURN_OFF_TIME, STREETLIGHT_SMOOTH_TRANSITIONS, DAY_CYCLE, HEADLIGHT_INTENSITY, MOON_INTENSITY, MOON_COLOR, MOON_ENABLED } from './config.js';
 import { updateHeadlights, toggleHeadlights, setHeadlightsEnabled, getCarHeadlights, getLoadedCarModels, getCurrentTimeOfDay, getHeadlightsEnabled } from './cars.js';
 
-let ambientLight, directionalLight;
+let ambientLight, directionalLight, moonLight;
 let streetLights = [];
 let streetLightsEnabled = true;
+let moonEnabled = MOON_ENABLED;
 let currentScene = null;
 let currentTimeOfDay = 0.5;
 export function setupLights(scene) {
     currentScene = scene;
     ambientLight = new THREE.AmbientLight(0x404040, 0.5);
     scene.add(ambientLight);
+    
+    // Sun light
     directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
     directionalLight.position.set(50, 50, 50);
     directionalLight.castShadow = true;
@@ -29,14 +32,37 @@ export function setupLights(scene) {
     
     directionalLight.shadow.camera.updateProjectionMatrix();
     scene.add(directionalLight);
+    
+    // Moon light
+    moonLight = new THREE.DirectionalLight(MOON_COLOR, MOON_INTENSITY);
+    moonLight.position.set(-50, 50, -30);
+    moonLight.castShadow = true;
+
+    moonLight.shadow.mapSize.width = 2048;
+    moonLight.shadow.mapSize.height = 2048;
+    moonLight.shadow.camera.near = 0.5;
+    moonLight.shadow.camera.far = 200;
+    moonLight.shadow.camera.left = -80;
+    moonLight.shadow.camera.right = 80;
+    moonLight.shadow.camera.top = 80;
+    moonLight.shadow.camera.bottom = -80;
+    
+    moonLight.shadow.bias = -0.001;
+    moonLight.shadow.normalBias = 0.1;
+    moonLight.shadow.radius = 4; // Softer shadows
+    
+    moonLight.shadow.camera.updateProjectionMatrix();
+    scene.add(moonLight);
+    
     return {
         ambientLight,
         directionalLight,
+        moonLight,
     };
 }
 
 export function updateDayNightCycle(scene, timeOfDay) {
-    if (!ambientLight || !directionalLight) return;
+    if (!ambientLight || !directionalLight || !moonLight) return;
 
     currentTimeOfDay = timeOfDay;
 
@@ -74,10 +100,35 @@ function updateSunPosition(timeOfDay) {
     directionalLight.target.updateMatrixWorld();
 }
 
+function updateMoonPosition(timeOfDay) {
+    const moonTimeOfDay = (timeOfDay + 0.5) % 1.0;
+    
+    let moonAngle;
+    if (moonTimeOfDay < 0.25) {
+        moonAngle = -Math.PI/4 + (moonTimeOfDay / 0.25) * (Math.PI/4);
+    } else if (moonTimeOfDay <= 0.75) {
+        const dayProgress = (moonTimeOfDay - 0.25) / 0.5;
+        moonAngle = dayProgress * Math.PI;
+    } else {
+        moonAngle = Math.PI + ((moonTimeOfDay - 0.75) / 0.25) * (Math.PI/4);
+    }
+    
+    const distance = 100;
+    const height = Math.sin(moonAngle) * 70 + 8;
+    const x = Math.cos(moonAngle) * distance;
+    const z = -20;
+    
+    moonLight.position.set(x, height, z);
+    moonLight.target.position.set(0, 0, 0);
+    moonLight.target.updateMatrixWorld();
+}
+
 function updateLighting(timeOfDay) {
     updateSunPosition(timeOfDay);
+    updateMoonPosition(timeOfDay);
 
     const sunAboveHorizon = directionalLight.position.y > 0;
+    const moonAboveHorizon = moonLight.position.y > 0;
 
     const phases = getDayPhase(timeOfDay);
 
@@ -89,6 +140,25 @@ function updateLighting(timeOfDay) {
     directionalLight.visible = lighting.sunVisible && sunAboveHorizon;
     directionalLight.intensity = lighting.sunIntensity;
     directionalLight.color.setHex(lighting.sunColor);
+    
+    // Moon is visible during night and twilight phases when above horizon
+    const moonShouldBeVisible = moonEnabled && moonAboveHorizon && 
+                              (phases.phase === 'night' || phases.phase === 'dawn' || phases.phase === 'dusk');
+    moonLight.visible = moonShouldBeVisible;
+    
+    if (moonShouldBeVisible) {
+        let moonIntensity = MOON_INTENSITY;
+
+        if (phases.phase === 'dawn') {
+            moonIntensity *= (1 - phases.factor * 0.8);
+        } else if (phases.phase === 'dusk') {
+            moonIntensity *= (phases.factor * 0.8 + 0.2);
+        }
+        
+        moonLight.intensity = moonIntensity;
+    } else {
+        moonLight.intensity = 0;
+    }
 }
 
 function getDayPhase(timeOfDay) {
@@ -306,6 +376,36 @@ function updateStreetLightsInstant(timeOfDay) {
     });
 }
 
+export function toggleMoonLight() {
+    moonEnabled = !moonEnabled;
+    console.log(`Moon light ${moonEnabled ? 'enabled' : 'disabled'}`);
+    if (currentScene && currentTimeOfDay !== undefined) {
+        updateLighting(currentTimeOfDay);
+    }
+}
+
+export function setMoonEnabled(enabled) {
+    moonEnabled = enabled;
+    console.log(`Moon light ${moonEnabled ? 'enabled' : 'disabled'}`);
+    if (currentScene && currentTimeOfDay !== undefined) {
+        updateLighting(currentTimeOfDay);
+    }
+}
+
+export function setMoonIntensity(intensity) {
+    if (!moonLight) return;
+    moonLight.intensity = Math.max(0, intensity);
+    console.log(`Moon intensity set to ${moonLight.intensity}`);
+}
+
+export function getMoonLight() {
+    return moonLight;
+}
+
+export function getMoonEnabled() {
+    return moonEnabled;
+}
+
 window.toggleStreetLights = toggleStreetLights;
 window.setStreetLightsEnabled = setStreetLightsEnabled;
 window.forceStreetLightsOn = () => {
@@ -315,6 +415,10 @@ window.forceStreetLightsOn = () => {
     });
     console.log("All streetlights forced to maximum intensity");
 };
+
+window.toggleMoonLight = toggleMoonLight;
+window.setMoonEnabled = setMoonEnabled;
+window.setMoonIntensity = setMoonIntensity;
 
 window.toggleHeadlights = toggleHeadlights;
 window.setHeadlightsEnabled = setHeadlightsEnabled;
@@ -423,6 +527,68 @@ window.trackSunMovement = () => {
     }
 };
 
+window.debugMoonPosition = (timeOfDay) => {
+    if (timeOfDay === undefined) {
+        console.log("Usage: debugMoonPosition(timeOfDay) where timeOfDay is between 0 and 1");
+        return;
+    }
+
+    const moonTimeOfDay = (timeOfDay + 0.5) % 1.0;
+    
+    let moonAngle;
+    if (moonTimeOfDay < 0.25) {
+        moonAngle = -Math.PI/4 + (moonTimeOfDay / 0.25) * (Math.PI/4);
+    } else if (moonTimeOfDay <= 0.75) {
+        const dayProgress = (moonTimeOfDay - 0.25) / 0.5;
+        moonAngle = dayProgress * Math.PI;
+    } else {
+        moonAngle = Math.PI + ((moonTimeOfDay - 0.75) / 0.25) * (Math.PI/4);
+    }
+
+    const distance = 100;
+    const height = Math.sin(moonAngle) * 70 + 8;
+    const x = Math.cos(moonAngle) * distance;
+    
+    console.log(`Time: ${timeOfDay.toFixed(3)} | Moon Time: ${moonTimeOfDay.toFixed(3)} | Angle: ${(moonAngle * 180 / Math.PI).toFixed(1)}° | Pos: (${x.toFixed(1)}, ${height.toFixed(1)}, -20)`);
+    
+    if (moonTimeOfDay < 0.25) console.log("Moon Phase: Before dawn (moon below eastern horizon)");
+    else if (moonTimeOfDay <= 0.75) console.log("Moon Phase: Dawn to dusk (moon visible)");
+    else console.log("Moon Phase: After dusk (moon below western horizon)");
+};
+
+window.trackMoonMovement = () => {
+    console.log("=== MOON MOVEMENT THROUGHOUT DAY ===");
+    for (let t = 0; t <= 1; t += 0.1) {
+        debugMoonPosition(t);
+    }
+};
+
+window.debugMoonLight = () => {
+    if (!moonLight) {
+        console.log("Moon light not available");
+        return;
+    }
+    
+    console.log("=== MOON LIGHT DEBUG INFO ===");
+    console.log(`Moon Enabled: ${moonEnabled}`);
+    console.log(`Moon Visible: ${moonLight.visible}`);
+    console.log(`Moon Intensity: ${moonLight.intensity}`);
+    console.log(`Moon Color: #${moonLight.color.getHexString()}`);
+    console.log(`Moon Position: (${moonLight.position.x.toFixed(1)}, ${moonLight.position.y.toFixed(1)}, ${moonLight.position.z.toFixed(1)})`);
+    console.log(`Moon Above Horizon: ${moonLight.position.y > 0}`);
+    console.log(`Current Time: ${currentTimeOfDay.toFixed(3)}`);
+    
+    const phases = getDayPhase(currentTimeOfDay);
+    console.log(`Current Phase: ${phases.phase} (factor: ${phases.factor.toFixed(3)})`);
+};
+
 console.log("Sun debug controls available:");
 console.log("- debugSunPosition(timeOfDay) - Show sun position for specific time");
 console.log("- trackSunMovement() - Show sun positions throughout full day");
+
+console.log("\nMoon debug controls available:");
+console.log("- debugMoonPosition(timeOfDay) - Show moon position for specific time");
+console.log("- trackMoonMovement() - Show moon positions throughout full day");
+console.log("- debugMoonLight() - Show current moon light status");
+console.log("- toggleMoonLight() - Toggle moon on/off");
+console.log("- setMoonIntensity(value) - Set moon intensity (0.0 - 1.0)");
