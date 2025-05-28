@@ -12,10 +12,6 @@ export const STREETLIGHT_TURN_ON_TIME = 0.78;
 export const STREETLIGHT_TURN_OFF_TIME = 0.27;
 export const STREETLIGHT_SMOOTH_TRANSITIONS = false;
 
-export const MOON_INTENSITY = 0.5;
-export const MOON_COLOR = 0xb8c6db;
-export const MOON_ENABLED = true;
-
 export const DAY_CYCLE = {
     DAWN_START: 0.15,
     DAWN_END: 0.30,
