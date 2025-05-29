@@ -38,7 +38,7 @@ export const CAR_FLASH_INTERVALS = 2;
 export const CAR_REACTION_COOLDOWN = 3.0;
 
 export const CAR_MAX_HEALTH = 100;
-export const CAR_COLLISION_DAMAGE = 40;
+export const CAR_COLLISION_DAMAGE = 50;
 
 export const DEBUG_GENERAL = false;
 export const DEBUG_CAR_COORDS = false;
