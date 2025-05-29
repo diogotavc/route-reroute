@@ -63,48 +63,60 @@ export const IDLE_CAMERA_DEBUG = false;
 
 export const IDLE_CAMERA_ANIMATIONS = [
     {
-        initialOrbitAngle: 0,        // 0° = front of the car (car-relative)
-        initialElevationAngle: 15,   // Look down at car from above
+        initialOrbitAngle: 0,
+        initialElevationAngle: 15,
         initialDistance: 8,
         initialFOV: 60,
-        initialPitch: 0,             // Camera pitch (up/down viewing angle)
+        initialPitch: 0,
 
-        finalOrbitAngle: 0,          // Stay in front of the car
-        finalElevationAngle: 5,      // Lower angle, more horizontal
-        finalDistance: 15,
-        finalFOV: 45,
-        finalPitch: 0,
-        duration: 4.0
+        finalOrbitAngle: 0,
+        finalElevationAngle: 5,
+        finalDistance: 10,
+        finalFOV: 35,
+        finalPitch: 20,
+        duration: 6.0
     },
     {
-        // Side sweep - orbit from behind to side
-        initialOrbitAngle: 0,        // Start behind car
-        initialElevationAngle: 20,   // Elevated view
-        initialDistance: 12,
-        initialFOV: 50,
-        initialPitch: 10,
+        initialOrbitAngle: 0,
+        initialElevationAngle: 5,
+        initialDistance: 10,
+        initialFOV: 35,
+        initialPitch: 20,
 
-        finalOrbitAngle: 90,         // 90° = right side of car
-        finalElevationAngle: 25,     // Higher elevation
+        finalOrbitAngle: 90,
+        finalElevationAngle: 25,
         finalDistance: 20,
         finalFOV: 35,
         finalPitch: -5,
         duration: 6.0
     },
     {
-        // Full orbit around car
-        initialOrbitAngle: 90,       // Start from right side
-        initialElevationAngle: 30,   // High angle
-        initialDistance: 18,
-        initialFOV: 40,
-        initialPitch: 0,
+        initialOrbitAngle: 90,
+        initialElevationAngle: 25,
+        initialDistance: 20,
+        initialFOV: 35,
+        initialPitch: -5,
 
-        finalOrbitAngle: 270,        // End at left side (3/4 orbit)
-        finalElevationAngle: 15,     // Lower to more dramatic angle
+        finalOrbitAngle: 270,
+        finalElevationAngle: 15,
         finalDistance: 12,
         finalFOV: 60,
         finalPitch: 15,
         duration: 8.0
+    },
+    {
+        initialOrbitAngle: 270,
+        initialElevationAngle: 15,
+        initialDistance: 12,
+        initialFOV: 60,
+        initialPitch: 15,
+
+        finalOrbitAngle: 360,
+        finalElevationAngle: 15,
+        finalDistance: 8,
+        finalFOV: 60,
+        finalPitch: 0,
+        duration: 6.0
     }
 ];
 
