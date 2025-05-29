@@ -39,7 +39,7 @@ export const CAR_REACTION_COOLDOWN = 3.0;
 
 export const CAR_MAX_HEALTH = 100;
 export const CAR_COLLISION_DAMAGE = 40;
-export const CAR_COLLISION_DAMAGE_COOLDOWN = 0.2;
+export const CAR_COLLISION_DAMAGE_COOLDOWN = 0.1;
 
 export const DEBUG_GENERAL = false;
 export const DEBUG_CAR_COORDS = false;
