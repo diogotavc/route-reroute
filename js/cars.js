@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import * as CarPhysics from "./carPhysics.js";
 import * as Achievements from "./achievements.js";
+import { isIdleCameraSystemActive } from "./main.js";
 import { 
     DEBUG_CAR_COORDS, 
     DEBUG_MODEL_LOADING, 
@@ -948,30 +949,32 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefiniti
 
     updateCarReactions(deltaTime);
 
-    if (isFirstPersonMode) {
-        const firstPersonOffset = new THREE.Vector3(0, FIRST_PERSON_HEIGHT_OFFSET, FIRST_PERSON_FORWARD_OFFSET);
-        const worldOffset = firstPersonOffset.applyQuaternion(activeCar.quaternion);
-        const desiredCameraPosition = activeCar.position.clone().add(worldOffset);
+    if (!isIdleCameraSystemActive()) {
+        if (isFirstPersonMode) {
+            const firstPersonOffset = new THREE.Vector3(0, FIRST_PERSON_HEIGHT_OFFSET, FIRST_PERSON_FORWARD_OFFSET);
+            const worldOffset = firstPersonOffset.applyQuaternion(activeCar.quaternion);
+            const desiredCameraPosition = activeCar.position.clone().add(worldOffset);
 
-        camera.position.copy(desiredCameraPosition);
+            camera.position.copy(desiredCameraPosition);
 
-        const forward = new THREE.Vector3(0, 0, 10).applyQuaternion(activeCar.quaternion);
-        const lookAtPoint = activeCar.position.clone().add(forward);
-        lookAtPoint.y += FIRST_PERSON_HEIGHT_OFFSET;
-        
-        controls.target.copy(lookAtPoint);
-    } else {
-        const desiredCameraOffset = new THREE.Vector3(0, CAMERA_HEIGHT, -CAMERA_DISTANCE);
-        const worldOffset = desiredCameraOffset.applyQuaternion(activeCar.quaternion);
-        const desiredCameraPosition = activeCar.position.clone().add(worldOffset);
+            const forward = new THREE.Vector3(0, 0, 10).applyQuaternion(activeCar.quaternion);
+            const lookAtPoint = activeCar.position.clone().add(forward);
+            lookAtPoint.y += FIRST_PERSON_HEIGHT_OFFSET;
+            
+            controls.target.copy(lookAtPoint);
+        } else {
+            const desiredCameraOffset = new THREE.Vector3(0, CAMERA_HEIGHT, -CAMERA_DISTANCE);
+            const worldOffset = desiredCameraOffset.applyQuaternion(activeCar.quaternion);
+            const desiredCameraPosition = activeCar.position.clone().add(worldOffset);
 
-        camera.position.lerp(desiredCameraPosition, deltaTime * CAMERA_FOLLOW_SPEED);
+            camera.position.lerp(desiredCameraPosition, deltaTime * CAMERA_FOLLOW_SPEED);
 
-        const desiredLookAtPoint = activeCar.position.clone();
-        desiredLookAtPoint.y += LOOK_AT_Y_OFFSET;
-        controls.target.lerp(desiredLookAtPoint, deltaTime * CAMERA_FOLLOW_SPEED);
+            const desiredLookAtPoint = activeCar.position.clone();
+            desiredLookAtPoint.y += LOOK_AT_Y_OFFSET;
+            controls.target.lerp(desiredLookAtPoint, deltaTime * CAMERA_FOLLOW_SPEED);
+        }
+        camera.lookAt(controls.target);
     }
-    camera.lookAt(controls.target);
 }
 
 export function getActiveCar() {

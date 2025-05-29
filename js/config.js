@@ -18,7 +18,7 @@ export const DAY_CYCLE = {
     DUSK_START: 0.70,
     DUSK_END: 0.85,
     NOON: 0.5,
-    SPEED: 1
+    SPEED: 0.1
 };
 
 export const TILE_SIZE = 6;
@@ -53,8 +53,52 @@ export const HITBOX_SCALE_FACTOR = 0.8;
 
 export const AUTO_PAUSE_ON_FOCUS_LOST = true;
 
-export const IDLE_CAMERA_ENABLED = false;
-export const IDLE_CAMERA_TRIGGER_TIME = 5;
+export const IDLE_CAMERA_ENABLED = true;
+export const IDLE_CAMERA_TRIGGER_TIME = 10;
+export const IDLE_CAMERA_FADE_DURATION = 1.0;
+export const IDLE_CAMERA_BLACK_DURATION = 1.0;
+export const IDLE_CAMERA_TIME_SCALE_MIN = 0.5;
+export const IDLE_CAMERA_RETURN_DURATION = 2.0;
+export const IDLE_CAMERA_DEBUG = false;
+
+export const IDLE_CAMERA_ANIMATIONS = [
+    {
+        // High overview shot - not yet
+        initialHeight: 50,
+        initialXRotation: -Math.PI / 3,
+        initialYRotation: 0,
+        initialPitch: 0,
+        finalHeight: 30,
+        finalXRotation: -Math.PI / 4,
+        finalYRotation: Math.PI / 2,
+        finalPitch: 0,
+        duration: 8.0
+    },
+    {
+        // Side swooping shot - not yet
+        initialHeight: 25,
+        initialXRotation: -Math.PI / 6,
+        initialYRotation: Math.PI / 2,
+        initialPitch: 0,
+        finalHeight: 35,
+        finalXRotation: -Math.PI / 3,
+        finalYRotation: Math.PI,
+        finalPitch: 0,
+        duration: 6.0
+    },
+    {
+        // Close dramatic angle - not yet
+        initialHeight: 15,
+        initialXRotation: -Math.PI / 8,
+        initialYRotation: Math.PI,
+        initialPitch: 0,
+        finalHeight: 20,
+        finalXRotation: -Math.PI / 5,
+        finalYRotation: Math.PI * 1.5,
+        finalPitch: 0,
+        duration: 10.0
+    }
+];
 
 export const CAMERA_FOLLOW_SPEED = 2.0;
 export const CAMERA_DISTANCE = 18;
