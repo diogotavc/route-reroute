@@ -178,6 +178,11 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
         const deltaRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAmount);
         activeCar.quaternion.multiplyQuaternions(deltaRotation, activeCar.quaternion);
         activeCar.updateMatrixWorld();
+
+        if (speed < 0) {
+            const reverseDistance = Math.abs(speed * deltaTime);
+            Achievements.trackReverseDistance(reverseDistance);
+        }
     }
 
     const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(activeCar.quaternion).normalize();

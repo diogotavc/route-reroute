@@ -169,6 +169,8 @@ let currentLevelIndex = 0;
 let currentTimeOfDay = 0.25;
 let currentMapDefinition = null;
 
+window.getCurrentLevelIndex = () => currentLevelIndex;
+
 function loadCarModelsAndSetupLevel() {
     const levelConfig = levels[currentLevelIndex];
     currentLevelData = processLevelMissions(levelConfig.missions, levelConfig.map);
@@ -265,6 +267,8 @@ function animate() {
         updateCarPhysics(deltaTime, collidableMapElements, currentMapDefinition);
     }
 
+    Achievements.updateIdleTracking();
+
     rewindOverlay.style.display = isRewinding ? 'block' : 'none';
 
     const notification = Achievements.getNextNotification();
@@ -282,6 +286,8 @@ window.addEventListener("resize", () => {
 });
 
 window.addEventListener("keydown", (event) => {
+    Achievements.onInputDetected();
+
     switch (event.key) {
         case "n":
             const nextCarResult = nextCar();
@@ -309,10 +315,18 @@ window.addEventListener("keydown", (event) => {
         case "6": Achievements.debug_triggerGrassDetection(); break;
         case "7": Achievements.debug_triggerSpeedDemon(); break;
         case "8": Achievements.debug_triggerRewindMaster(); break;
+        case "9": Achievements.debug_triggerHonkedAt(); break;
+        case "0": Achievements.debug_triggerFlashedAt(); break;
+        case "=": Achievements.debug_triggerNotAScratch(); break;
+        case "[": Achievements.debug_triggerPerfectRun(); break;
+        case "]": Achievements.debug_triggerReverseDriver(); break;
+        case "\\": Achievements.debug_triggerAFKDriver(); break;
     }
 });
 
 window.addEventListener("keyup", (event) => {
+    Achievements.onInputDetected();
+
     switch (event.key) {
         case "ArrowUp": case "w": setAccelerating(false); break;
         case "ArrowDown": case "s": setBraking(false); break;

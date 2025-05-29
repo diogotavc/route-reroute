@@ -58,6 +58,50 @@ const ACHIEVEMENT_DEFINITIONS = {
         icon: '⏰',
         counter: true,
         target: 5
+    },
+    HONKED_AT: {
+        id: 'honked_at',
+        name: 'Road Rage Target',
+        description: 'Get honked at by another car',
+        type: 'social',
+        icon: '📯'
+    },
+    FLASHED_AT: {
+        id: 'flashed_at',
+        name: 'Spotlight Stealer',
+        description: 'Get flashed at by another car',
+        type: 'social',
+        icon: '💡'
+    },
+    NOT_A_SCRATCH: {
+        id: 'not_a_scratch',
+        name: 'Not a Scratch',
+        description: 'Complete all missions in a level without crashing',
+        type: 'perfectionist',
+        icon: '✨'
+    },
+    PERFECT_RUN: {
+        id: 'perfect_run',
+        name: 'Flawless Victory',
+        description: 'Complete all missions without crashing, going on grass, or out of bounds',
+        type: 'perfectionist',
+        icon: '🏆'
+    },
+    REVERSE_DRIVER: {
+        id: 'reverse_driver',
+        name: 'Moonwalker',
+        description: 'Drive 250 meters in reverse',
+        type: 'quirky',
+        icon: '🔄',
+        counter: true,
+        target: 250
+    },
+    AFK_DRIVER: {
+        id: 'afk_driver',
+        name: 'Away from Keyboard',
+        description: 'Stay idle without input for 30 seconds',
+        type: 'idle',
+        icon: '😴'
     }
 };
 
@@ -66,7 +110,18 @@ let achievementsState = {
     counters: {},
     session: {
         rewindCount: 0,
-        currentMission: 0
+        currentMission: 0,
+        levelProgress: {
+            currentLevel: 0,
+            hasCrashed: false,
+            hasGoneOnGrass: false,
+            hasGoneOutOfBounds: false,
+            missionsCompleted: 0,
+            totalMissions: 0
+        },
+        reverseDistance: 0,
+        lastInputTime: 0,
+        idleStartTime: 0
     }
 };
 
@@ -137,6 +192,7 @@ export function getNextNotification() {
 }
 
 export function onCarCollision(collisionData = {}) {
+    achievementsState.session.levelProgress.hasCrashed = true;
     unlockAchievement('FIRST_CRASH', { type: 'car_collision', ...collisionData });
 
     if (collisionData.angle && Math.abs(collisionData.angle) > 60 && Math.abs(collisionData.angle) < 120) {
@@ -145,6 +201,7 @@ export function onCarCollision(collisionData = {}) {
 }
 
 export function onBuildingCollision(collisionData = {}) {
+    achievementsState.session.levelProgress.hasCrashed = true;
     unlockAchievement('BUILDING_CRASH', { type: 'building_collision', ...collisionData });
 }
 
@@ -153,10 +210,12 @@ export function onHealthDepleted(healthData = {}) {
 }
 
 export function onOutOfBounds(positionData = {}) {
+    achievementsState.session.levelProgress.hasGoneOutOfBounds = true;
     unlockAchievement('OUT_OF_BOUNDS', { position: positionData });
 }
 
 export function onGrassDetected(positionData = {}) {
+    achievementsState.session.levelProgress.hasGoneOnGrass = true;
     unlockAchievement('GRASS_DRIVER', { position: positionData });
 }
 
@@ -172,9 +231,60 @@ export function onRewindUsed(rewindData = {}) {
     });
 }
 
-export function onMissionChanged(missionIndex) {
-    achievementsState.session.currentMission = missionIndex;
-    achievementsState.session.rewindCount = 0;
+export function onHonkedAt(honkData = {}) {
+    unlockAchievement('HONKED_AT', { type: 'honked', ...honkData });
+}
+
+export function onFlashedAt(flashData = {}) {
+    unlockAchievement('FLASHED_AT', { type: 'flashed', ...flashData });
+}
+
+export function onLevelCompleted(levelData = {}) {
+    if (!achievementsState.session.levelProgress.hasCrashed) {
+        unlockAchievement('NOT_A_SCRATCH', { level: levelData.level });
+    }
+
+    if (!achievementsState.session.levelProgress.hasCrashed && 
+        !achievementsState.session.levelProgress.hasGoneOnGrass && 
+        !achievementsState.session.levelProgress.hasGoneOutOfBounds) {
+        unlockAchievement('PERFECT_RUN', { level: levelData.level });
+    }
+
+    achievementsState.session.levelProgress = {
+        currentLevel: levelData.level + 1,
+        hasCrashed: false,
+        hasGoneOnGrass: false,
+        hasGoneOutOfBounds: false,
+        missionsCompleted: 0,
+        totalMissions: 0
+    };
+}
+
+export function trackReverseDistance(distance) {
+    achievementsState.session.reverseDistance += distance;
+    unlockAchievement('REVERSE_DRIVER', { 
+        totalDistance: achievementsState.session.reverseDistance 
+    });
+}
+
+export function updateIdleTracking() {
+    const now = Date.now();
+    
+    if (achievementsState.session.lastInputTime === 0) {
+        achievementsState.session.lastInputTime = now;
+        achievementsState.session.idleStartTime = now;
+        return;
+    }
+    
+    const timeSinceLastInput = (now - achievementsState.session.lastInputTime) / 1000;
+    
+    if (timeSinceLastInput >= 30) { // 30 seconds
+        unlockAchievement('AFK_DRIVER', { idleDuration: timeSinceLastInput });
+    }
+}
+
+export function onInputDetected() {
+    achievementsState.session.lastInputTime = Date.now();
 }
 
 // UTILITIES
@@ -306,4 +416,39 @@ export function debug_triggerRewindMaster() {
     for (let i = 0; i < 10; i++) {
         onRewindUsed({ totalRecordedTime: 5.0 });
     }
+}
+
+export function debug_triggerHonkedAt() {
+    if (DEBUG_GENERAL) console.log('DEBUG: Triggering honked at achievement');
+    onHonkedAt({ carIndex: 1, isDaytime: true });
+}
+
+export function debug_triggerFlashedAt() {
+    if (DEBUG_GENERAL) console.log('DEBUG: Triggering flashed at achievement');
+    onFlashedAt({ carIndex: 2, isDaytime: false });
+}
+
+export function debug_triggerNotAScratch() {
+    if (DEBUG_GENERAL) console.log('DEBUG: Triggering not a scratch achievement');
+    achievementsState.session.levelProgress.hasCrashed = false;
+    onLevelCompleted({ level: 0 });
+}
+
+export function debug_triggerPerfectRun() {
+    if (DEBUG_GENERAL) console.log('DEBUG: Triggering perfect run achievement');
+    achievementsState.session.levelProgress.hasCrashed = false;
+    achievementsState.session.levelProgress.hasGoneOnGrass = false;
+    achievementsState.session.levelProgress.hasGoneOutOfBounds = false;
+    onLevelCompleted({ level: 0 });
+}
+
+export function debug_triggerReverseDriver() {
+    if (DEBUG_GENERAL) console.log('DEBUG: Triggering reverse driver achievement');
+    trackReverseDistance(105);
+}
+
+export function debug_triggerAFKDriver() {
+    if (DEBUG_GENERAL) console.log('DEBUG: Triggering AFK driver achievement');
+    achievementsState.session.lastInputTime = Date.now() - 35000;
+    updateIdleTracking();
 }

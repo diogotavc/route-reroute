@@ -233,6 +233,8 @@ function triggerCarReaction(carIndex, isDaytime) {
     if (isDaytime) {
         reaction.isHonking = true;
         reaction.honkCount = CAR_HONK_TIMES;
+
+        Achievements.onHonkedAt({ carIndex, isDaytime: true, time: currentTime });
         
         for (let i = 0; i < CAR_HONK_TIMES; i++) {
             setTimeout(() => playHonkSound(), i * 800);
@@ -250,6 +252,9 @@ function triggerCarReaction(carIndex, isDaytime) {
             reaction.flashStartTime = currentTime;
             reaction.originalLeftIntensity = headlightSet.left.intensity;
             reaction.originalRightIntensity = headlightSet.right.intensity;
+
+            Achievements.onFlashedAt({ carIndex, isDaytime: false, time: currentTime });
+
             if (DEBUG_CAR_REACTIONS) console.log(`Car ${carIndex} flashing headlights (nighttime)`);
         }
     }
@@ -585,11 +590,6 @@ function setActiveCar(index) {
     const previousMissionIndex = missionIndex;
     missionIndex = index;
 
-    // Notify achievements system of mission change
-    if (previousMissionIndex !== index) {
-        Achievements.onMissionChanged(index);
-    }
-
     if (previousMissionIndex !== index && loadedCarModels[previousMissionIndex]) {
         loadedCarModels[previousMissionIndex].visible = true;
     }
@@ -876,7 +876,7 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefiniti
             const completionThreshold = 2.0;
 
             if (distanceToDestination < completionThreshold) {
-                console.log(`Mission ${missionIndex + 1} (index ${missionIndex}) completed! Reached destination. Distance: ${distanceToDestination.toFixed(2)}`);
+
                 if (currentFinishPointMarker) {
                     scene.remove(currentFinishPointMarker);
                     currentFinishPointMarker.geometry.dispose();
@@ -888,6 +888,9 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefiniti
                 const nextCarResult = nextCar();
                 if (nextCarResult === -1) {
                     console.log("All missions finished for the current level.");
+
+                    const levelIndex = typeof window.getCurrentLevelIndex === 'function' ? window.getCurrentLevelIndex() : 0;
+                    Achievements.onLevelCompleted({ level: levelIndex });
                 }
                 return;
             }
