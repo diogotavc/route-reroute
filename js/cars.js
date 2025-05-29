@@ -28,7 +28,8 @@ import {
     CAR_MAX_HEALTH,
     CAR_COLLISION_DAMAGE,
     CAR_HEALTH_REGEN_RATE,
-    CAR_HEALTH_REGEN_DELAY
+    CAR_HEALTH_REGEN_DELAY,
+    CAR_COLLISION_DAMAGE_COOLDOWN
 } from './config.js';
 
 let debug_coordinateLogInterval = 1.0;
@@ -102,39 +103,37 @@ let audioInitialized = false;
 
 let carHealth = CAR_MAX_HEALTH;
 let lastCollisionTime = 0;
-let healthRegenTimer = 0;
+let lastDamageTime = 0;
 
 function updateCarHealth(deltaTime, collisionDetected) {
     const currentTime = elapsedTime;
     
     if (collisionDetected) {
-        const oldHealth = carHealth;
-        carHealth -= CAR_COLLISION_DAMAGE;
-        carHealth = Math.max(0, carHealth);
-        lastCollisionTime = currentTime;
-        healthRegenTimer = 0;
+        if (currentTime - lastDamageTime >= CAR_COLLISION_DAMAGE_COOLDOWN) {
+            const oldHealth = carHealth;
+            carHealth -= CAR_COLLISION_DAMAGE;
+            carHealth = Math.max(0, carHealth);
+            lastDamageTime = currentTime;
+            lastCollisionTime = currentTime;
+            
+            if (DEBUG_CAR_HEALTH) console.log(`Collision damage! Health: ${oldHealth} → ${carHealth} (-${CAR_COLLISION_DAMAGE})`);
 
-        if (DEBUG_CAR_HEALTH) console.log(`Collision! Health: ${oldHealth} → ${carHealth} (-${CAR_COLLISION_DAMAGE})`);
-
-        if (carHealth <= 0) {
-            if (DEBUG_CAR_HEALTH) console.log("Health depleted! Auto-rewind triggered.");
-            setRewinding();
-            carHealth = CAR_MAX_HEALTH;
-            return;
+            if (carHealth <= 0) {
+                if (DEBUG_CAR_HEALTH) console.log("Health depleted! Auto-rewind triggered.");
+                setRewinding();
+                carHealth = CAR_MAX_HEALTH;
+                return;
+            }
         }
     } else {
         const timeSinceCollision = currentTime - lastCollisionTime;
         if (timeSinceCollision >= CAR_HEALTH_REGEN_DELAY && carHealth < CAR_MAX_HEALTH) {
-            healthRegenTimer += deltaTime;
-            if (healthRegenTimer >= 0.1) {
-                const regenAmount = CAR_HEALTH_REGEN_RATE * 0.1;
-                const oldHealth = carHealth;
-                carHealth = Math.min(CAR_MAX_HEALTH, carHealth + regenAmount);
-                healthRegenTimer = 0;
-                
-                if (DEBUG_CAR_HEALTH && Math.floor(oldHealth) !== Math.floor(carHealth)) {
-                    console.log(`Health regenerating: ${Math.floor(carHealth)}/${CAR_MAX_HEALTH}`);
-                }
+            const regenAmount = CAR_HEALTH_REGEN_RATE * deltaTime;
+            const oldHealth = carHealth;
+            carHealth = Math.min(CAR_MAX_HEALTH, carHealth + regenAmount);
+            
+            if (DEBUG_CAR_HEALTH && Math.floor(oldHealth) !== Math.floor(carHealth)) {
+                console.log(`Health regenerating: ${Math.floor(carHealth)}/${CAR_MAX_HEALTH}`);
             }
         }
     }
@@ -143,7 +142,7 @@ function updateCarHealth(deltaTime, collisionDetected) {
 function resetCarHealth() {
     carHealth = CAR_MAX_HEALTH;
     lastCollisionTime = 0;
-    healthRegenTimer = 0;
+    lastDamageTime = 0;
     if (DEBUG_CAR_HEALTH) console.log("Health reset to maximum");
 }
 
