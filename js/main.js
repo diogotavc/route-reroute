@@ -75,6 +75,29 @@ style.textContent = `
 document.head.appendChild(style);
 document.body.appendChild(rewindOverlay);
 
+const pauseOverlay = document.createElement('div');
+pauseOverlay.id = 'pause-overlay';
+pauseOverlay.textContent = 'PAUSED';
+pauseOverlay.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-size: 48px;
+    font-weight: bold;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+    z-index: 2000;
+    display: none;
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 20px 40px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+`;
+document.body.appendChild(pauseOverlay);
+
 const achievementNotificationContainer = document.createElement('div');
 achievementNotificationContainer.id = 'achievement-notification-container';
 achievementNotificationContainer.style.cssText = `
@@ -201,6 +224,21 @@ function loadCarModelsAndSetupLevel() {
 
 const clock = new THREE.Clock();
 
+let isPaused = false;
+
+function togglePause() {
+    isPaused = !isPaused;
+    pauseOverlay.style.display = isPaused ? 'block' : 'none';
+
+    if (isPaused) {
+        clock.stop();
+        if (DEBUG_GENERAL) console.log('Game paused');
+    } else {
+        clock.start();
+        if (DEBUG_GENERAL) console.log('Game resumed');
+    }
+}
+
 let notificationIdCounter = 0;
 
 function showAchievementNotification(notification) {
@@ -259,6 +297,11 @@ function showAchievementNotification(notification) {
 }
 
 function animate() {
+    if (isPaused) {
+        renderer.render(scene, camera);
+        return;
+    }
+
     const deltaTime = clock.getDelta();
 
     currentTimeOfDay += deltaTime * DAY_CYCLE.SPEED;
@@ -308,9 +351,8 @@ window.addEventListener("keydown", (event) => {
         case "ArrowDown": case "s": setBraking(true); break;
         case "ArrowLeft": case "a": setTurningLeft(true); break;
         case "ArrowRight": case "d": setTurningRight(true); break;
-        case "r": setRewinding(); break;
-        case "c": toggleCameraMode(); break;
-
+        case "r": setRewinding(); break;        case "c": toggleCameraMode(); break;
+        case "p": togglePause(); break;
         case "1": Achievements.debug_triggerFirstCrash(); break;
         case "2": Achievements.debug_triggerHealthDepletion(); break;
         case "3": Achievements.debug_triggerTBone(); break;
@@ -339,6 +381,18 @@ window.addEventListener("keyup", (event) => {
         case "ArrowRight": case "d": setTurningRight(false); break;
     }
 });
+
+window.addEventListener("blur", () => {
+    if (!isPaused) {
+        togglePause();
+        if (DEBUG_GENERAL) console.log('Game auto-paused due to tab losing focus');
+    }
+});
+
+window.addEventListener("focus", () => {
+    if (DEBUG_GENERAL) console.log('Tab regained focus - press p to resume if paused');
+});
+
 window.setTimeOfDay = (time) => {
     if (time >= 0 && time <= 1) {
         currentTimeOfDay = time;
