@@ -27,8 +27,6 @@ import {
     CAR_REACTION_COOLDOWN,
     CAR_MAX_HEALTH,
     CAR_COLLISION_DAMAGE,
-    CAR_HEALTH_REGEN_RATE,
-    CAR_HEALTH_REGEN_DELAY,
     CAR_COLLISION_DAMAGE_COOLDOWN
 } from './config.js';
 
@@ -102,7 +100,6 @@ let honkAudio = null;
 let audioInitialized = false;
 
 let carHealth = CAR_MAX_HEALTH;
-let lastCollisionTime = 0;
 let lastDamageTime = 0;
 
 function updateCarHealth(deltaTime, collisionDetected) {
@@ -114,7 +111,6 @@ function updateCarHealth(deltaTime, collisionDetected) {
             carHealth -= CAR_COLLISION_DAMAGE;
             carHealth = Math.max(0, carHealth);
             lastDamageTime = currentTime;
-            lastCollisionTime = currentTime;
             
             if (DEBUG_CAR_HEALTH) console.log(`Collision damage! Health: ${oldHealth} → ${carHealth} (-${CAR_COLLISION_DAMAGE})`);
 
@@ -125,23 +121,11 @@ function updateCarHealth(deltaTime, collisionDetected) {
                 return;
             }
         }
-    } else {
-        const timeSinceCollision = currentTime - lastCollisionTime;
-        if (timeSinceCollision >= CAR_HEALTH_REGEN_DELAY && carHealth < CAR_MAX_HEALTH) {
-            const regenAmount = CAR_HEALTH_REGEN_RATE * deltaTime;
-            const oldHealth = carHealth;
-            carHealth = Math.min(CAR_MAX_HEALTH, carHealth + regenAmount);
-            
-            if (DEBUG_CAR_HEALTH && Math.floor(oldHealth) !== Math.floor(carHealth)) {
-                console.log(`Health regenerating: ${Math.floor(carHealth)}/${CAR_MAX_HEALTH}`);
-            }
-        }
     }
 }
 
 function resetCarHealth() {
     carHealth = CAR_MAX_HEALTH;
-    lastCollisionTime = 0;
     lastDamageTime = 0;
     if (DEBUG_CAR_HEALTH) console.log("Health reset to maximum");
 }

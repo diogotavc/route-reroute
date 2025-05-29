@@ -39,8 +39,6 @@ export const CAR_REACTION_COOLDOWN = 3.0;
 
 export const CAR_MAX_HEALTH = 100;
 export const CAR_COLLISION_DAMAGE = 40;
-export const CAR_HEALTH_REGEN_RATE = 10;
-export const CAR_HEALTH_REGEN_DELAY = 2.0;
 export const CAR_COLLISION_DAMAGE_COOLDOWN = 0.2;
 
 export const DEBUG_GENERAL = false;
