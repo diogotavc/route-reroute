@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import * as CarPhysics from "./carPhysics.js";
+import * as Achievements from "./achievements.js";
 import { 
     DEBUG_CAR_COORDS, 
     DEBUG_MODEL_LOADING, 
@@ -43,6 +44,7 @@ export function initCars(sceneObj, cameraObj, controlsObj) {
     controls = controlsObj;
     
     initAudioSystem();
+    Achievements.initAchievements();
 }
 
 const modelLoader = new GLTFLoader();
@@ -110,6 +112,7 @@ function updateCarHealth(deltaTime, collisionDetected) {
 
         if (carHealth <= 0) {
             if (DEBUG_CAR_HEALTH) console.log("Health depleted! Auto-rewind triggered.");
+            Achievements.onHealthDepleted({ oldHealth, newHealth: carHealth, damage: CAR_COLLISION_DAMAGE });
             setRewinding();
             carHealth = CAR_MAX_HEALTH;
             return;
@@ -584,6 +587,11 @@ function setActiveCar(index) {
     const previousMissionIndex = missionIndex;
     missionIndex = index;
 
+    // Notify achievements system of mission change
+    if (previousMissionIndex !== index) {
+        Achievements.onMissionChanged(index);
+    }
+
     if (previousMissionIndex !== index && loadedCarModels[previousMissionIndex]) {
         loadedCarModels[previousMissionIndex].visible = true;
     }
@@ -696,6 +704,11 @@ export function toggleCameraMode() {
 
 export function setRewinding() {
     isRewinding = true;
+    
+    // Notify achievements system of rewind usage
+    Achievements.onRewindUsed({ 
+        totalRecordedTime: Math.max(0, currentRecording.length > 0 ? currentRecording[currentRecording.length - 1].time : 0)
+    });
     
     // Stop all ongoing car reactions (honking and flashing)
     stopAllCarReactions();

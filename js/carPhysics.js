@@ -1,11 +1,12 @@
 import * as THREE from "three";
+import * as Achievements from "./achievements.js";
 import { 
     DEBUG_COLLISIONS, 
     DEBUG_MODEL_LOADING,
     GRASS_SPEED_SCALE,
     GRASS_HEIGHT
 } from './config.js';
-import { isOnGrass } from './mapLoader.js';
+import { isOnGrass, getGridCoordinates } from './mapLoader.js';
 
 export const MAX_SPEED = 15;
 export const ACCELERATION_RATE = 5;
@@ -163,6 +164,15 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
     
     speed = Math.max(-maxSpeedForTerrain / 2, Math.min(maxSpeedForTerrain, speed)); 
     if (isBraking && Math.abs(speed) < 0.1) speed = 0; 
+    
+    // Check for speed achievement
+    if (Math.abs(speed) >= MAX_SPEED * 0.95) { // 95% of max speed
+        Achievements.onMaxSpeedReached({ 
+            speed: Math.abs(speed), 
+            maxSpeed: MAX_SPEED,
+            percentage: (Math.abs(speed) / MAX_SPEED) * 100
+        });
+    } 
 
     if (Math.abs(speed) > 0.01) {
         const rotationAmount = steeringAngle * deltaTime * Math.sign(speed);
@@ -194,6 +204,20 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
             penetrationDepth = collisionResult.mtvDepth;
             collisionNormal.copy(collisionResult.mtvAxis);
             if (DEBUG_COLLISIONS) console.log("Collision with another car detected!");
+            
+            // Calculate collision angle for achievements
+            const activeForward = new THREE.Vector3(0, 0, 1).applyQuaternion(activeCar.quaternion);
+            const otherForward = new THREE.Vector3(0, 0, 1).applyQuaternion(otherCar.quaternion);
+            const collisionAngle = Math.acos(Math.abs(activeForward.dot(otherForward))) * (180 / Math.PI);
+            
+            // Trigger car collision achievement
+            Achievements.onCarCollision({ 
+                angle: collisionAngle,
+                speed: speed,
+                otherCarName: otherCar.name || 'unknown',
+                penetrationDepth: penetrationDepth
+            });
+            
             break; 
         }
     }
@@ -211,6 +235,14 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
                 penetrationDepth = collisionResult.mtvDepth;
                 collisionNormal.copy(collisionResult.mtvAxis);
                 if (DEBUG_COLLISIONS) console.log("Collision with map tile detected! Tile:", tile.name || tile.uuid);
+                
+                // Trigger building collision achievement
+                Achievements.onBuildingCollision({
+                    speed: speed,
+                    tileName: tile.name || tile.uuid,
+                    penetrationDepth: penetrationDepth
+                });
+                
                 break; 
             }
         }
@@ -265,6 +297,27 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
         const isCarOnGrass = isOnGrass(activeCar.position.x, activeCar.position.z, mapDefinition);
         const targetHeight = isCarOnGrass ? GRASS_HEIGHT : 0;
         activeCar.position.y = targetHeight;
+        
+        // Check for achievements related to terrain
+        if (isCarOnGrass) {
+            // Check if truly out of bounds (from mapLoader.js logic)
+            const layout = mapDefinition.layout;
+            const gridCoords = getGridCoordinates(activeCar.position.x, activeCar.position.z, mapDefinition);
+            const isOutOfBounds = gridCoords.z < 0 || gridCoords.z >= layout.length || 
+                                 gridCoords.x < 0 || gridCoords.x >= layout[0].length;
+            
+            if (isOutOfBounds) {
+                Achievements.onOutOfBounds({
+                    position: { x: activeCar.position.x, y: activeCar.position.y, z: activeCar.position.z },
+                    gridCoords: gridCoords
+                });
+            } else {
+                // Just on grass, not out of bounds
+                Achievements.onGrassDetected({
+                    position: { x: activeCar.position.x, y: activeCar.position.y, z: activeCar.position.z }
+                });
+            }
+        }
     }
 
     return {

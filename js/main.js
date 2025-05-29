@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DEBUG_GENERAL, DEBUG_MODEL_LOADING, DEBUG_MAP_LEVEL_LOGIC, DAY_CYCLE } from './config.js';
 
 import { setupLights, updateDayNightCycle } from './lights.js';
+import * as Achievements from './achievements.js';
 import {
     initCars,
     loadCarModels,
@@ -61,9 +62,38 @@ style.textContent = `
         0%, 50% { opacity: 1; }
         51%, 100% { opacity: 0.3; }
     }
+    @keyframes achievementSlide {
+        0% { transform: translateX(100%); opacity: 0; }
+        10%, 90% { transform: translateX(0); opacity: 1; }
+        100% { transform: translateX(100%); opacity: 0; }
+    }
 `;
 document.head.appendChild(style);
 document.body.appendChild(rewindOverlay);
+
+// Achievement notification system
+const achievementNotification = document.createElement('div');
+achievementNotification.id = 'achievement-notification';
+achievementNotification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+    display: none;
+    pointer-events: none;
+    min-width: 250px;
+    max-width: 350px;
+    border: 2px solid #FFD700;
+`;
+document.body.appendChild(achievementNotification);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
@@ -173,6 +203,31 @@ function loadCarModelsAndSetupLevel() {
 
 const clock = new THREE.Clock();
 
+// Achievement notification display function
+function showAchievementNotification(notification) {
+    const element = document.getElementById('achievement-notification');
+    
+    element.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">${notification.icon}</span>
+            <div>
+                <div style="font-size: 18px; font-weight: bold;">🏆 Achievement Unlocked!</div>
+                <div style="font-size: 16px; margin-top: 3px;">${notification.name}</div>
+                <div style="font-size: 13px; opacity: 0.9; margin-top: 2px;">${notification.description}</div>
+            </div>
+        </div>
+    `;
+    
+    element.style.display = 'block';
+    element.style.animation = 'achievementSlide 4s ease-in-out forwards';
+    
+    // Hide after animation
+    setTimeout(() => {
+        element.style.display = 'none';
+        element.style.animation = '';
+    }, 4000);
+}
+
 function animate() {
     const deltaTime = clock.getDelta();
 
@@ -184,7 +239,13 @@ function animate() {
         updateCarPhysics(deltaTime, collidableMapElements, currentMapDefinition);
     }
     
-        rewindOverlay.style.display = isRewinding ? 'block' : 'none';
+    rewindOverlay.style.display = isRewinding ? 'block' : 'none';
+    
+    // Handle achievement notifications
+    const notification = Achievements.getNextNotification();
+    if (notification) {
+        showAchievementNotification(notification);
+    }
 
     renderer.render(scene, camera);
 }
@@ -214,6 +275,15 @@ window.addEventListener("keydown", (event) => {
         case "ArrowRight": case "d": setTurningRight(true); break;
         case "r": setRewinding(); break;
         case "c": toggleCameraMode(); break;
+        // Debug achievement testing shortcuts (DEV ONLY)
+        case "1": Achievements.debug_triggerFirstCrash(); break;
+        case "2": Achievements.debug_triggerHealthDepletion(); break;
+        case "3": Achievements.debug_triggerTBone(); break;
+        case "4": Achievements.debug_triggerOutOfBounds(); break;
+        case "5": Achievements.debug_triggerBuildingCrash(); break;
+        case "6": Achievements.debug_triggerGrassDetection(); break;
+        case "7": Achievements.debug_triggerSpeedDemon(); break;
+        case "8": Achievements.debug_triggerRewindMaster(); break;
     }
 });
 
