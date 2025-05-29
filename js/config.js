@@ -51,10 +51,10 @@ export const COLLISION_SEPARATION_FACTOR = 1.1;
 export const EPSILON = 0.0001;
 export const HITBOX_SCALE_FACTOR = 0.8;
 
-export const AUTO_PAUSE_ON_FOCUS_LOST = true;
+export const AUTO_PAUSE_ON_FOCUS_LOST = false;
 
 export const IDLE_CAMERA_ENABLED = true;
-export const IDLE_CAMERA_TRIGGER_TIME = 10;
+export const IDLE_CAMERA_TRIGGER_TIME = 2;
 export const IDLE_CAMERA_FADE_DURATION = 1.0;
 export const IDLE_CAMERA_BLACK_DURATION = 1.0;
 export const IDLE_CAMERA_TIME_SCALE_MIN = 0.5;
@@ -63,15 +63,14 @@ export const IDLE_CAMERA_DEBUG = false;
 
 export const IDLE_CAMERA_ANIMATIONS = [
     {
-        // High overview shot - not yet
-        initialHeight: 50,
-        initialXRotation: -Math.PI / 3,
-        initialYRotation: 0,
+        initialHeight: 2,
+        initialXRotation: 0,
+        initialYRotation: (Math.PI)/2,
         initialPitch: 0,
-        finalHeight: 30,
-        finalXRotation: -Math.PI / 4,
-        finalYRotation: Math.PI / 2,
-        finalPitch: 0,
+        finalHeight: 5,
+        finalXRotation: 0,
+        finalYRotation: (Math.PI)/2,
+        finalPitch: 50,
         duration: 8.0
     },
     {

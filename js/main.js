@@ -355,6 +355,12 @@ function updateActiveIdleCamera(deltaTime) {
         camera.position.copy(startPos);
         controls.target.copy(centerPoint);
         controls.target.y += Math.sin(currentAnim.initialXRotation) * 10;
+
+        if (currentAnim.initialPitch !== undefined && currentAnim.initialPitch !== 0) {
+            const pitchOffset = Math.sin(currentAnim.initialPitch * Math.PI / 180) * 15;
+            controls.target.y += pitchOffset;
+        }
+
         camera.lookAt(controls.target);
         
     } else if (idleCameraState.timer < totalFadeTime + IDLE_CAMERA_BLACK_DURATION) {
