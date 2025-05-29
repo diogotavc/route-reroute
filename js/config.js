@@ -63,52 +63,48 @@ export const IDLE_CAMERA_DEBUG = false;
 
 export const IDLE_CAMERA_ANIMATIONS = [
     {
-        initialHeight: 1,
-        initialXRotation: 0,
-        initialYRotation: (Math.PI)/2,
-        initialDistance: 3,
+        initialOrbitAngle: 0,        // 0° = front of the car (car-relative)
+        initialElevationAngle: 15,   // Look down at car from above
+        initialDistance: 8,
         initialFOV: 60,
-        initialPitch: 20,
+        initialPitch: 0,             // Camera pitch (up/down viewing angle)
 
-        finalHeight: 0.2,
-        finalXRotation: 0,
-        finalYRotation: (Math.PI)/2,
-        finalDistance: 10,
-        finalFOV: 80,
-        finalPitch: -5,
-        duration: 8.0
+        finalOrbitAngle: 0,          // Stay in front of the car
+        finalElevationAngle: 5,      // Lower angle, more horizontal
+        finalDistance: 15,
+        finalFOV: 45,
+        finalPitch: 0,
+        duration: 4.0
     },
     {
-        // Side swooping shot - wider view with zoom out
-        initialHeight: 25,
-        initialXRotation: -Math.PI / 6,
-        initialYRotation: Math.PI / 2,
-        initialDistance: 30,
-        initialFOV: 35,
-        initialPitch: 15,
-        finalHeight: 35,
-        finalXRotation: -Math.PI / 3,
-        finalYRotation: Math.PI,
-        finalDistance: 40,
-        finalFOV: 25,
-        finalPitch: -10,
+        // Side sweep - orbit from behind to side
+        initialOrbitAngle: 0,        // Start behind car
+        initialElevationAngle: 20,   // Elevated view
+        initialDistance: 12,
+        initialFOV: 50,
+        initialPitch: 10,
+
+        finalOrbitAngle: 90,         // 90° = right side of car
+        finalElevationAngle: 25,     // Higher elevation
+        finalDistance: 20,
+        finalFOV: 35,
+        finalPitch: -5,
         duration: 6.0
     },
     {
-        // Close dramatic angle - zoom in effect
-        initialHeight: 15,
-        initialXRotation: -Math.PI / 8,
-        initialYRotation: Math.PI,
-        initialDistance: 15,
+        // Full orbit around car
+        initialOrbitAngle: 90,       // Start from right side
+        initialElevationAngle: 30,   // High angle
+        initialDistance: 18,
         initialFOV: 40,
-        initialPitch: 8,
-        finalHeight: 20,
-        finalXRotation: -Math.PI / 5,
-        finalYRotation: Math.PI * 1.5,
-        finalDistance: 18,
-        finalFOV: 20,
-        finalPitch: -12,
-        duration: 10.0
+        initialPitch: 0,
+
+        finalOrbitAngle: 270,        // End at left side (3/4 orbit)
+        finalElevationAngle: 15,     // Lower to more dramatic angle
+        finalDistance: 12,
+        finalFOV: 60,
+        finalPitch: 15,
+        duration: 8.0
     }
 ];
 

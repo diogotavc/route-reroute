@@ -306,22 +306,24 @@ function startIdleCameraAnimation() {
 function stopIdleCameraAnimation() {
     if (!isIdleCameraActive) return;
 
-    idleCameraState.phase = 'returning';
-    idleCameraState.timer = 0;
+    isIdleCameraActive = false;
+    idleCameraState.phase = 'inactive';
+    idleCameraState.fadeOpacity = 0;
+
+    camera.fov = 30;
+    camera.updateProjectionMatrix();
+    controls.enabled = idleCameraState.originalControlsEnabled;
+
+    idleFadeOverlay.style.opacity = '0';
     
-    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera stopping - returning to normal');
+    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera IMMEDIATELY stopped and reset');
 }
 
 function updateIdleCameraAnimation(deltaTime) {
     if (!isIdleCameraActive || !IDLE_CAMERA_ENABLED) return;
 
-    switch (idleCameraState.phase) {
-        case 'active':
-            updateActiveIdleCamera(deltaTime);
-            break;
-        case 'returning':
-            updateCameraReturn(deltaTime);
-            break;
+    if (idleCameraState.phase === 'active') {
+        updateActiveIdleCamera(deltaTime);
     }
 
     updateFadeOverlay();
@@ -339,24 +341,50 @@ function updateActiveIdleCamera(deltaTime) {
     } else if (idleCameraState.timer < fadeOutStart + IDLE_CAMERA_BLACK_DURATION) {
         idleCameraState.fadeOpacity = 1;
         const currentAnim = IDLE_CAMERA_ANIMATIONS[idleCameraState.currentAnimationIndex];
+
         const activeCar = getActiveCar();
         let centerPoint = new THREE.Vector3(0, 0, 0);
+        let carRotationY = 0;
+        
         if (activeCar) {
             centerPoint.copy(activeCar.position);
+            const euler = new THREE.Euler().setFromQuaternion(activeCar.quaternion, 'YXZ');
+            carRotationY = euler.y;
         }
-
+        
         const distance = currentAnim.initialDistance || 20;
+        const orbitAngle = currentAnim.initialOrbitAngle || 0; // degrees
+        const elevationAngle = currentAnim.initialElevationAngle || 0; // degrees
+
+        const orbitRad = (orbitAngle * Math.PI / 180) + carRotationY;
+        const elevationRad = elevationAngle * Math.PI / 180;
+
+        // Spherical to cartesian conversion (proper orbital mechanics)
+        // In Three.js: X+ = right, Y+ = up, Z+ = towards camera (out of screen)
+        // Car faces in +Z direction when rotation = 0
+        const horizontalDistance = distance * Math.cos(elevationRad);
+        const height = distance * Math.sin(elevationRad);
+        
         const startPos = new THREE.Vector3(
-            centerPoint.x + Math.cos(currentAnim.initialYRotation) * distance,
-            centerPoint.y + currentAnim.initialHeight,
-            centerPoint.z + Math.sin(currentAnim.initialYRotation) * distance
+            centerPoint.x + Math.sin(orbitRad) * horizontalDistance,
+            centerPoint.y + height,
+            centerPoint.z + Math.cos(orbitRad) * horizontalDistance
         );
 
         camera.position.copy(startPos);
+
         controls.target.copy(centerPoint);
 
+        const forwardOffset = 2;
+        const forwardLookVector = new THREE.Vector3(
+            Math.sin(carRotationY) * forwardOffset,
+            0,
+            Math.cos(carRotationY) * forwardOffset
+        );
+        controls.target.add(forwardLookVector);
+
         if (currentAnim.initialPitch !== undefined && currentAnim.initialPitch !== 0) {
-            const pitchOffset = Math.sin(currentAnim.initialPitch * Math.PI / 180) * 15;
+            const pitchOffset = Math.sin(currentAnim.initialPitch * Math.PI / 180) * 3;
             controls.target.y += pitchOffset;
         }
 
@@ -367,6 +395,9 @@ function updateActiveIdleCamera(deltaTime) {
 
         camera.lookAt(controls.target);
         
+        if (IDLE_CAMERA_DEBUG) {
+            console.log(`🎬 Camera setup - Car Y: ${(carRotationY * 180 / Math.PI).toFixed(1)}°, Orbit: ${orbitAngle}°, Elevation: ${elevationAngle}°, Distance: ${distance}`);
+        }
     } else if (idleCameraState.timer < totalFadeTime + IDLE_CAMERA_BLACK_DURATION) {
         const fadeOutProgress = (idleCameraState.timer - fadeOutStart - IDLE_CAMERA_BLACK_DURATION) / fadeInDuration;
         idleCameraState.fadeOpacity = 1 - fadeOutProgress;
@@ -385,33 +416,46 @@ function updateCameraAnimation(deltaTime) {
 
     const activeCar = getActiveCar();
     let centerPoint = new THREE.Vector3(0, 0, 0);
+    let carRotationY = 0;
+    
     if (activeCar) {
         centerPoint.copy(activeCar.position);
+        const euler = new THREE.Euler().setFromQuaternion(activeCar.quaternion, 'YXZ');
+        carRotationY = euler.y;
     }
 
-    const initialDistance = currentAnim.initialDistance || 20;
-    const finalDistance = currentAnim.finalDistance || initialDistance;
-    const currentDistance = initialDistance + (finalDistance - initialDistance) * easedProgress;
+    const currentDistance = currentAnim.initialDistance + (currentAnim.finalDistance - currentAnim.initialDistance) * easedProgress;
+    const currentOrbitAngle = currentAnim.initialOrbitAngle + (currentAnim.finalOrbitAngle - currentAnim.initialOrbitAngle) * easedProgress;
+    const currentElevationAngle = currentAnim.initialElevationAngle + (currentAnim.finalElevationAngle - currentAnim.initialElevationAngle) * easedProgress;
 
-    const currentHeight = currentAnim.initialHeight + (currentAnim.finalHeight - currentAnim.initialHeight) * easedProgress;
+    const orbitRad = (currentOrbitAngle * Math.PI / 180) + carRotationY;
+    const elevationRad = currentElevationAngle * Math.PI / 180;
 
-    const currentYRotation = currentAnim.initialYRotation + (currentAnim.finalYRotation - currentAnim.initialYRotation) * easedProgress;
-
+    // Spherical to cartesian conversion (proper orbital mechanics)
+    const horizontalDistance = currentDistance * Math.cos(elevationRad);
+    const height = currentDistance * Math.sin(elevationRad);
+    
     const currentPos = new THREE.Vector3(
-        centerPoint.x + Math.cos(currentYRotation) * currentDistance,
-        centerPoint.y + currentHeight,
-        centerPoint.z + Math.sin(currentYRotation) * currentDistance
+        centerPoint.x + Math.sin(orbitRad) * horizontalDistance,
+        centerPoint.y + height,
+        centerPoint.z + Math.cos(orbitRad) * horizontalDistance
     );
 
     camera.position.copy(currentPos);
 
-    const currentXRotation = currentAnim.initialXRotation + (currentAnim.finalXRotation - currentAnim.initialXRotation) * easedProgress;
     controls.target.copy(centerPoint);
-    controls.target.y += Math.sin(currentXRotation) * currentDistance * 0.5;
+
+    const forwardOffset = 2;
+    const forwardLookVector = new THREE.Vector3(
+        Math.sin(carRotationY) * forwardOffset,
+        0,
+        Math.cos(carRotationY) * forwardOffset
+    );
+    controls.target.add(forwardLookVector);
 
     if (currentAnim.initialPitch !== undefined && currentAnim.finalPitch !== undefined) {
         const currentPitch = currentAnim.initialPitch + (currentAnim.finalPitch - currentAnim.initialPitch) * easedProgress;
-        const pitchOffset = Math.sin(currentPitch * Math.PI / 180) * 15;
+        const pitchOffset = Math.sin(currentPitch * Math.PI / 180) * 3;
         controls.target.y += pitchOffset;
     }
 
@@ -423,28 +467,15 @@ function updateCameraAnimation(deltaTime) {
     
     camera.lookAt(controls.target);
     
+    if (IDLE_CAMERA_DEBUG) {
+        console.log(`🎬 Animation ${idleCameraState.currentAnimationIndex} - Progress: ${(progress * 100).toFixed(1)}%, Orbit: ${currentOrbitAngle.toFixed(1)}°, Elevation: ${currentElevationAngle.toFixed(1)}°, Distance: ${currentDistance.toFixed(1)}`);
+    }
+    
     if (progress >= 1) {
         idleCameraState.currentAnimationIndex = (idleCameraState.currentAnimationIndex + 1) % IDLE_CAMERA_ANIMATIONS.length;
         idleCameraState.animationTimer = 0;
         
         if (IDLE_CAMERA_DEBUG) console.log(`🎬 Animation ${idleCameraState.currentAnimationIndex} started`);
-    }
-}
-
-function updateCameraReturn(deltaTime) {
-    idleCameraState.timer += deltaTime;
-    const progress = Math.min(idleCameraState.timer / IDLE_CAMERA_RETURN_DURATION, 1);
-    
-    if (progress >= 1) {
-        isIdleCameraActive = false;
-        idleCameraState.phase = 'inactive';
-        idleCameraState.fadeOpacity = 0;
-        controls.enabled = idleCameraState.originalControlsEnabled;
-
-        camera.fov = 30;
-        camera.updateProjectionMatrix();
-
-        if (IDLE_CAMERA_DEBUG) console.log('🎬 Camera return complete - idle camera deactivated');
     }
 }
 
