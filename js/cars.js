@@ -26,8 +26,7 @@ import {
     CAR_FLASH_INTERVALS,
     CAR_REACTION_COOLDOWN,
     CAR_MAX_HEALTH,
-    CAR_COLLISION_DAMAGE,
-    CAR_COLLISION_DAMAGE_COOLDOWN
+    CAR_COLLISION_DAMAGE
 } from './config.js';
 
 let debug_coordinateLogInterval = 1.0;
@@ -100,33 +99,26 @@ let honkAudio = null;
 let audioInitialized = false;
 
 let carHealth = CAR_MAX_HEALTH;
-let lastDamageTime = 0;
 
 function updateCarHealth(deltaTime, collisionDetected) {
-    const currentTime = elapsedTime;
-    
     if (collisionDetected) {
-        if (currentTime - lastDamageTime >= CAR_COLLISION_DAMAGE_COOLDOWN) {
-            const oldHealth = carHealth;
-            carHealth -= CAR_COLLISION_DAMAGE;
-            carHealth = Math.max(0, carHealth);
-            lastDamageTime = currentTime;
-            
-            if (DEBUG_CAR_HEALTH) console.log(`Collision damage! Health: ${oldHealth} → ${carHealth} (-${CAR_COLLISION_DAMAGE})`);
+        const oldHealth = carHealth;
+        carHealth -= CAR_COLLISION_DAMAGE;
+        carHealth = Math.max(0, carHealth);
+        
+        if (DEBUG_CAR_HEALTH) console.log(`Collision damage! Health: ${oldHealth} → ${carHealth} (-${CAR_COLLISION_DAMAGE})`);
 
-            if (carHealth <= 0) {
-                if (DEBUG_CAR_HEALTH) console.log("Health depleted! Auto-rewind triggered.");
-                setRewinding();
-                carHealth = CAR_MAX_HEALTH;
-                return;
-            }
+        if (carHealth <= 0) {
+            if (DEBUG_CAR_HEALTH) console.log("Health depleted! Auto-rewind triggered.");
+            setRewinding();
+            carHealth = CAR_MAX_HEALTH;
+            return;
         }
     }
 }
 
 function resetCarHealth() {
     carHealth = CAR_MAX_HEALTH;
-    lastDamageTime = 0;
     if (DEBUG_CAR_HEALTH) console.log("Health reset to maximum");
 }
 
