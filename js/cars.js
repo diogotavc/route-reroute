@@ -261,8 +261,6 @@ function triggerCarReaction(carIndex, isDaytime) {
 }
 
 function updateCarReactions(deltaTime) {
-    if (isRewinding) return;
-
     const currentTime = elapsedTime;
 
     for (const carIndex in carReactions) {
@@ -291,25 +289,6 @@ function updateCarReactions(deltaTime) {
                 reaction.isFlashing = false;
                 if (DEBUG_CAR_REACTIONS) console.log(`Car ${carIndex} finished flashing headlights`);
             }
-        }
-    }
-}
-
-function stopAllCarReactions() {
-    for (const carIndex in carReactions) {
-        const reaction = carReactions[carIndex];
-
-        reaction.isHonking = false;
-        reaction.honkCount = 0;
-
-        if (reaction.isFlashing) {
-            reaction.isFlashing = false;
-            const headlightSet = carHeadlights[carIndex];
-            if (headlightSet) {
-                headlightSet.left.intensity = reaction.originalLeftIntensity;
-                headlightSet.right.intensity = reaction.originalRightIntensity;
-            }
-            if (DEBUG_CAR_REACTIONS) console.log(`Car ${carIndex} stopped flashing due to rewind`);
         }
     }
 }
@@ -702,15 +681,10 @@ export function toggleCameraMode() {
 
 export function setRewinding() {
     isRewinding = true;
-    
-    // Notify achievements system of rewind usage
     Achievements.onRewindUsed({ 
         totalRecordedTime: Math.max(0, currentRecording.length > 0 ? currentRecording[currentRecording.length - 1].time : 0)
     });
-    
-    // Stop all ongoing car reactions (honking and flashing)
-    stopAllCarReactions();
-    
+
     const totalRecordedTime = Math.max(0, currentRecording.length > 0 ? currentRecording[currentRecording.length - 1].time : 0);
     elapsedTime = totalRecordedTime;
 
