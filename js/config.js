@@ -37,6 +37,11 @@ export const CAR_FLASH_DURATION = 1.0;
 export const CAR_FLASH_INTERVALS = 2;
 export const CAR_REACTION_COOLDOWN = 3.0;
 
+export const CAR_MAX_HEALTH = 100;
+export const CAR_COLLISION_DAMAGE = 25;
+export const CAR_HEALTH_REGEN_RATE = 10;
+export const CAR_HEALTH_REGEN_DELAY = 2.0;
+
 export const DEBUG_GENERAL = false;
 export const DEBUG_CAR_COORDS = false;
 export const DEBUG_COLLISIONS = false;
@@ -44,3 +49,4 @@ export const DEBUG_MODEL_LOADING = false;
 export const DEBUG_MAP_LEVEL_LOGIC = false;
 export const DEBUG_REWIND = false;
 export const DEBUG_CAR_REACTIONS = false;
+export const DEBUG_CAR_HEALTH = false;
