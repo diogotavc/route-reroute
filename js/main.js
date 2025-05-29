@@ -272,7 +272,7 @@ let idleCameraState = {
     currentAnimationIndex: 0,
     fadeOpacity: 0,
     originalControlsEnabled: true,
-    originalCarVisibility: true // Track original car visibility state for first-person mode
+    originalCarVisibility: true
 };
 
 function togglePause() {
@@ -292,13 +292,8 @@ function startIdleCameraAnimation() {
     if (!IDLE_CAMERA_ENABLED || isIdleCameraActive) return;
 
     const activeCar = getActiveCar();
-    if (!activeCar) return;
-
-    idleCameraState.originalCarVisibility = activeCar.visible;
-
-    if (isInFirstPersonMode()) {
-        activeCar.visible = true;
-        if (IDLE_CAMERA_DEBUG) console.log('🎬 Car made visible for idle camera (was hidden in first-person mode)');
+    if (activeCar) {
+        idleCameraState.originalCarVisibility = activeCar.visible;
     }
 
     isIdleCameraActive = true;
@@ -321,7 +316,6 @@ function stopIdleCameraAnimation() {
     const activeCar = getActiveCar();
     if (activeCar) {
         activeCar.visible = idleCameraState.originalCarVisibility;
-        if (IDLE_CAMERA_DEBUG) console.log(`🎬 Car visibility restored to: ${activeCar.visible}`);
     }
 
     isIdleCameraActive = false;
@@ -334,7 +328,7 @@ function stopIdleCameraAnimation() {
 
     idleFadeOverlay.style.opacity = '0';
     
-    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera IMMEDIATELY stopped and reset');
+    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera stopped and car visibility restored');
 }
 
 function updateIdleCameraAnimation(deltaTime) {
@@ -349,18 +343,25 @@ function updateIdleCameraAnimation(deltaTime) {
 
 function updateActiveIdleCamera(deltaTime) {
     const fadeInDuration = IDLE_CAMERA_FADE_DURATION;
-    const fadeOutStart = IDLE_CAMERA_FADE_DURATION;
-    const totalFadeTime = fadeInDuration * 2;
+    const blackDuration = IDLE_CAMERA_BLACK_DURATION;
+    const fadeOutDuration = IDLE_CAMERA_FADE_DURATION;
+    const totalPhaseTime = fadeInDuration + blackDuration + fadeOutDuration;
     
     idleCameraState.timer += deltaTime;
     
     if (idleCameraState.timer < fadeInDuration) {
         idleCameraState.fadeOpacity = idleCameraState.timer / fadeInDuration;
-    } else if (idleCameraState.timer < fadeOutStart + IDLE_CAMERA_BLACK_DURATION) {
+        if (IDLE_CAMERA_DEBUG) console.log(`🎬 Fade IN - Timer: ${idleCameraState.timer.toFixed(2)}s, Opacity: ${idleCameraState.fadeOpacity.toFixed(2)}`);
+    } else if (idleCameraState.timer < fadeInDuration + blackDuration) {
         idleCameraState.fadeOpacity = 1;
-        const currentAnim = IDLE_CAMERA_ANIMATIONS[idleCameraState.currentAnimationIndex];
 
+        const currentAnim = IDLE_CAMERA_ANIMATIONS[idleCameraState.currentAnimationIndex];
         const activeCar = getActiveCar();
+
+        if (activeCar) {
+            activeCar.visible = true;
+        }
+        
         let centerPoint = new THREE.Vector3(0, 0, 0);
         let carRotationY = 0;
         
@@ -371,15 +372,12 @@ function updateActiveIdleCamera(deltaTime) {
         }
         
         const distance = currentAnim.initialDistance || 20;
-        const orbitAngle = currentAnim.initialOrbitAngle || 0; // degrees
-        const elevationAngle = currentAnim.initialElevationAngle || 0; // degrees
+        const orbitAngle = currentAnim.initialOrbitAngle || 0;
+        const elevationAngle = currentAnim.initialElevationAngle || 0;
 
         const orbitRad = (orbitAngle * Math.PI / 180) + carRotationY;
         const elevationRad = elevationAngle * Math.PI / 180;
 
-        // Spherical to cartesian conversion (proper orbital mechanics)
-        // In Three.js: X+ = right, Y+ = up, Z+ = towards camera (out of screen)
-        // Car faces in +Z direction when rotation = 0
         const horizontalDistance = distance * Math.cos(elevationRad);
         const height = distance * Math.sin(elevationRad);
         
@@ -390,7 +388,6 @@ function updateActiveIdleCamera(deltaTime) {
         );
 
         camera.position.copy(startPos);
-
         controls.target.copy(centerPoint);
 
         const forwardOffset = 2;
@@ -413,12 +410,13 @@ function updateActiveIdleCamera(deltaTime) {
 
         camera.lookAt(controls.target);
         
-        if (IDLE_CAMERA_DEBUG) {
-            console.log(`🎬 Camera setup - Car Y: ${(carRotationY * 180 / Math.PI).toFixed(1)}°, Orbit: ${orbitAngle}°, Elevation: ${elevationAngle}°, Distance: ${distance}`);
+        if (IDLE_CAMERA_DEBUG && idleCameraState.timer % 0.5 < 0.02) {
+            console.log(`🎬 Blackout - Car visible: ${activeCar?.visible}, Orbit: ${orbitAngle}°, Distance: ${distance}`);
         }
-    } else if (idleCameraState.timer < totalFadeTime + IDLE_CAMERA_BLACK_DURATION) {
-        const fadeOutProgress = (idleCameraState.timer - fadeOutStart - IDLE_CAMERA_BLACK_DURATION) / fadeInDuration;
+    } else if (idleCameraState.timer < totalPhaseTime) {
+        const fadeOutProgress = (idleCameraState.timer - fadeInDuration - blackDuration) / fadeOutDuration;
         idleCameraState.fadeOpacity = 1 - fadeOutProgress;
+        if (IDLE_CAMERA_DEBUG) console.log(`🎬 Fade OUT - Timer: ${idleCameraState.timer.toFixed(2)}s, Progress: ${fadeOutProgress.toFixed(2)}, Opacity: ${idleCameraState.fadeOpacity.toFixed(2)}`);
     } else {
         idleCameraState.fadeOpacity = 0;
         updateCameraAnimation(deltaTime);
