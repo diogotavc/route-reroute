@@ -459,14 +459,15 @@ export function loadCarModels(processedLevelData) {
 
                     model.visible = false;
                     model.scale.set(1, 1, 1);
+
+                    createHeadlights(model, index);
+
                     model.position.set(
                         startingPoint[0],
                         startingPoint[1],
                         startingPoint[2],
                     );
                     model.rotation.y = THREE.MathUtils.degToRad(initialRotationY);
-
-                    createHeadlights(model, index);
 
                     scene.add(model);
                     loadedCarModels[index] = model;
