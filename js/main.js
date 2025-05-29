@@ -582,18 +582,28 @@ function animate() {
     }
 
     const rawDeltaTime = clock.getDelta();
-    
-    // Check for idle timeout and manage idle camera
+
     checkIdleTimeout();
 
-    currentTimeOfDay += rawDeltaTime * DAY_CYCLE.SPEED;
+    let scaledDeltaTime = rawDeltaTime;
+    if (isIdleCameraActive && idleCameraState.phase === 'active') {
+        const timeScale = IDLE_CAMERA_TIME_SCALE_MIN;
+        if (timeScale < 1.0) {
+            scaledDeltaTime = rawDeltaTime * timeScale;
+            if (IDLE_CAMERA_DEBUG && Math.random() < 0.1) {
+                console.log(`⏱️ Time scaling: ${timeScale}x (${rawDeltaTime.toFixed(3)}s → ${scaledDeltaTime.toFixed(3)}s)`);
+            }
+        }
+    }
+
+    currentTimeOfDay += scaledDeltaTime * DAY_CYCLE.SPEED;
     if (currentTimeOfDay > 1) currentTimeOfDay -= 1;
     updateDayNightCycle(scene, currentTimeOfDay);
 
     Achievements.updateDayNightCycleTracking(currentTimeOfDay, isRewinding);
 
     if (currentLevelData) {
-        updateCarPhysics(rawDeltaTime, collidableMapElements, currentMapDefinition);
+        updateCarPhysics(scaledDeltaTime, collidableMapElements, currentMapDefinition);
     }
 
     rewindOverlay.style.display = isRewinding ? 'block' : 'none';
