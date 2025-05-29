@@ -61,6 +61,15 @@ export const IDLE_CAMERA_TIME_SCALE_MIN = 0.0;
 export const IDLE_CAMERA_RETURN_DURATION = 2.0;
 export const IDLE_CAMERA_DEBUG = false;
 
+export const IDLE_SPOTLIGHT_INTENSITY = 50;
+export const IDLE_SPOTLIGHT_HEIGHT = 8;
+export const IDLE_SPOTLIGHT_OFFSET = 0;
+export const IDLE_SPOTLIGHT_ANGLE = Math.PI / 8;
+export const IDLE_SPOTLIGHT_PENUMBRA = 0.1;
+export const IDLE_SPOTLIGHT_DECAY = 2;
+export const IDLE_SPOTLIGHT_DISTANCE = 60;
+export const IDLE_SPOTLIGHT_COLOR = 0xffffff;
+
 export const IDLE_CAMERA_ANIMATIONS = [
     {
         initialOrbitAngle: 0,
