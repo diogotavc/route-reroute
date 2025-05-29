@@ -44,6 +44,7 @@ const CAMERA_HEIGHT = 10;
 const LOOK_AT_Y_OFFSET = 3.5;
 const CAMERA_FOLLOW_SPEED = 2.0;
 let isFirstPersonMode = false;
+let shouldSnapCameraToPosition = false;
 
 let headlightsEnabled = HEADLIGHT_AUTO_MODE;
 let currentTimeOfDay = 0.5;
@@ -256,6 +257,10 @@ function setActiveCar(index) {
     activeCar.position.set(...startingPoint);
     activeCar.rotation.y = THREE.MathUtils.degToRad(initialRotationY || 0);
     activeCar.visible = !isFirstPersonMode;
+
+    if (index === 0) {
+        shouldSnapCameraToPosition = true;
+    }
 
     currentRecording.push({
         time: 0,
@@ -544,11 +549,17 @@ function updateCamera(deltaTime, activeCar) {
         const worldOffset = offset.applyQuaternion(activeCar.quaternion);
         const desiredPos = activeCar.position.clone().add(worldOffset);
 
-        camera.position.lerp(desiredPos, deltaTime * CAMERA_FOLLOW_SPEED);
-
         const lookAt = activeCar.position.clone();
         lookAt.y += LOOK_AT_Y_OFFSET;
-        controls.target.lerp(lookAt, deltaTime * CAMERA_FOLLOW_SPEED);
+
+        if (shouldSnapCameraToPosition) {
+            camera.position.copy(desiredPos);
+            controls.target.copy(lookAt);
+            shouldSnapCameraToPosition = false;
+        } else {
+            camera.position.lerp(desiredPos, deltaTime * CAMERA_FOLLOW_SPEED);
+            controls.target.lerp(lookAt, deltaTime * CAMERA_FOLLOW_SPEED);
+        }
     }
     
     camera.lookAt(controls.target);
