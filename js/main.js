@@ -43,6 +43,31 @@ import { mapData as level1MapData } from './maps/level1_map.js';
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
 
+let idleSpotlight = null;
+
+function createIdleSpotlight() {
+    if (idleSpotlight) {
+        scene.remove(idleSpotlight);
+        scene.remove(idleSpotlight.target);
+    }
+
+    idleSpotlight = new THREE.SpotLight(0xffffff, 30, 60, Math.PI / 8, 0.3, 1.5);
+    idleSpotlight.castShadow = true;
+    idleSpotlight.shadow.mapSize.width = 2048;
+    idleSpotlight.shadow.mapSize.height = 2048;
+    idleSpotlight.shadow.camera.near = 0.5;
+    idleSpotlight.shadow.camera.far = 60;
+    idleSpotlight.shadow.bias = -0.0001;
+
+    idleSpotlight.target = new THREE.Object3D();
+    scene.add(idleSpotlight.target);
+    scene.add(idleSpotlight);
+
+    idleSpotlight.intensity = 0;
+
+    return idleSpotlight;
+}
+
 const renderer = new THREE.WebGLRenderer({ 
     antialias: true,
     powerPreference: "high-performance"
@@ -307,7 +332,9 @@ function startIdleCameraAnimation() {
     controls.enabled = false;
     Achievements.onIdleCameraTriggered();
 
-    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera started');
+    createIdleSpotlight();
+
+    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera started - spotlight will activate after fade out');
 }
 
 function stopIdleCameraAnimation() {
@@ -327,8 +354,14 @@ function stopIdleCameraAnimation() {
     controls.enabled = idleCameraState.originalControlsEnabled;
 
     idleFadeOverlay.style.opacity = '0';
-    
-    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera stopped and car visibility restored');
+
+    if (idleSpotlight) {
+        scene.remove(idleSpotlight);
+        scene.remove(idleSpotlight.target);
+        idleSpotlight = null;
+    }
+
+    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera stopped, car visibility restored, spotlight removed');
 }
 
 function updateIdleCameraAnimation(deltaTime) {
@@ -409,6 +442,22 @@ function updateActiveIdleCamera(deltaTime) {
         }
 
         camera.lookAt(controls.target);
+
+        if (idleSpotlight && activeCar) {
+            const spotlightHeight = 30;
+            const spotlightOffset = 10;
+
+            const spotlightBackwardOffset = new THREE.Vector3(0, 0, spotlightOffset);
+            spotlightBackwardOffset.applyEuler(new THREE.Euler(0, carRotationY, 0));
+
+            idleSpotlight.position.set(
+                centerPoint.x + spotlightBackwardOffset.x,
+                centerPoint.y + spotlightHeight,
+                centerPoint.z + spotlightBackwardOffset.z
+            );
+            idleSpotlight.target.position.copy(centerPoint);
+            idleSpotlight.intensity = 0;
+        }
         
         if (IDLE_CAMERA_DEBUG && idleCameraState.timer % 0.5 < 0.02) {
             console.log(`🎬 Blackout - Car visible: ${activeCar?.visible}, Orbit: ${orbitAngle}°, Distance: ${distance}`);
@@ -416,9 +465,22 @@ function updateActiveIdleCamera(deltaTime) {
     } else if (idleCameraState.timer < totalPhaseTime) {
         const fadeOutProgress = (idleCameraState.timer - fadeInDuration - blackDuration) / fadeOutDuration;
         idleCameraState.fadeOpacity = 1 - fadeOutProgress;
+
+        if (idleSpotlight && fadeOutProgress > 0) {
+            idleSpotlight.intensity = 35 * fadeOutProgress;
+            if (IDLE_CAMERA_DEBUG && Math.abs(fadeOutProgress - 0.5) < 0.1) {
+                console.log(`🎬 Spotlight activated - Intensity: ${idleSpotlight.intensity.toFixed(1)}`);
+            }
+        }
+        
         if (IDLE_CAMERA_DEBUG) console.log(`🎬 Fade OUT - Timer: ${idleCameraState.timer.toFixed(2)}s, Progress: ${fadeOutProgress.toFixed(2)}, Opacity: ${idleCameraState.fadeOpacity.toFixed(2)}`);
     } else {
         idleCameraState.fadeOpacity = 0;
+
+        if (idleSpotlight) {
+            idleSpotlight.intensity = 35;
+        }
+
         updateCameraAnimation(deltaTime);
     }
 }
@@ -482,6 +544,23 @@ function updateCameraAnimation(deltaTime) {
     }
     
     camera.lookAt(controls.target);
+
+    if (idleSpotlight && activeCar) {
+        const spotlightHeight = 30;
+        const spotlightOffset = 10;
+
+        const spotlightBackwardOffset = new THREE.Vector3(0, 0, spotlightOffset);
+        spotlightBackwardOffset.applyEuler(new THREE.Euler(0, carRotationY, 0));
+
+        idleSpotlight.position.set(
+            centerPoint.x + spotlightBackwardOffset.x,
+            centerPoint.y + spotlightHeight,
+            centerPoint.z + spotlightBackwardOffset.z
+        );
+        idleSpotlight.target.position.copy(centerPoint);
+
+        idleSpotlight.intensity = 35;
+    }
     
     if (IDLE_CAMERA_DEBUG) {
         console.log(`🎬 Animation ${idleCameraState.currentAnimationIndex} - Progress: ${(progress * 100).toFixed(1)}%, Orbit: ${currentOrbitAngle.toFixed(1)}°, Elevation: ${currentElevationAngle.toFixed(1)}°, Distance: ${currentDistance.toFixed(1)}`);
