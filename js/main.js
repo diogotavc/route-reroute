@@ -179,6 +179,8 @@ function loadCarModelsAndSetupLevel() {
     currentTimeOfDay = levelConfig.initialTimeOfDay !== undefined ? levelConfig.initialTimeOfDay : 0.25;
     updateDayNightCycle(scene, currentTimeOfDay);
 
+    Achievements.initDayNightTracking(currentTimeOfDay);
+
     if (levelConfig.cameraStart) {
         camera.position.set(...levelConfig.cameraStart);
     } else if (levelConfig.map.startPoints && levelConfig.map.startPoints.playerSpawn) {
@@ -263,6 +265,8 @@ function animate() {
     if (currentTimeOfDay > 1) currentTimeOfDay -= 1;
     updateDayNightCycle(scene, currentTimeOfDay);
 
+    Achievements.updateDayNightCycleTracking(currentTimeOfDay, isRewinding);
+
     if (currentLevelData) {
         updateCarPhysics(deltaTime, collidableMapElements, currentMapDefinition);
     }
@@ -321,6 +325,7 @@ window.addEventListener("keydown", (event) => {
         case "[": Achievements.debug_triggerPerfectRun(); break;
         case "]": Achievements.debug_triggerReverseDriver(); break;
         case "\\": Achievements.debug_triggerAFKDriver(); break;
+        case "-": Achievements.debug_triggerSevenDaysNights(); break;
     }
 });
 

@@ -102,6 +102,15 @@ const ACHIEVEMENT_DEFINITIONS = {
         description: 'Stay idle without input for 30 seconds',
         type: 'idle',
         icon: '😴'
+    },
+    SEVEN_DAYS_NIGHTS: {
+        id: 'seven_days_nights',
+        name: '8th World Wonder',
+        description: 'Experience 7 Days and 7 Nights',
+        type: 'endurance',
+        icon: '🌅',
+        counter: true,
+        target: 7
     }
 };
 
@@ -121,7 +130,13 @@ let achievementsState = {
         },
         reverseDistance: 0,
         lastInputTime: 0,
-        idleStartTime: 0
+        idleStartTime: 0,
+        dayNightTracking: {
+            lastTime: 0,
+            initialTime: 0,
+            cycles: 0,
+            initialized: false
+        }
     }
 };
 
@@ -278,13 +293,48 @@ export function updateIdleTracking() {
     
     const timeSinceLastInput = (now - achievementsState.session.lastInputTime) / 1000;
     
-    if (timeSinceLastInput >= 30) { // 30 seconds
+    if (timeSinceLastInput >= 30) {
         unlockAchievement('AFK_DRIVER', { idleDuration: timeSinceLastInput });
     }
 }
 
 export function onInputDetected() {
     achievementsState.session.lastInputTime = Date.now();
+}
+
+export function initDayNightTracking(initialTimeOfDay) {
+    const tracking = achievementsState.session.dayNightTracking;
+    tracking.lastTime = initialTimeOfDay;
+    tracking.initialTime = initialTimeOfDay;
+    tracking.cycles = 0;
+    tracking.initialized = true;
+    
+    if (DEBUG_GENERAL) console.log(`Day/night tracking initialized at ${initialTimeOfDay.toFixed(3)}`);
+}
+
+export function updateDayNightCycleTracking(currentTime, isRewinding = false) {
+    const tracking = achievementsState.session.dayNightTracking;
+    
+    if (!tracking.initialized || isRewinding) return;
+
+    const tolerance = 0.02;
+    const nearInitial = Math.abs(currentTime - tracking.initialTime) <= tolerance;
+    const wasAwayFromInitial = Math.abs(tracking.lastTime - tracking.initialTime) > tolerance;
+
+    if (nearInitial && wasAwayFromInitial) {
+        tracking.cycles++;
+        
+        if (DEBUG_GENERAL) {
+            console.log(`Day/night cycle ${tracking.cycles} completed!`);
+        }
+        
+        unlockAchievement('SEVEN_DAYS_NIGHTS', {
+            cycleCount: tracking.cycles,
+            currentTime: currentTime
+        });
+    }
+    
+    tracking.lastTime = currentTime;
 }
 
 // UTILITIES
@@ -451,4 +501,14 @@ export function debug_triggerAFKDriver() {
     if (DEBUG_GENERAL) console.log('DEBUG: Triggering AFK driver achievement');
     achievementsState.session.lastInputTime = Date.now() - 35000;
     updateIdleTracking();
+}
+
+export function debug_triggerSevenDaysNights() {
+    if (DEBUG_GENERAL) console.log('DEBUG: Triggering seven days/nights achievement');
+    initDayNightTracking(0.9);
+
+    for (let i = 0; i < 8; i++) {
+        achievementsState.session.dayNightTracking.lastTime = 0.5;
+        updateDayNightCycleTracking(0.9, false);
+    }
 }
