@@ -140,7 +140,7 @@ achievementNotificationContainer.style.cssText = `
     position: fixed;
     top: 20px;
     right: 20px;
-    z-index: 1001;
+    z-index: 1600;
     pointer-events: none;
     display: flex;
     flex-direction: column;
@@ -338,6 +338,25 @@ function updateActiveIdleCamera(deltaTime) {
         idleCameraState.fadeOpacity = idleCameraState.timer / fadeInDuration;
     } else if (idleCameraState.timer < fadeOutStart + IDLE_CAMERA_BLACK_DURATION) {
         idleCameraState.fadeOpacity = 1;
+        const currentAnim = IDLE_CAMERA_ANIMATIONS[idleCameraState.currentAnimationIndex];
+        const activeCar = getActiveCar();
+        let centerPoint = new THREE.Vector3(0, 0, 0);
+        if (activeCar) {
+            centerPoint.copy(activeCar.position);
+        }
+
+        const startRadius = 20;
+        const startPos = new THREE.Vector3(
+            centerPoint.x + Math.cos(currentAnim.initialYRotation) * startRadius,
+            centerPoint.y + currentAnim.initialHeight,
+            centerPoint.z + Math.sin(currentAnim.initialYRotation) * startRadius
+        );
+
+        camera.position.copy(startPos);
+        controls.target.copy(centerPoint);
+        controls.target.y += Math.sin(currentAnim.initialXRotation) * 10;
+        camera.lookAt(controls.target);
+        
     } else if (idleCameraState.timer < totalFadeTime + IDLE_CAMERA_BLACK_DURATION) {
         const fadeOutProgress = (idleCameraState.timer - fadeOutStart - IDLE_CAMERA_BLACK_DURATION) / fadeInDuration;
         idleCameraState.fadeOpacity = 1 - fadeOutProgress;
