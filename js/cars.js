@@ -257,6 +257,14 @@ function checkCarReactions() {
         const otherCar = loadedCarModels[carIndex];
         if (!otherCar || !otherCar.visible) continue;
 
+        const recording = recordedMovements[carIndex];
+        if (recording && recording.length > 0) {
+            const lastRecordedTime = recording[recording.length - 1].time;
+            if (elapsedTime > lastRecordedTime) {
+                continue;
+            }
+        }
+
         initCarReaction(carIndex);
 
         if (isPassingInFront(activeCar, otherCar)) {
