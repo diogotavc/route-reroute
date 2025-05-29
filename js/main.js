@@ -265,21 +265,12 @@ let isPaused = false;
 let isIdleCameraActive = false;
 
 let idleCameraState = {
-    phase: 'inactive', // 'inactive', 'fadeOut', 'black', 'fadeIn', 'animating', 'returning'
+    phase: 'inactive', // 'inactive', 'active', 'returning'
     timer: 0,
-    currentTimeScale: 1.0,
-    targetTimeScale: 1.0,
-    currentAnimationIndex: 0,
     animationTimer: 0,
-    originalCameraPosition: new THREE.Vector3(),
-    originalCameraTarget: new THREE.Vector3(),
-    originalControlsEnabled: true,
-    cameraStartPosition: new THREE.Vector3(),
-    cameraStartTarget: new THREE.Vector3(),
-    cameraEndPosition: new THREE.Vector3(),
-    cameraEndTarget: new THREE.Vector3(),
-    returnStartPosition: new THREE.Vector3(),
-    returnStartTarget: new THREE.Vector3()
+    currentAnimationIndex: 0,
+    fadeOpacity: 0,
+    originalControlsEnabled: true
 };
 
 function togglePause() {
@@ -299,22 +290,17 @@ function startIdleCameraAnimation() {
     if (!IDLE_CAMERA_ENABLED || isIdleCameraActive) return;
 
     isIdleCameraActive = true;
-    idleCameraState.phase = 'fadeOut';
+    idleCameraState.phase = 'active';
     idleCameraState.timer = 0;
-    idleCameraState.currentAnimationIndex = 0;
     idleCameraState.animationTimer = 0;
-    idleCameraState.currentTimeScale = 1.0;
-    idleCameraState.targetTimeScale = IDLE_CAMERA_TIME_SCALE_MIN;
-
-    idleCameraState.originalCameraPosition.copy(camera.position);
-    idleCameraState.originalCameraTarget.copy(controls.target);
+    idleCameraState.currentAnimationIndex = 0;
+    idleCameraState.fadeOpacity = 0;
     idleCameraState.originalControlsEnabled = controls.enabled;
 
     controls.enabled = false;
-
     Achievements.onIdleCameraTriggered();
 
-    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera triggered - starting fade out');
+    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera started');
 }
 
 function stopIdleCameraAnimation() {
@@ -322,38 +308,16 @@ function stopIdleCameraAnimation() {
 
     idleCameraState.phase = 'returning';
     idleCameraState.timer = 0;
-    idleCameraState.targetTimeScale = 1.0;
-
-    idleCameraState.returnStartPosition.copy(camera.position);
-    idleCameraState.returnStartTarget.copy(controls.target);
     
-    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera stopping - returning to player');
+    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera stopping - returning to normal');
 }
 
 function updateIdleCameraAnimation(deltaTime) {
     if (!isIdleCameraActive || !IDLE_CAMERA_ENABLED) return;
 
-    idleCameraState.timer += deltaTime;
-
-    const timeScaleLerpSpeed = 3.0;
-    idleCameraState.currentTimeScale = THREE.MathUtils.lerp(
-        idleCameraState.currentTimeScale, 
-        idleCameraState.targetTimeScale, 
-        deltaTime * timeScaleLerpSpeed
-    );
-
     switch (idleCameraState.phase) {
-        case 'fadeOut':
-            updateFadeOut(deltaTime);
-            break;
-        case 'black':
-            updateBlackScreen(deltaTime);
-            break;
-        case 'fadeIn':
-            updateFadeIn(deltaTime);
-            break;
-        case 'animating':
-            updateCameraAnimation(deltaTime);
+        case 'active':
+            updateActiveIdleCamera(deltaTime);
             break;
         case 'returning':
             updateCameraReturn(deltaTime);
@@ -363,37 +327,23 @@ function updateIdleCameraAnimation(deltaTime) {
     updateFadeOverlay();
 }
 
-function updateFadeOut(deltaTime) {
-    const progress = Math.min(idleCameraState.timer / IDLE_CAMERA_FADE_DURATION, 1);
+function updateActiveIdleCamera(deltaTime) {
+    const fadeInDuration = IDLE_CAMERA_FADE_DURATION;
+    const fadeOutStart = IDLE_CAMERA_FADE_DURATION;
+    const totalFadeTime = fadeInDuration * 2;
     
-    if (progress >= 1) {
-        idleCameraState.phase = 'black';
-        idleCameraState.timer = 0;
-        if (IDLE_CAMERA_DEBUG) console.log('🎬 Fade out complete - black screen');
-    }
-}
-
-function updateBlackScreen(deltaTime) {
-    if (idleCameraState.timer >= IDLE_CAMERA_BLACK_DURATION) {
-        setupCameraAnimation(0);
-        idleCameraState.phase = 'fadeIn';
-        idleCameraState.timer = 0;
-        if (IDLE_CAMERA_DEBUG) console.log('🎬 Black screen complete - starting fade in');
-    }
-}
-
-function updateFadeIn(deltaTime) {
-    const progress = Math.min(idleCameraState.timer / IDLE_CAMERA_FADE_DURATION, 1);
-
-    camera.position.copy(idleCameraState.cameraStartPosition);
-    controls.target.copy(idleCameraState.cameraStartTarget);
-    camera.lookAt(controls.target);
-
-    if (progress >= 1) {
-        idleCameraState.phase = 'animating';
-        idleCameraState.timer = 0;
-        idleCameraState.animationTimer = 0;
-        if (IDLE_CAMERA_DEBUG) console.log('🎬 Fade in complete - starting camera animation');
+    idleCameraState.timer += deltaTime;
+    
+    if (idleCameraState.timer < fadeInDuration) {
+        idleCameraState.fadeOpacity = idleCameraState.timer / fadeInDuration;
+    } else if (idleCameraState.timer < fadeOutStart + IDLE_CAMERA_BLACK_DURATION) {
+        idleCameraState.fadeOpacity = 1;
+    } else if (idleCameraState.timer < totalFadeTime + IDLE_CAMERA_BLACK_DURATION) {
+        const fadeOutProgress = (idleCameraState.timer - fadeOutStart - IDLE_CAMERA_BLACK_DURATION) / fadeInDuration;
+        idleCameraState.fadeOpacity = 1 - fadeOutProgress;
+    } else {
+        idleCameraState.fadeOpacity = 0;
+        updateCameraAnimation(deltaTime);
     }
 }
 
@@ -404,19 +354,35 @@ function updateCameraAnimation(deltaTime) {
     const progress = Math.min(idleCameraState.animationTimer / currentAnim.duration, 1);
     const easedProgress = easeInOut(progress);
 
-    const tempPos = new THREE.Vector3();
-    const tempTarget = new THREE.Vector3();
+    const activeCar = getActiveCar();
+    let centerPoint = new THREE.Vector3(0, 0, 0);
+    if (activeCar) {
+        centerPoint.copy(activeCar.position);
+    }
+
+    const startRadius = 20;
+    const endRadius = 25;
     
-    tempPos.lerpVectors(idleCameraState.cameraStartPosition, idleCameraState.cameraEndPosition, easedProgress);
-    tempTarget.lerpVectors(idleCameraState.cameraStartTarget, idleCameraState.cameraEndTarget, easedProgress);
+    const startPos = new THREE.Vector3(
+        centerPoint.x + Math.cos(currentAnim.initialYRotation) * startRadius,
+        centerPoint.y + currentAnim.initialHeight,
+        centerPoint.z + Math.sin(currentAnim.initialYRotation) * startRadius
+    );
     
-    camera.position.copy(tempPos);
-    controls.target.copy(tempTarget);
+    const endPos = new THREE.Vector3(
+        centerPoint.x + Math.cos(currentAnim.finalYRotation) * endRadius,
+        centerPoint.y + currentAnim.finalHeight,
+        centerPoint.z + Math.sin(currentAnim.finalYRotation) * endRadius
+    );
+
+    camera.position.lerpVectors(startPos, endPos, easedProgress);
+    controls.target.copy(centerPoint);
+    controls.target.y += Math.sin(THREE.MathUtils.lerp(currentAnim.initialXRotation, currentAnim.finalXRotation, easedProgress)) * 10;
+    
     camera.lookAt(controls.target);
     
     if (progress >= 1) {
         idleCameraState.currentAnimationIndex = (idleCameraState.currentAnimationIndex + 1) % IDLE_CAMERA_ANIMATIONS.length;
-        setupCameraAnimation(idleCameraState.currentAnimationIndex);
         idleCameraState.animationTimer = 0;
         
         if (IDLE_CAMERA_DEBUG) console.log(`🎬 Animation ${idleCameraState.currentAnimationIndex} started`);
@@ -424,102 +390,22 @@ function updateCameraAnimation(deltaTime) {
 }
 
 function updateCameraReturn(deltaTime) {
+    idleCameraState.timer += deltaTime;
     const progress = Math.min(idleCameraState.timer / IDLE_CAMERA_RETURN_DURATION, 1);
-    const easedProgress = easeInOut(progress);
-
-    const activeCar = getActiveCar();
-    let targetPosition = idleCameraState.originalCameraPosition.clone();
-    let targetLookAt = idleCameraState.originalCameraTarget.clone();
-
-    if (activeCar) {
-        const desiredCameraOffset = new THREE.Vector3(0, CAMERA_HEIGHT, -CAMERA_DISTANCE);
-        const worldOffset = desiredCameraOffset.applyQuaternion(activeCar.quaternion);
-        targetPosition = activeCar.position.clone().add(worldOffset);
-        
-        targetLookAt = activeCar.position.clone();
-        targetLookAt.y += LOOK_AT_Y_OFFSET;
-    }
-
-    const tempPos = new THREE.Vector3();
-    const tempTarget = new THREE.Vector3();
-
-    tempPos.lerpVectors(idleCameraState.returnStartPosition, targetPosition, easedProgress);
-    tempTarget.lerpVectors(idleCameraState.returnStartTarget, targetLookAt, easedProgress);
-
-    camera.position.copy(tempPos);
-    controls.target.copy(tempTarget);
-    camera.lookAt(controls.target);
     
     if (progress >= 1) {
         isIdleCameraActive = false;
         idleCameraState.phase = 'inactive';
-        idleCameraState.currentTimeScale = 1.0;
-        idleCameraState.targetTimeScale = 1.0;
+        idleCameraState.fadeOpacity = 0;
         controls.enabled = idleCameraState.originalControlsEnabled;
 
         if (IDLE_CAMERA_DEBUG) console.log('🎬 Camera return complete - idle camera deactivated');
     }
 }
 
-function setupCameraAnimation(animIndex) {
-    const anim = IDLE_CAMERA_ANIMATIONS[animIndex];
-    const activeCar = getActiveCar();
-    let centerPoint = new THREE.Vector3(0, 0, 0);
-
-    if (activeCar) {
-        centerPoint.copy(activeCar.position);
-    }
-
-    const startRadius = 20;
-    idleCameraState.cameraStartPosition.set(
-        centerPoint.x + Math.cos(anim.initialYRotation) * startRadius,
-        centerPoint.y + anim.initialHeight,
-        centerPoint.z + Math.sin(anim.initialYRotation) * startRadius
-    );
-
-    const endRadius = 25;
-    idleCameraState.cameraEndPosition.set(
-        centerPoint.x + Math.cos(anim.finalYRotation) * endRadius,
-        centerPoint.y + anim.finalHeight,
-        centerPoint.z + Math.sin(anim.finalYRotation) * endRadius
-    );
-
-    idleCameraState.cameraStartTarget.copy(centerPoint);
-    idleCameraState.cameraEndTarget.copy(centerPoint);
-
-    const pitchOffset = new THREE.Vector3(0, Math.sin(anim.initialXRotation) * 10, 0);
-    idleCameraState.cameraStartTarget.add(pitchOffset);
-
-    const finalPitchOffset = new THREE.Vector3(0, Math.sin(anim.finalXRotation) * 10, 0);
-    idleCameraState.cameraEndTarget.add(finalPitchOffset);
-
-    camera.position.copy(idleCameraState.cameraStartPosition);
-    controls.target.copy(idleCameraState.cameraStartTarget);
-    camera.lookAt(controls.target);
-}
-
 function updateFadeOverlay() {
-    let targetOpacity = 0;
-
-    switch (idleCameraState.phase) {
-        case 'fadeOut':
-            targetOpacity = idleCameraState.timer / IDLE_CAMERA_FADE_DURATION;
-            break;
-        case 'black':
-            targetOpacity = 1;
-            break;
-        case 'fadeIn':
-            targetOpacity = 1 - (idleCameraState.timer / IDLE_CAMERA_FADE_DURATION);
-            break;
-        case 'returning':
-            targetOpacity = 0;
-            break;
-        default:
-            targetOpacity = 0;
-    }
-    
-    targetOpacity = Math.max(0, Math.min(1, targetOpacity));
-    idleFadeOverlay.style.opacity = targetOpacity.toString();
+    const targetOpacity = idleCameraState.fadeOpacity || 0;
+    idleFadeOverlay.style.opacity = Math.max(0, Math.min(1, targetOpacity)).toString();
 }
 
 function easeInOut(t) {
@@ -604,23 +490,18 @@ function animate() {
     }
 
     const rawDeltaTime = clock.getDelta();
-    let deltaTime = rawDeltaTime;
-
+    
     // Check for idle timeout and manage idle camera
     checkIdleTimeout();
 
-    if (isIdleCameraActive) {
-        deltaTime *= idleCameraState.currentTimeScale;
-    }
-
-    currentTimeOfDay += deltaTime * DAY_CYCLE.SPEED;
+    currentTimeOfDay += rawDeltaTime * DAY_CYCLE.SPEED;
     if (currentTimeOfDay > 1) currentTimeOfDay -= 1;
     updateDayNightCycle(scene, currentTimeOfDay);
 
     Achievements.updateDayNightCycleTracking(currentTimeOfDay, isRewinding);
 
     if (currentLevelData) {
-        updateCarPhysics(deltaTime, collidableMapElements, currentMapDefinition);
+        updateCarPhysics(rawDeltaTime, collidableMapElements, currentMapDefinition);
     }
 
     rewindOverlay.style.display = isRewinding ? 'block' : 'none';
@@ -643,8 +524,7 @@ window.addEventListener("resize", () => {
 
 window.addEventListener("keydown", (event) => {
     Achievements.onInputDetected();
-    
-    // Stop idle camera on any input
+
     if (isIdleCameraActive) {
         stopIdleCameraAnimation();
     }
@@ -686,13 +566,6 @@ window.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("keyup", (event) => {
-    Achievements.onInputDetected();
-    
-    // Stop idle camera on any input
-    if (isIdleCameraActive) {
-        stopIdleCameraAnimation();
-    }
-
     switch (event.key) {
         case "ArrowUp": case "w": setAccelerating(false); break;
         case "ArrowDown": case "s": setBraking(false); break;
@@ -733,4 +606,8 @@ console.log("- debugDayPhase(time) - Debug lighting at specific time");
 
 export function isIdleCameraSystemActive() {
     return isIdleCameraActive;
+}
+
+export function isIdleCameraReturning() {
+    return isIdleCameraActive && idleCameraState.phase === 'returning';
 }
