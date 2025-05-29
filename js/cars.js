@@ -7,6 +7,7 @@ import {
     DEBUG_MAP_LEVEL_LOGIC,
     DEBUG_REWIND,
     DEBUG_GENERAL,
+    DEBUG_CAR_REACTIONS,
     HEADLIGHT_INTENSITY,
     HEADLIGHT_DISTANCE,
     HEADLIGHT_ANGLE,
@@ -16,7 +17,13 @@ import {
     HEADLIGHT_TURN_ON_TIME,
     HEADLIGHT_TURN_OFF_TIME,
     TARGET_REWIND_DURATION,
-    REWIND_INTERPOLATION
+    REWIND_INTERPOLATION,
+    CAR_REACTION_DISTANCE,
+    CAR_REACTION_ANGLE_THRESHOLD,
+    CAR_HONK_TIMES,
+    CAR_FLASH_DURATION,
+    CAR_FLASH_INTERVALS,
+    CAR_REACTION_COOLDOWN
 } from './config.js';
 
 let debug_coordinateLogInterval = 1.0;
@@ -31,6 +38,8 @@ export function initCars(sceneObj, cameraObj, controlsObj) {
     scene = sceneObj;
     camera = cameraObj;
     controls = controlsObj;
+    
+    initAudioSystem();
 }
 
 const modelLoader = new GLTFLoader();
@@ -81,6 +90,205 @@ let currentMissionDestination = null;
 let carHeadlights = {};
 let headlightsEnabled = HEADLIGHT_AUTO_MODE;
 let currentTimeOfDay = 0.5;
+
+let carReactions = {};
+let honkAudio = "../assets/audio/honk.mp3";
+
+function initAudioSystem() {
+    try {
+        honkAudio = new Audio('assets/audio/honk.mp3');
+        honkAudio.preload = 'auto';
+        if (DEBUG_CAR_REACTIONS) console.log("Audio system initialized for car reactions");
+    } catch (error) {
+        console.warn("Could not load honk audio file:", error);
+    }
+}
+
+function playHonkSound() {
+    if (!honkAudio) return;
+    
+    try {
+        honkAudio.currentTime = 0;
+        honkAudio.play();
+        if (DEBUG_CAR_REACTIONS) console.log("Playing honk sound");
+    } catch (error) {
+        console.warn("Could not play honk sound:", error);
+    }
+}
+
+function playHonkSoundWithFadeIn() {
+    if (!honkAudio) return;
+
+    try {
+        honkAudio.currentTime = 0;
+        honkAudio.volume = 0.1;
+        honkAudio.play();
+
+        const fadeInDuration = 200;
+        const fadeInSteps = 20;
+        const volumeIncrement = 0.9 / fadeInSteps;
+        const stepDuration = fadeInDuration / fadeInSteps;
+
+        let currentStep = 0;
+        const fadeInInterval = setInterval(() => {
+            currentStep++;
+            honkAudio.volume = Math.min(1.0, 0.1 + (volumeIncrement * currentStep));
+            
+            if (currentStep >= fadeInSteps) {
+                clearInterval(fadeInInterval);
+            }
+        }, stepDuration);
+
+        if (DEBUG_CAR_REACTIONS) console.log("Playing honk sound with fade-in");
+    } catch (error) {
+        console.warn("Could not play honk sound:", error);
+    }
+}
+
+function isPassingInFront(activeCar, otherCar) {
+    const activePos = activeCar.position;
+    const otherPos = otherCar.position;
+
+    const distance = activePos.distanceTo(otherPos);
+    if (distance > CAR_REACTION_DISTANCE) return false;
+
+    const activeForward = new THREE.Vector3(0, 0, 1).applyQuaternion(activeCar.quaternion);
+    const otherForward = new THREE.Vector3(0, 0, 1).applyQuaternion(otherCar.quaternion);
+
+    const toActive = new THREE.Vector3().subVectors(activePos, otherPos).normalize();
+
+    const frontDot = otherForward.dot(toActive);
+    if (frontDot < Math.cos(CAR_REACTION_ANGLE_THRESHOLD)) return false;
+
+    const activeSpeed = Math.abs(carSpeed);
+    if (activeSpeed < 0.5) return false;
+
+    const activeVelocity = activeForward.clone().multiplyScalar(activeSpeed);
+    const crossProduct = activeVelocity.cross(toActive);
+    const isCrossing = crossProduct.length() > 0.1;
+    
+    return isCrossing;
+}
+
+function initCarReaction(carIndex) {
+    if (!carReactions[carIndex]) {
+        carReactions[carIndex] = {
+            lastReactionTime: 0,
+            isHonking: false,
+            honkStartTime: 0,
+            honkCount: 0,
+            currentHonkIndex: 0,
+            isFlashing: false,
+            flashStartTime: 0,
+            flashCount: 0,
+            originalLeftIntensity: 0,
+            originalRightIntensity: 0
+        };
+    }
+}
+
+function triggerCarReaction(carIndex, isDaytime) {
+    const currentTime = elapsedTime;
+    const reaction = carReactions[carIndex];
+
+    if (currentTime - reaction.lastReactionTime < CAR_REACTION_COOLDOWN) return;
+
+    reaction.lastReactionTime = currentTime;
+
+    if (isDaytime) {
+        reaction.isHonking = true;
+        reaction.honkStartTime = currentTime;
+        reaction.currentHonkIndex = 0;
+        reaction.honkCount = CAR_HONK_TIMES;
+
+        playHonkSoundWithFadeIn();
+        if (DEBUG_CAR_REACTIONS) console.log(`Car ${carIndex} starting honk sequence (${CAR_HONK_TIMES} honks, daytime reaction)`);
+    } else {
+        const headlightSet = carHeadlights[carIndex];
+        if (headlightSet) {
+            reaction.isFlashing = true;
+            reaction.flashStartTime = currentTime;
+            reaction.flashCount = 0;
+            reaction.originalLeftIntensity = headlightSet.left.intensity;
+            reaction.originalRightIntensity = headlightSet.right.intensity;
+            if (DEBUG_CAR_REACTIONS) console.log(`Car ${carIndex} flashing headlights (nighttime reaction)`);
+        }
+    }
+}
+
+function updateCarReactions(deltaTime) {
+    const currentTime = elapsedTime;
+
+    for (const carIndex in carReactions) {
+        const reaction = carReactions[carIndex];
+
+        if (reaction.isHonking) {
+            const honkElapsed = currentTime - reaction.honkStartTime;
+            const honkInterval = 0.4;
+
+            const expectedHonkTime = reaction.currentHonkIndex * honkInterval;
+            if (honkElapsed >= expectedHonkTime && reaction.currentHonkIndex < reaction.honkCount) {
+                if (reaction.currentHonkIndex > 0) {
+                    playHonkSoundWithFadeIn();
+                    if (DEBUG_CAR_REACTIONS) console.log(`Car ${carIndex} honk ${reaction.currentHonkIndex + 1}/${reaction.honkCount}`);
+                }
+                reaction.currentHonkIndex++;
+            }
+
+            if (reaction.currentHonkIndex >= reaction.honkCount && honkElapsed >= (reaction.honkCount * honkInterval)) {
+                reaction.isHonking = false;
+                if (DEBUG_CAR_REACTIONS) console.log(`Car ${carIndex} finished honking sequence`);
+            }
+        }
+
+        if (reaction.isFlashing) {
+            const flashElapsed = currentTime - reaction.flashStartTime;
+            const flashInterval = CAR_FLASH_DURATION / (CAR_FLASH_INTERVALS * 2); // On/off cycles
+            const headlightSet = carHeadlights[carIndex];
+            
+            if (headlightSet && flashElapsed < CAR_FLASH_DURATION) {
+                const cycleProgress = (flashElapsed % flashInterval) / flashInterval;
+                const shouldBeOn = cycleProgress < 0.5;
+
+                if (shouldBeOn) {
+                    headlightSet.left.intensity = HEADLIGHT_INTENSITY * 1.5; // Brighter during flash
+                    headlightSet.right.intensity = HEADLIGHT_INTENSITY * 1.5;
+                } else {
+                    headlightSet.left.intensity = 0;
+                    headlightSet.right.intensity = 0;
+                }
+            } else {
+                if (headlightSet) {
+                    headlightSet.left.intensity = reaction.originalLeftIntensity;
+                    headlightSet.right.intensity = reaction.originalRightIntensity;
+                }
+                reaction.isFlashing = false;
+                if (DEBUG_CAR_REACTIONS) console.log(`Car ${carIndex} finished flashing headlights`);
+            }
+        }
+    }
+}
+
+function checkCarReactions() {
+    const activeCar = loadedCarModels[missionIndex];
+    if (!activeCar || isRewinding) return;
+
+    const isDaytime = currentTimeOfDay > HEADLIGHT_TURN_OFF_TIME && currentTimeOfDay < HEADLIGHT_TURN_ON_TIME;
+
+    for (const key in loadedCarModels) {
+        const carIndex = parseInt(key);
+        if (carIndex === missionIndex) continue; // Skip active car
+
+        const otherCar = loadedCarModels[carIndex];
+        if (!otherCar || !otherCar.visible) continue;
+
+        initCarReaction(carIndex);
+
+        if (isPassingInFront(activeCar, otherCar)) {
+            triggerCarReaction(carIndex, isDaytime);
+        }
+    }
+}
 
 const recordedMovements = {};
 let currentRecording = [];
@@ -654,6 +862,8 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefiniti
         carAcceleration = updatedPhysicsState.acceleration;
         steeringAngle = updatedPhysicsState.steeringAngle;
 
+        checkCarReactions();
+
         currentRecording.push({
             time: elapsedTime,
             position: activeCar.position.clone(),
@@ -700,6 +910,8 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefiniti
             }
         }
     }
+
+    updateCarReactions(deltaTime);
 
     if (isFirstPersonMode) {
         const firstPersonOffset = new THREE.Vector3(0, FIRST_PERSON_HEIGHT_OFFSET, FIRST_PERSON_FORWARD_OFFSET);

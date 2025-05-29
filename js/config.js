@@ -30,9 +30,17 @@ export const GRASS_SPEED_SCALE = 0.5;
 export const TARGET_REWIND_DURATION = 2.0;
 export const REWIND_INTERPOLATION = 'ease-in-out';     // 'linear', 'ease', 'ease-in', 'ease-out', 'ease-in-out'
 
+export const CAR_REACTION_DISTANCE = 8.0;
+export const CAR_REACTION_ANGLE_THRESHOLD = Math.PI / 3;
+export const CAR_HONK_TIMES = 2;
+export const CAR_FLASH_DURATION = 1.0;
+export const CAR_FLASH_INTERVALS = 2;
+export const CAR_REACTION_COOLDOWN = 3.0;
+
 export const DEBUG_GENERAL = false;
 export const DEBUG_CAR_COORDS = false;
 export const DEBUG_COLLISIONS = false;
 export const DEBUG_MODEL_LOADING = false;
 export const DEBUG_MAP_LEVEL_LOGIC = false;
 export const DEBUG_REWIND = false;
+export const DEBUG_CAR_REACTIONS = false;
