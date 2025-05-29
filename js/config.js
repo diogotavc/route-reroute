@@ -51,6 +51,8 @@ export const COLLISION_SEPARATION_FACTOR = 1.1;
 export const EPSILON = 0.0001;
 export const HITBOX_SCALE_FACTOR = 0.8;
 
+export const AUTO_PAUSE_ON_FOCUS_LOST = true;
+
 export const CAMERA_FOLLOW_SPEED = 2.0;
 export const CAMERA_DISTANCE = 18;
 export const CAMERA_HEIGHT = 10;

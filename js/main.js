@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { DEBUG_GENERAL, DEBUG_MODEL_LOADING, DEBUG_MAP_LEVEL_LOGIC, DAY_CYCLE } from './config.js';
+import { DEBUG_GENERAL, DEBUG_MODEL_LOADING, DEBUG_MAP_LEVEL_LOGIC, DAY_CYCLE, AUTO_PAUSE_ON_FOCUS_LOST } from './config.js';
 
 import { setupLights, updateDayNightCycle } from './lights.js';
 import * as Achievements from './achievements.js';
@@ -383,7 +383,7 @@ window.addEventListener("keyup", (event) => {
 });
 
 window.addEventListener("blur", () => {
-    if (!isPaused) {
+    if (AUTO_PAUSE_ON_FOCUS_LOST && !isPaused) {
         togglePause();
         if (DEBUG_GENERAL) console.log('Game auto-paused due to tab losing focus');
     }
