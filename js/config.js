@@ -63,38 +63,51 @@ export const IDLE_CAMERA_DEBUG = false;
 
 export const IDLE_CAMERA_ANIMATIONS = [
     {
-        initialHeight: 2,
+        initialHeight: 1,
         initialXRotation: 0,
         initialYRotation: (Math.PI)/2,
-        initialPitch: 0,
-        finalHeight: 5,
+        initialDistance: 3,
+        initialFOV: 60,
+        initialPitch: 20,
+
+        finalHeight: 0.2,
         finalXRotation: 0,
         finalYRotation: (Math.PI)/2,
-        finalPitch: 50,
+        finalDistance: 10,
+        finalFOV: 80,
+        finalPitch: -5,
         duration: 8.0
     },
     {
-        // Side swooping shot - not yet
+        // Side swooping shot - wider view with zoom out
         initialHeight: 25,
         initialXRotation: -Math.PI / 6,
         initialYRotation: Math.PI / 2,
-        initialPitch: 0,
+        initialDistance: 30,
+        initialFOV: 35,
+        initialPitch: 15,
         finalHeight: 35,
         finalXRotation: -Math.PI / 3,
         finalYRotation: Math.PI,
-        finalPitch: 0,
+        finalDistance: 40,
+        finalFOV: 25,
+        finalPitch: -10,
         duration: 6.0
     },
     {
-        // Close dramatic angle - not yet
+        // Close dramatic angle - zoom in effect
         initialHeight: 15,
         initialXRotation: -Math.PI / 8,
         initialYRotation: Math.PI,
-        initialPitch: 0,
+        initialDistance: 15,
+        initialFOV: 40,
+        initialPitch: 8,
         finalHeight: 20,
         finalXRotation: -Math.PI / 5,
         finalYRotation: Math.PI * 1.5,
-        finalPitch: 0,
+        finalDistance: 18,
+        finalFOV: 20,
+        finalPitch: -12,
         duration: 10.0
     }
 ];

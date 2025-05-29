@@ -345,20 +345,24 @@ function updateActiveIdleCamera(deltaTime) {
             centerPoint.copy(activeCar.position);
         }
 
-        const startRadius = 20;
+        const distance = currentAnim.initialDistance || 20;
         const startPos = new THREE.Vector3(
-            centerPoint.x + Math.cos(currentAnim.initialYRotation) * startRadius,
+            centerPoint.x + Math.cos(currentAnim.initialYRotation) * distance,
             centerPoint.y + currentAnim.initialHeight,
-            centerPoint.z + Math.sin(currentAnim.initialYRotation) * startRadius
+            centerPoint.z + Math.sin(currentAnim.initialYRotation) * distance
         );
 
         camera.position.copy(startPos);
         controls.target.copy(centerPoint);
-        controls.target.y += Math.sin(currentAnim.initialXRotation) * 10;
 
         if (currentAnim.initialPitch !== undefined && currentAnim.initialPitch !== 0) {
             const pitchOffset = Math.sin(currentAnim.initialPitch * Math.PI / 180) * 15;
             controls.target.y += pitchOffset;
+        }
+
+        if (currentAnim.initialFOV !== undefined) {
+            camera.fov = currentAnim.initialFOV;
+            camera.updateProjectionMatrix();
         }
 
         camera.lookAt(controls.target);
@@ -385,24 +389,37 @@ function updateCameraAnimation(deltaTime) {
         centerPoint.copy(activeCar.position);
     }
 
-    const startRadius = 20;
-    const endRadius = 25;
-    
-    const startPos = new THREE.Vector3(
-        centerPoint.x + Math.cos(currentAnim.initialYRotation) * startRadius,
-        centerPoint.y + currentAnim.initialHeight,
-        centerPoint.z + Math.sin(currentAnim.initialYRotation) * startRadius
-    );
-    
-    const endPos = new THREE.Vector3(
-        centerPoint.x + Math.cos(currentAnim.finalYRotation) * endRadius,
-        centerPoint.y + currentAnim.finalHeight,
-        centerPoint.z + Math.sin(currentAnim.finalYRotation) * endRadius
+    const initialDistance = currentAnim.initialDistance || 20;
+    const finalDistance = currentAnim.finalDistance || initialDistance;
+    const currentDistance = initialDistance + (finalDistance - initialDistance) * easedProgress;
+
+    const currentHeight = currentAnim.initialHeight + (currentAnim.finalHeight - currentAnim.initialHeight) * easedProgress;
+
+    const currentYRotation = currentAnim.initialYRotation + (currentAnim.finalYRotation - currentAnim.initialYRotation) * easedProgress;
+
+    const currentPos = new THREE.Vector3(
+        centerPoint.x + Math.cos(currentYRotation) * currentDistance,
+        centerPoint.y + currentHeight,
+        centerPoint.z + Math.sin(currentYRotation) * currentDistance
     );
 
-    camera.position.lerpVectors(startPos, endPos, easedProgress);
+    camera.position.copy(currentPos);
+
+    const currentXRotation = currentAnim.initialXRotation + (currentAnim.finalXRotation - currentAnim.initialXRotation) * easedProgress;
     controls.target.copy(centerPoint);
-    controls.target.y += Math.sin(THREE.MathUtils.lerp(currentAnim.initialXRotation, currentAnim.finalXRotation, easedProgress)) * 10;
+    controls.target.y += Math.sin(currentXRotation) * currentDistance * 0.5;
+
+    if (currentAnim.initialPitch !== undefined && currentAnim.finalPitch !== undefined) {
+        const currentPitch = currentAnim.initialPitch + (currentAnim.finalPitch - currentAnim.initialPitch) * easedProgress;
+        const pitchOffset = Math.sin(currentPitch * Math.PI / 180) * 15;
+        controls.target.y += pitchOffset;
+    }
+
+    if (currentAnim.initialFOV !== undefined && currentAnim.finalFOV !== undefined) {
+        const currentFOV = currentAnim.initialFOV + (currentAnim.finalFOV - currentAnim.initialFOV) * easedProgress;
+        camera.fov = currentFOV;
+        camera.updateProjectionMatrix();
+    }
     
     camera.lookAt(controls.target);
     
@@ -423,6 +440,9 @@ function updateCameraReturn(deltaTime) {
         idleCameraState.phase = 'inactive';
         idleCameraState.fadeOpacity = 0;
         controls.enabled = idleCameraState.originalControlsEnabled;
+
+        camera.fov = 30;
+        camera.updateProjectionMatrix();
 
         if (IDLE_CAMERA_DEBUG) console.log('🎬 Camera return complete - idle camera deactivated');
     }
