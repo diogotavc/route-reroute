@@ -40,6 +40,24 @@ export const CAR_REACTION_COOLDOWN = 3.0;
 export const CAR_MAX_HEALTH = 100;
 export const CAR_COLLISION_DAMAGE = 50;
 
+export const MAX_SPEED = 15;
+export const ACCELERATION_RATE = 5;
+export const BRAKING_RATE = 10;
+export const STEERING_RATE = 1.5;
+export const FRICTION = 1;
+export const STEERING_FRICTION = 2;
+export const COLLISION_RESTITUTION = 0.4;
+export const COLLISION_SEPARATION_FACTOR = 1.1;
+export const EPSILON = 0.0001;
+export const HITBOX_SCALE_FACTOR = 0.8;
+
+export const CAMERA_FOLLOW_SPEED = 2.0;
+export const CAMERA_DISTANCE = 18;
+export const CAMERA_HEIGHT = 10;
+export const LOOK_AT_Y_OFFSET = 3.5;
+export const FIRST_PERSON_HEIGHT_OFFSET = 1.2;
+export const FIRST_PERSON_FORWARD_OFFSET = 0.3;
+
 export const DEBUG_GENERAL = false;
 export const DEBUG_CAR_COORDS = false;
 export const DEBUG_COLLISIONS = false;

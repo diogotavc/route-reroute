@@ -4,20 +4,19 @@ import {
     DEBUG_COLLISIONS, 
     DEBUG_MODEL_LOADING,
     GRASS_SPEED_SCALE,
-    GRASS_HEIGHT
+    GRASS_HEIGHT,
+    MAX_SPEED,
+    ACCELERATION_RATE,
+    BRAKING_RATE,
+    STEERING_RATE,
+    FRICTION,
+    STEERING_FRICTION,
+    COLLISION_RESTITUTION,
+    COLLISION_SEPARATION_FACTOR,
+    EPSILON,
+    HITBOX_SCALE_FACTOR
 } from './config.js';
 import { isOnGrass, getGridCoordinates } from './mapLoader.js';
-
-export const MAX_SPEED = 15;
-export const ACCELERATION_RATE = 5;
-export const BRAKING_RATE = 10;
-export const STEERING_RATE = 1.5;
-export const FRICTION = 1;
-export const STEERING_FRICTION = 2;
-const COLLISION_RESTITUTION = 0.4;
-const COLLISION_SEPARATION_FACTOR = 1.1;
-const EPSILON = 0.0001; 
-const HITBOX_SCALE_FACTOR = 0.8; 
 
 let collisionNormal = new THREE.Vector3();
 let separationVector = new THREE.Vector3();
@@ -204,13 +203,11 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
             penetrationDepth = collisionResult.mtvDepth;
             collisionNormal.copy(collisionResult.mtvAxis);
             if (DEBUG_COLLISIONS) console.log("Collision with another car detected!");
-            
-            // Calculate collision angle for achievements
+
             const activeForward = new THREE.Vector3(0, 0, 1).applyQuaternion(activeCar.quaternion);
             const otherForward = new THREE.Vector3(0, 0, 1).applyQuaternion(otherCar.quaternion);
             const collisionAngle = Math.acos(Math.abs(activeForward.dot(otherForward))) * (180 / Math.PI);
-            
-            // Trigger car collision achievement
+
             Achievements.onCarCollision({ 
                 angle: collisionAngle,
                 speed: speed,
@@ -235,8 +232,7 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
                 penetrationDepth = collisionResult.mtvDepth;
                 collisionNormal.copy(collisionResult.mtvAxis);
                 if (DEBUG_COLLISIONS) console.log("Collision with map tile detected! Tile:", tile.name || tile.uuid);
-                
-                // Trigger building collision achievement
+
                 Achievements.onBuildingCollision({
                     speed: speed,
                     tileName: tile.name || tile.uuid,

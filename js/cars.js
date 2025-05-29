@@ -27,7 +27,13 @@ import {
     CAR_FLASH_INTERVALS,
     CAR_REACTION_COOLDOWN,
     CAR_MAX_HEALTH,
-    CAR_COLLISION_DAMAGE
+    CAR_COLLISION_DAMAGE,
+    CAMERA_FOLLOW_SPEED,
+    CAMERA_DISTANCE,
+    CAMERA_HEIGHT,
+    LOOK_AT_Y_OFFSET,
+    FIRST_PERSON_HEIGHT_OFFSET,
+    FIRST_PERSON_FORWARD_OFFSET
 } from './config.js';
 
 let debug_coordinateLogInterval = 1.0;
@@ -346,14 +352,6 @@ let isTurningRight = false;
 let isRewinding = false;
 let rewindSpeedFactor;
 let elapsedTime = 0;
-
-const CAMERA_FOLLOW_SPEED = 2.0;
-const CAMERA_DISTANCE = 18;
-const CAMERA_HEIGHT = 10;
-const LOOK_AT_Y_OFFSET = 3.5;
-
-const FIRST_PERSON_HEIGHT_OFFSET = 1.2;
-const FIRST_PERSON_FORWARD_OFFSET = 0.3;
 
 let isFirstPersonMode = false;
 
