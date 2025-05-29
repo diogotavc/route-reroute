@@ -42,7 +42,7 @@ export const mapData = {
     startPoints: {
         'start1': { x: 1.84, z: 0, carRotationY: 0 },
         'finish1': { x: 2.15, z: 7, carRotationY: 90 },
-        'start_fireStation': { x: 0, z: 2, carRotationY: 180, yOffset: 0 },
+        'start_fireStation': { x: 0, z: 2, carRotationY: 90, yOffset: 0 },
         'finish_apartment': { x: 2, z: 0, carRotationY: 0, yOffset: 0 }
     }
 };
