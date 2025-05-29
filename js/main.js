@@ -34,7 +34,8 @@ import {
     updateCarPhysics,
     isRewinding,
     toggleCameraMode,
-    getActiveCar
+    getActiveCar,
+    isInFirstPersonMode
 } from './cars.js';
 import { loadMap, getWorldCoordinates } from './mapLoader.js';
 import { mapData as level1MapData } from './maps/level1_map.js';
@@ -270,7 +271,8 @@ let idleCameraState = {
     animationTimer: 0,
     currentAnimationIndex: 0,
     fadeOpacity: 0,
-    originalControlsEnabled: true
+    originalControlsEnabled: true,
+    originalCarVisibility: true // Track original car visibility state for first-person mode
 };
 
 function togglePause() {
@@ -289,6 +291,16 @@ function togglePause() {
 function startIdleCameraAnimation() {
     if (!IDLE_CAMERA_ENABLED || isIdleCameraActive) return;
 
+    const activeCar = getActiveCar();
+    if (!activeCar) return;
+
+    idleCameraState.originalCarVisibility = activeCar.visible;
+
+    if (isInFirstPersonMode()) {
+        activeCar.visible = true;
+        if (IDLE_CAMERA_DEBUG) console.log('🎬 Car made visible for idle camera (was hidden in first-person mode)');
+    }
+
     isIdleCameraActive = true;
     idleCameraState.phase = 'active';
     idleCameraState.timer = 0;
@@ -305,6 +317,12 @@ function startIdleCameraAnimation() {
 
 function stopIdleCameraAnimation() {
     if (!isIdleCameraActive) return;
+
+    const activeCar = getActiveCar();
+    if (activeCar) {
+        activeCar.visible = idleCameraState.originalCarVisibility;
+        if (IDLE_CAMERA_DEBUG) console.log(`🎬 Car visibility restored to: ${activeCar.visible}`);
+    }
 
     isIdleCameraActive = false;
     idleCameraState.phase = 'inactive';
