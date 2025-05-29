@@ -71,8 +71,6 @@ let achievementsState = {
 };
 
 let notificationQueue = [];
-let lastNotificationTime = 0;
-const NOTIFICATION_COOLDOWN = 2000;
 
 export function initAchievements() {
     loadAchievementsFromStorage();
@@ -132,9 +130,7 @@ function queueNotification(achievement, context) {
 }
 
 export function getNextNotification() {
-    const now = Date.now();
-    if (notificationQueue.length > 0 && (now - lastNotificationTime) >= NOTIFICATION_COOLDOWN) {
-        lastNotificationTime = now;
+    if (notificationQueue.length > 0) {
         return notificationQueue.shift();
     }
     return null;

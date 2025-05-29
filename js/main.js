@@ -67,33 +67,27 @@ style.textContent = `
         10%, 90% { transform: translateX(0); opacity: 1; }
         100% { transform: translateX(100%); opacity: 0; }
     }
+    @keyframes achievementPushDown {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(calc(100% + 10px)); }
+    }
 `;
 document.head.appendChild(style);
 document.body.appendChild(rewindOverlay);
 
-// Achievement notification system
-const achievementNotification = document.createElement('div');
-achievementNotification.id = 'achievement-notification';
-achievementNotification.style.cssText = `
+const achievementNotificationContainer = document.createElement('div');
+achievementNotificationContainer.id = 'achievement-notification-container';
+achievementNotificationContainer.style.cssText = `
     position: fixed;
     top: 20px;
     right: 20px;
-    background: linear-gradient(135deg, #4CAF50, #45a049);
-    color: white;
-    padding: 15px 20px;
-    border-radius: 10px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 16px;
-    font-weight: bold;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     z-index: 1001;
-    display: none;
     pointer-events: none;
-    min-width: 250px;
-    max-width: 350px;
-    border: 2px solid #FFD700;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 `;
-document.body.appendChild(achievementNotification);
+document.body.appendChild(achievementNotificationContainer);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
@@ -203,11 +197,32 @@ function loadCarModelsAndSetupLevel() {
 
 const clock = new THREE.Clock();
 
-// Achievement notification display function
+let notificationIdCounter = 0;
+
 function showAchievementNotification(notification) {
-    const element = document.getElementById('achievement-notification');
+    const container = document.getElementById('achievement-notification-container');
+
+    const notificationElement = document.createElement('div');
+    const notificationId = `achievement-notification-${++notificationIdCounter}`;
+    notificationElement.id = notificationId;
+    notificationElement.style.cssText = `
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 16px;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        min-width: 250px;
+        max-width: 350px;
+        border: 2px solid #FFD700;
+        transform: translateX(100%);
+        opacity: 0;
+        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    `;
     
-    element.innerHTML = `
+    notificationElement.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px;">
             <span style="font-size: 24px;">${notification.icon}</span>
             <div>
@@ -218,13 +233,24 @@ function showAchievementNotification(notification) {
         </div>
     `;
     
-    element.style.display = 'block';
-    element.style.animation = 'achievementSlide 4s ease-in-out forwards';
-    
-    // Hide after animation
+    container.insertBefore(notificationElement, container.firstChild);
+
     setTimeout(() => {
-        element.style.display = 'none';
-        element.style.animation = '';
+        notificationElement.style.transform = 'translateX(0)';
+        notificationElement.style.opacity = '1';
+    }, 10);
+
+    setTimeout(() => {
+        if (notificationElement.parentNode) {
+            notificationElement.style.transform = 'translateX(100%)';
+            notificationElement.style.opacity = '0';
+
+            setTimeout(() => {
+                if (notificationElement.parentNode) {
+                    notificationElement.remove();
+                }
+            }, 300);
+        }
     }, 4000);
 }
 
@@ -238,10 +264,9 @@ function animate() {
     if (currentLevelData) {
         updateCarPhysics(deltaTime, collidableMapElements, currentMapDefinition);
     }
-    
+
     rewindOverlay.style.display = isRewinding ? 'block' : 'none';
-    
-    // Handle achievement notifications
+
     const notification = Achievements.getNextNotification();
     if (notification) {
         showAchievementNotification(notification);
@@ -275,7 +300,7 @@ window.addEventListener("keydown", (event) => {
         case "ArrowRight": case "d": setTurningRight(true); break;
         case "r": setRewinding(); break;
         case "c": toggleCameraMode(); break;
-        // Debug achievement testing shortcuts (DEV ONLY)
+
         case "1": Achievements.debug_triggerFirstCrash(); break;
         case "2": Achievements.debug_triggerHealthDepletion(); break;
         case "3": Achievements.debug_triggerTBone(); break;
