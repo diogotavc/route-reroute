@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { DEBUG_GENERAL, DEBUG_MODEL_LOADING, DEBUG_MAP_LEVEL_LOGIC, DAY_CYCLE, AUTO_PAUSE_ON_FOCUS_LOST, IDLE_CAMERA_ENABLED, IDLE_CAMERA_TRIGGER_TIME, IDLE_CAMERA_FADE_OUT_DURATION, IDLE_CAMERA_FADE_IN_DURATION, IDLE_CAMERA_ROTATION_DURATION, IDLE_CAMERA_CLOSE_DISTANCE, IDLE_CAMERA_LOW_HEIGHT, IDLE_CAMERA_TIME_SLOWDOWN, IDLE_CAMERA_AUTO_PAUSE, CAMERA_FOLLOW_SPEED, CAMERA_DISTANCE, CAMERA_HEIGHT, LOOK_AT_Y_OFFSET } from './config.js';
+import { DEBUG_GENERAL, DEBUG_MODEL_LOADING, DEBUG_MAP_LEVEL_LOGIC, DAY_CYCLE, AUTO_PAUSE_ON_FOCUS_LOST, IDLE_CAMERA_ENABLED, IDLE_CAMERA_TRIGGER_TIME, CAMERA_FOLLOW_SPEED, CAMERA_DISTANCE, CAMERA_HEIGHT, LOOK_AT_Y_OFFSET } from './config.js';
 
 import { setupLights, updateDayNightCycle } from './lights.js';
 import * as Achievements from './achievements.js';
@@ -99,22 +99,6 @@ pauseOverlay.style.cssText = `
     border: 2px solid rgba(255, 255, 255, 0.5);
 `;
 document.body.appendChild(pauseOverlay);
-
-const fadeOverlay = document.createElement('div');
-fadeOverlay.id = 'fade-overlay';
-fadeOverlay.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: black;
-    z-index: 1500;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.1s ease-in-out;
-`;
-document.body.appendChild(fadeOverlay);
 
 const achievementNotificationContainer = document.createElement('div');
 achievementNotificationContainer.id = 'achievement-notification-container';
@@ -245,14 +229,6 @@ const clock = new THREE.Clock();
 let isPaused = false;
 
 let isIdleCameraActive = false;
-let idleCameraPhase = 'inactive'; // 'fadeOut', 'snapToFront', 'fadeIn', 'rotating', 'complete'
-let idleCameraStartTime = 0;
-let idleCameraPhaseStartTime = 0;
-let idleCameraRotationAngle = 0; // Start at 180 degrees (front view)
-let originalCameraPosition = new THREE.Vector3();
-let originalCameraTarget = new THREE.Vector3();
-let originalControlsEnabled = null;
-let originalDayCycleSpeed = null;
 
 function togglePause() {
     isPaused = !isPaused;
@@ -270,169 +246,24 @@ function togglePause() {
 function startIdleCameraAnimation() {
     if (!IDLE_CAMERA_ENABLED || isIdleCameraActive) return;
 
-    const activeCar = getActiveCar();
-    if (!activeCar) return;
-
-    originalCameraPosition.copy(camera.position);
-    originalCameraTarget.copy(controls.target);
-    originalControlsEnabled = {
-        enablePan: controls.enablePan,
-        enableRotate: controls.enableRotate,
-        enableZoom: controls.enableZoom
-    };
-
-    originalDayCycleSpeed = DAY_CYCLE.SPEED;
-    DAY_CYCLE.SPEED = originalDayCycleSpeed * IDLE_CAMERA_TIME_SLOWDOWN;
-
-    controls.enablePan = false;
-    controls.enableRotate = false;
-    controls.enableZoom = false;
-    
     isIdleCameraActive = true;
-    idleCameraPhase = 'fadeOut';
-    idleCameraStartTime = Date.now();
-    idleCameraPhaseStartTime = Date.now();
-    idleCameraRotationAngle = -Math.PI / 2; // Start at -90 degrees (left side view)
-    
+
     Achievements.onIdleCameraTriggered();
 
-    if (DEBUG_GENERAL) console.log('🎬 Starting idle camera showcase - Phase: Fade Out');
+    if (DEBUG_GENERAL) console.log('🎬 Idle camera triggered - implement your animation here');
 }
 
 function stopIdleCameraAnimation() {
     if (!isIdleCameraActive) return;
 
-    camera.position.copy(originalCameraPosition);
-    controls.target.copy(originalCameraTarget);
-    
-    if (originalControlsEnabled) {
-        controls.enablePan = originalControlsEnabled.enablePan;
-        controls.enableRotate = originalControlsEnabled.enableRotate;
-        controls.enableZoom = originalControlsEnabled.enableZoom;
-    }
-
-    if (originalDayCycleSpeed !== null) {
-        DAY_CYCLE.SPEED = originalDayCycleSpeed;
-        originalDayCycleSpeed = null;
-    }
-
-    fadeOverlay.style.opacity = '0';
-    
     isIdleCameraActive = false;
-    idleCameraPhase = 'inactive';
     
-    if (DEBUG_GENERAL) console.log('🎬 Stopped idle camera showcase animation');
+    if (DEBUG_GENERAL) console.log('🎬 Idle camera stopped');
 }
 
 function updateIdleCameraAnimation(deltaTime) {
     if (!isIdleCameraActive || !IDLE_CAMERA_ENABLED) return;
-    
-    const activeCar = getActiveCar();
-    if (!activeCar) {
-        stopIdleCameraAnimation();
-        return;
-    }
-    
-    const totalElapsed = (Date.now() - idleCameraStartTime) / 1000;
-    const phaseElapsed = (Date.now() - idleCameraPhaseStartTime) / 1000;
-    
-    switch (idleCameraPhase) {
-        case 'fadeOut':
-            const fadeOutProgress = Math.min(phaseElapsed / IDLE_CAMERA_FADE_OUT_DURATION, 1);
-            fadeOverlay.style.opacity = fadeOutProgress.toString();
 
-            if (fadeOutProgress >= 1) {
-                idleCameraPhase = 'snapToFront';
-                idleCameraPhaseStartTime = Date.now();
-                if (DEBUG_GENERAL) console.log('🎬 Phase: Snap to Left Side');
-            }
-            break;
-            
-        case 'snapToFront':
-            const carPosition = activeCar.position;
-            const carRotation = activeCar.rotation.y;
-
-            const leftAngle = carRotation - Math.PI / 2;
-            const leftX = carPosition.x + Math.cos(leftAngle) * IDLE_CAMERA_CLOSE_DISTANCE;
-            const leftZ = carPosition.z + Math.sin(leftAngle) * IDLE_CAMERA_CLOSE_DISTANCE;
-            const leftY = carPosition.y + IDLE_CAMERA_LOW_HEIGHT;
-
-            camera.position.set(leftX, leftY, leftZ);
-
-            const lookAtPoint = carPosition.clone();
-            lookAtPoint.y += 1;
-            controls.target.copy(lookAtPoint);
-            camera.lookAt(controls.target);
-
-            idleCameraRotationAngle = -Math.PI / 2;
-
-            idleCameraPhase = 'fadeIn';
-            idleCameraPhaseStartTime = Date.now();
-            if (DEBUG_GENERAL) console.log('🎬 Phase: Fade In');
-            break;
-            
-        case 'fadeIn':
-            const fadeInProgress = Math.min(phaseElapsed / IDLE_CAMERA_FADE_IN_DURATION, 1);
-            fadeOverlay.style.opacity = (1 - fadeInProgress).toString();
-
-            if (fadeInProgress >= 1) {
-                idleCameraPhase = 'rotating';
-                idleCameraPhaseStartTime = Date.now();
-                if (DEBUG_GENERAL) console.log('🎬 Phase: Rotating Around Car');
-            }
-            break;
-            
-        case 'rotating':
-            const rotationProgress = Math.min(phaseElapsed / IDLE_CAMERA_ROTATION_DURATION, 1);
-
-            const easedProgress = 1 - Math.pow(1 - rotationProgress, 3); // ease-out cubic
-            
-            const carPos = activeCar.position;
-            const carRot = activeCar.rotation.y;
-
-            const totalRotation = Math.PI;
-            const currentAngle = Math.PI / 2  + (easedProgress * totalRotation);
-
-            const startDistance = IDLE_CAMERA_CLOSE_DISTANCE;
-            const endDistance = CAMERA_DISTANCE;
-            const startHeight = IDLE_CAMERA_LOW_HEIGHT;
-            const endHeight = CAMERA_HEIGHT;
-
-            let heightProgress = rotationProgress;
-            if (rotationProgress > 0.5) {
-                heightProgress = 0.5 + (rotationProgress - 0.5) * 1.5;
-            }
-            heightProgress = Math.min(heightProgress, 1);
-
-            const currentDistance = THREE.MathUtils.lerp(startDistance, endDistance, easedProgress);
-            const currentHeight = THREE.MathUtils.lerp(startHeight, endHeight, heightProgress);
-
-            const cameraAngle = carRot + currentAngle;
-            const cameraX = carPos.x + Math.cos(cameraAngle) * currentDistance;
-            const cameraZ = carPos.z + Math.sin(cameraAngle) * currentDistance;
-            const cameraY = carPos.y + currentHeight;
-            
-            camera.position.set(cameraX, cameraY, cameraZ);
-
-            const lookTarget = carPos.clone();
-            lookTarget.y += THREE.MathUtils.lerp(1, LOOK_AT_Y_OFFSET, heightProgress);
-            controls.target.copy(lookTarget);
-            camera.lookAt(controls.target);
-
-            if (rotationProgress >= 1) {
-                idleCameraPhase = 'complete';
-                idleCameraPhaseStartTime = Date.now();
-                if (DEBUG_GENERAL) console.log('🎬 Phase: Complete');
-
-                if (IDLE_CAMERA_AUTO_PAUSE && !isPaused) {
-                    togglePause();
-                    if (DEBUG_GENERAL) console.log('🎬 Auto-paused after idle camera showcase completed');
-                }
-
-                stopIdleCameraAnimation();
-            }
-            break;
-    }
 }
 
 function checkIdleTimeout() {
