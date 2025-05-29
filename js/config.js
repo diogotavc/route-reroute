@@ -18,7 +18,7 @@ export const DAY_CYCLE = {
     DUSK_START: 0.70,
     DUSK_END: 0.85,
     NOON: 0.5,
-    SPEED: 0.05
+    SPEED: 1
 };
 
 export const TILE_SIZE = 6;
@@ -52,6 +52,16 @@ export const EPSILON = 0.0001;
 export const HITBOX_SCALE_FACTOR = 0.8;
 
 export const AUTO_PAUSE_ON_FOCUS_LOST = true;
+
+export const IDLE_CAMERA_ENABLED = true;
+export const IDLE_CAMERA_TRIGGER_TIME = 1;
+export const IDLE_CAMERA_FADE_OUT_DURATION = 0;
+export const IDLE_CAMERA_FADE_IN_DURATION = 0;
+export const IDLE_CAMERA_ROTATION_DURATION = 20;
+export const IDLE_CAMERA_CLOSE_DISTANCE = 8;
+export const IDLE_CAMERA_LOW_HEIGHT = 0;
+export const IDLE_CAMERA_TIME_SLOWDOWN = 0.3;
+export const IDLE_CAMERA_AUTO_PAUSE = false;
 
 export const CAMERA_FOLLOW_SPEED = 2.0;
 export const CAMERA_DISTANCE = 18;

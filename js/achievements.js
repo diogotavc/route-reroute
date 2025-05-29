@@ -96,12 +96,12 @@ const ACHIEVEMENT_DEFINITIONS = {
         counter: true,
         target: 250
     },
-    AFK_DRIVER: {
-        id: 'afk_driver',
-        name: 'Away from Keyboard',
-        description: 'Stay idle without input for 30 seconds',
-        type: 'idle',
-        icon: '😴'
+    SHOWCASE_MODE: {
+        id: 'showcase_mode',
+        name: 'Director\'s Cut',
+        description: 'Trigger idle camera showcase for the first time',
+        type: 'camera',
+        icon: '🎬'
     },
     SEVEN_DAYS_NIGHTS: {
         id: 'seven_days_nights',
@@ -130,7 +130,6 @@ let achievementsState = {
         },
         reverseDistance: 0,
         lastInputTime: 0,
-        idleStartTime: 0,
         dayNightTracking: {
             lastTime: 0,
             initialTime: 0,
@@ -282,24 +281,19 @@ export function trackReverseDistance(distance) {
     });
 }
 
-export function updateIdleTracking() {
-    const now = Date.now();
-    
-    if (achievementsState.session.lastInputTime === 0) {
-        achievementsState.session.lastInputTime = now;
-        achievementsState.session.idleStartTime = now;
-        return;
-    }
-    
-    const timeSinceLastInput = (now - achievementsState.session.lastInputTime) / 1000;
-    
-    if (timeSinceLastInput >= 30) {
-        unlockAchievement('AFK_DRIVER', { idleDuration: timeSinceLastInput });
-    }
-}
-
 export function onInputDetected() {
     achievementsState.session.lastInputTime = Date.now();
+}
+
+export function onIdleCameraTriggered() {
+    unlockAchievement('SHOWCASE_MODE', { 
+        timestamp: Date.now(),
+        firstTime: !achievementsState.unlocked.has('SHOWCASE_MODE')
+    });
+}
+
+export function getLastInputTime() {
+    return achievementsState.session.lastInputTime;
 }
 
 export function initDayNightTracking(initialTimeOfDay) {
@@ -497,10 +491,9 @@ export function debug_triggerReverseDriver() {
     trackReverseDistance(105);
 }
 
-export function debug_triggerAFKDriver() {
-    if (DEBUG_GENERAL) console.log('DEBUG: Triggering AFK driver achievement');
-    achievementsState.session.lastInputTime = Date.now() - 35000;
-    updateIdleTracking();
+export function debug_triggerShowcaseMode() {
+    if (DEBUG_GENERAL) console.log('DEBUG: Triggering showcase mode achievement');
+    onIdleCameraTriggered();
 }
 
 export function debug_triggerSevenDaysNights() {
