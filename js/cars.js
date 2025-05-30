@@ -21,7 +21,11 @@ import {
     CAR_FLASH_INTERVALS,
     CAR_REACTION_COOLDOWN,
     CAR_MAX_HEALTH,
-    CAR_COLLISION_DAMAGE,
+    CAR_DAMAGE_BASE,
+    CAR_DAMAGE_SPEED_MULTIPLIER,
+    CAR_DAMAGE_MAX,
+    CAR_DAMAGE_DEBUG_LOGGING,
+    CAR_DAMAGE_COOLDOWN,
     CAMERA_FOLLOW_SPEED,
     CAMERA_DISTANCE,
     CAMERA_HEIGHT,
@@ -102,17 +106,57 @@ let honkAudio = null;
 let audioInitialized = false;
 
 let carHealth = CAR_MAX_HEALTH;
+let lastDamageTime = 0;
 
-function updateCarHealth(deltaTime, collisionDetected) {
-    if (collisionDetected) {
+function updateCarHealth(deltaTime, collisionData) {
+    if (collisionData.collisionDetected) {
+        const currentTime = elapsedTime;
+
+        if (currentTime - lastDamageTime < CAR_DAMAGE_COOLDOWN) {
+            if (CAR_DAMAGE_DEBUG_LOGGING) {
+                console.log(`Damage on cooldown. Time since last damage: ${(currentTime - lastDamageTime).toFixed(2)}s`);
+            }
+            return;
+        }
+
         const oldHealth = carHealth;
-        carHealth -= CAR_COLLISION_DAMAGE;
+
+        let damage;
+        if (collisionData.collisionType === 'building') {
+            damage = CAR_DAMAGE_BASE + (collisionData.collisionSpeed * CAR_DAMAGE_SPEED_MULTIPLIER * 1.5);
+        } else {
+            damage = CAR_DAMAGE_BASE + (collisionData.collisionSpeed * CAR_DAMAGE_SPEED_MULTIPLIER);
+        }
+
+        damage = Math.min(damage, CAR_DAMAGE_MAX);
+
+        carHealth -= damage;
         carHealth = Math.max(0, carHealth);
+        lastDamageTime = currentTime;
+
+        if (CAR_DAMAGE_DEBUG_LOGGING) {
+            console.log(`COLLISION DAMAGE:
+Speed: ${collisionData.collisionSpeed.toFixed(2)} units/s
+Type: ${collisionData.collisionType}
+Damage: ${damage.toFixed(1)}
+Health: ${carHealth}/${CAR_MAX_HEALTH} (${((carHealth/CAR_MAX_HEALTH)*100).toFixed(1)}%)
+Time: ${currentTime.toFixed(2)}s`);
+        }
 
         if (carHealth <= 0) {
-            Achievements.onHealthDepleted({ oldHealth, newHealth: carHealth, damage: CAR_COLLISION_DAMAGE });
+            if (CAR_DAMAGE_DEBUG_LOGGING) {
+                console.log(`HEALTH DEPLETED! Triggering rewind...`);
+            }
+            Achievements.onHealthDepleted({ 
+                oldHealth, 
+                newHealth: carHealth, 
+                damage: damage,
+                collisionSpeed: collisionData.collisionSpeed,
+                collisionType: collisionData.collisionType
+            });
             setRewinding();
             carHealth = CAR_MAX_HEALTH;
+            lastDamageTime = 0;
             return;
         }
     }
@@ -120,6 +164,10 @@ function updateCarHealth(deltaTime, collisionDetected) {
 
 function resetCarHealth() {
     carHealth = CAR_MAX_HEALTH;
+    lastDamageTime = 0;
+    if (CAR_DAMAGE_DEBUG_LOGGING) {
+        console.log(`Health reset to ${CAR_MAX_HEALTH}. Damage cooldown cleared.`);
+    }
 }
 
 export function getCarHealth() {
@@ -837,7 +885,7 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefiniti
         carAcceleration = updatedPhysicsState.acceleration;
         steeringAngle = updatedPhysicsState.steeringAngle;
 
-        updateCarHealth(deltaTime, updatedPhysicsState.collisionDetected);
+        updateCarHealth(deltaTime, updatedPhysicsState);
 
         checkCarReactions();
 

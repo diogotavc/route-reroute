@@ -308,6 +308,8 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
         speed: speed,
         acceleration: acceleration,
         steeringAngle: steeringAngle,
-        collisionDetected: collisionDetectedThisFrame
+        collisionDetected: collisionDetectedThisFrame,
+        collisionSpeed: collisionDetectedThisFrame ? Math.abs(speed) : 0,
+        collisionType: collisionDetectedThisFrame ? (isStaticCollision ? 'building' : 'car') : null
     };
 }

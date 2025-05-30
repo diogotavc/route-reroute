@@ -37,8 +37,15 @@ export const CAR_FLASH_DURATION = 1.0;
 export const CAR_FLASH_INTERVALS = 2;
 export const CAR_REACTION_COOLDOWN = 3.0;
 
+
+// Formula: damage = CAR_DAMAGE_BASE + (collisionSpeed * CAR_DAMAGE_SPEED_MULTIPLIER)
+// Building collisions get 1.5x multiplier, then clamped to CAR_DAMAGE_MAX
 export const CAR_MAX_HEALTH = 100;
-export const CAR_COLLISION_DAMAGE = 50;
+export const CAR_DAMAGE_BASE = 20;
+export const CAR_DAMAGE_SPEED_MULTIPLIER = 3; // How much extra damage per unit of speed
+export const CAR_DAMAGE_MAX = 80;
+export const CAR_DAMAGE_COOLDOWN = 0.2;
+export const CAR_DAMAGE_DEBUG_LOGGING = true;
 
 export const MAX_SPEED = 15;
 export const ACCELERATION_RATE = 5;
