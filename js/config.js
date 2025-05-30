@@ -92,7 +92,8 @@ export const MUSIC_UI_SHOW_DURATION = 4.0;
 
 export const MUSIC_VOLUME_GAMEPLAY = 0.3;
 export const MUSIC_VOLUME_IDLE = 1.0;
-export const MUSIC_VOLUME_TRANSITION_DURATION = 0.5;
+export const MUSIC_VOLUME_TRANSITION_ENTER_IDLE = 3;
+export const MUSIC_VOLUME_TRANSITION_EXIT_IDLE = 0.5;
 
 export const IDLE_CAMERA_ANIMATIONS = [
     {

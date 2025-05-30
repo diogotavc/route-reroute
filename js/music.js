@@ -6,7 +6,8 @@ import {
     MUSIC_UI_SHOW_DURATION,
     MUSIC_VOLUME_GAMEPLAY,
     MUSIC_VOLUME_IDLE,
-    MUSIC_VOLUME_TRANSITION_DURATION
+    MUSIC_VOLUME_TRANSITION_ENTER_IDLE,
+    MUSIC_VOLUME_TRANSITION_EXIT_IDLE
 } from './config.js';
 
 let audioContext = null;
@@ -304,7 +305,7 @@ export function setIdleMode(enabled) {
 
     const startVolume = gainNode.gain.value;
     const startTime = audioContext.currentTime;
-    const duration = MUSIC_VOLUME_TRANSITION_DURATION;
+    const duration = enabled ? MUSIC_VOLUME_TRANSITION_ENTER_IDLE : MUSIC_VOLUME_TRANSITION_EXIT_IDLE;
 
     gainNode.gain.setValueAtTime(startVolume, startTime);
     gainNode.gain.linearRampToValueAtTime(targetVolume, startTime + duration);
