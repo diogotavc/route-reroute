@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import * as Achievements from './achievements.js';
 import { getActiveCar, getCarSpeed, isRewinding } from './cars.js';
 import { storeOriginalLightIntensities, setLightIntensities, restoreOriginalLightIntensities } from './lights.js';
+import { setIdleMode as setMusicIdleMode } from './music.js';
 import {
     IDLE_CAMERA_ENABLED,
     IDLE_CAMERA_TRIGGER_TIME,
@@ -144,6 +145,7 @@ export function startIdleCameraAnimation() {
     Achievements.onIdleCameraTriggered();
 
     storeOriginalLightIntensities();
+    setMusicIdleMode(true);
 
     createIdleFirefly();
     fireflyOrbitTime = 0;
@@ -168,6 +170,7 @@ export function stopIdleCameraAnimation() {
     idleFadeOverlay.style.opacity = '0';
 
     restoreOriginalLightIntensities();
+    setMusicIdleMode(false);
 
     if (idleFirefly) {
         scene.remove(idleFirefly.group);

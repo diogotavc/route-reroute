@@ -1,6 +1,8 @@
 - [ ] Menus
 - [ ] HUD
-- [ ] Music & SFX
+- [ ] Music
+- [ ] SFX
+- [ ] Selectable OST (lists files in the designated folder, and let's you toggle it)
 - [ ] Mouse interactions _(sort of quick time event, or steering control by clicking the map)_
 - [ ] fix t-bone achievement
 - [ ] make wrecked and ruined more than 1 crash (maybe crash 10 times)

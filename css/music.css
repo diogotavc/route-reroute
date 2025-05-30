@@ -1,0 +1,139 @@
+#music-ui {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 10px;
+    padding: 15px;
+    min-width: 280px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s ease;
+    pointer-events: none;
+}
+
+#music-ui.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+}
+
+.music-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.music-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #ffdd44;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 250px;
+}
+
+.music-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.music-controls button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    min-width: 32px;
+}
+
+.music-controls button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+}
+
+.music-controls button:active {
+    transform: translateY(0);
+}
+
+.music-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ffdd44, #ff6b6b);
+    width: 0%;
+    transition: width 0.1s ease;
+    border-radius: 2px;
+}
+
+.music-time {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+#music-ui.idle-mode {
+    background: rgba(0, 0, 50, 0.9);
+    border-color: rgba(100, 150, 255, 0.3);
+    animation: idlePulse 3s ease-in-out infinite;
+}
+
+#music-ui.idle-mode .music-title {
+    color: #88ddff;
+}
+
+#music-ui.idle-mode .progress-fill {
+    background: linear-gradient(90deg, #88ddff, #6644ff);
+}
+
+@keyframes idlePulse {
+    0%, 100% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); }
+    50% { box-shadow: 0 4px 30px rgba(100, 150, 255, 0.4); }
+}
+
+@media (max-width: 480px) {
+    #music-ui {
+        left: 10px;
+        bottom: 10px;
+        min-width: 250px;
+        padding: 12px;
+    }
+
+    .music-controls button {
+        padding: 4px 8px;
+        font-size: 11px;
+        min-width: 28px;
+    }
+
+    .music-title {
+        font-size: 13px;
+        max-width: 220px;
+    }
+}

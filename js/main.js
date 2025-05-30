@@ -8,6 +8,7 @@ import {
 
 import { setupLights, updateDayNightCycle } from './lights.js';
 import * as Achievements from './achievements.js';
+import { initMusicSystem, setIdleMode as setMusicIdleMode } from './music.js';
 import {
     initCars,
     loadCarModels,
@@ -67,8 +68,12 @@ controls.enableDamping = false;
 controls.enableRotate = false;
 controls.enableZoom = false;
 
-// Initialize camera system
 initCamera(camera, scene, controls, idleFadeOverlay);
+initMusicSystem().then(() => {
+    // Music system ready
+}).catch(error => {
+    console.warn('Music system initialization failed:', error);
+});
 
 initCars(scene, camera, controls);
 
