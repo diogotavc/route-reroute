@@ -1,5 +1,3 @@
-import { DEBUG_GENERAL } from './config.js';
-
 const ACHIEVEMENT_DEFINITIONS = {
     FIRST_CRASH: {
         id: 'first_crash',
@@ -149,8 +147,6 @@ export function initAchievements() {
             achievementsState.counters[achievement.id] = 0;
         }
     });
-
-    if (DEBUG_GENERAL) console.log('Achievements system initialized');
 }
 
 function unlockAchievement(achievementId, context = {}) {
@@ -180,8 +176,7 @@ function unlockAchievement(achievementId, context = {}) {
     achievementsState.unlocked.add(achievementId);
     queueNotification(achievement, context);
     saveAchievementsToStorage();
-    
-    if (DEBUG_GENERAL) console.log(`🏆 Achievement unlocked: ${achievement.name}`);
+
     return true;
 }
 
@@ -302,8 +297,6 @@ export function initDayNightTracking(initialTimeOfDay) {
     tracking.initialTime = initialTimeOfDay;
     tracking.cycles = 0;
     tracking.initialized = true;
-    
-    if (DEBUG_GENERAL) console.log(`Day/night tracking initialized at ${initialTimeOfDay.toFixed(3)}`);
 }
 
 export function updateDayNightCycleTracking(currentTime, isRewinding = false) {
@@ -317,11 +310,7 @@ export function updateDayNightCycleTracking(currentTime, isRewinding = false) {
 
     if (nearInitial && wasAwayFromInitial) {
         tracking.cycles++;
-        
-        if (DEBUG_GENERAL) {
-            console.log(`Day/night cycle ${tracking.cycles} completed!`);
-        }
-        
+
         unlockAchievement('SEVEN_DAYS_NIGHTS', {
             cycleCount: tracking.cycles,
             currentTime: currentTime
@@ -392,7 +381,6 @@ export function resetAchievements() {
     achievementsState.session.rewindCount = 0;
     notificationQueue = [];
     saveAchievementsToStorage();
-    if (DEBUG_GENERAL) console.log('Achievements reset');
 }
 
 export function unlockAllAchievements() {
@@ -400,108 +388,4 @@ export function unlockAllAchievements() {
         achievementsState.unlocked.add(id);
     });
     saveAchievementsToStorage();
-    if (DEBUG_GENERAL) console.log('All achievements unlocked');
-}
-
-export function debug_triggerFirstCrash() {
-    if (DEBUG_GENERAL) console.log('DEBUG: Triggering first crash achievement');
-    onCarCollision({ angle: 0.5, speed: 10, otherCarSpeed: 8 });
-}
-
-export function debug_triggerHealthDepletion() {
-    if (DEBUG_GENERAL) console.log('DEBUG: Triggering health depletion achievement');
-    onHealthDepleted({ 
-        previousHealth: 50, 
-        currentHealth: 0,
-        position: { x: 0, y: 0, z: 0 }
-    });
-}
-
-export function debug_triggerTBone() {
-    if (DEBUG_GENERAL) console.log('DEBUG: Triggering T-bone achievement');
-    onCarCollision({ angle: Math.PI / 2, speed: 15, otherCarSpeed: 12 });
-}
-
-export function debug_triggerOutOfBounds() {
-    if (DEBUG_GENERAL) console.log('DEBUG: Triggering out of bounds achievement');
-    onOutOfBounds({
-        position: { x: -1000, y: 0, z: -1000 },
-        gridCoords: { x: -10, z: -10 }
-    });
-}
-
-export function debug_triggerBuildingCrash() {
-    if (DEBUG_GENERAL) console.log('DEBUG: Triggering building crash achievement');
-    onBuildingCollision({
-        position: { x: 10, y: 0, z: 10 },
-        speed: 20,
-        buildingType: 'test_building'
-    });
-}
-
-export function debug_triggerGrassDetection() {
-    if (DEBUG_GENERAL) console.log('DEBUG: Triggering grass detection achievement');
-    onGrassDetected({
-        position: { x: 5, y: 0, z: 5 }
-    });
-}
-
-export function debug_triggerSpeedDemon() {
-    if (DEBUG_GENERAL) console.log('DEBUG: Triggering speed demon achievement');
-    onMaxSpeedReached({
-        speed: 25,
-        maxSpeed: 25,
-        percentage: 100
-    });
-}
-
-export function debug_triggerRewindMaster() {
-    if (DEBUG_GENERAL) console.log('DEBUG: Triggering rewind master achievement');
-    for (let i = 0; i < 10; i++) {
-        onRewindUsed({ totalRecordedTime: 5.0 });
-    }
-}
-
-export function debug_triggerHonkedAt() {
-    if (DEBUG_GENERAL) console.log('DEBUG: Triggering honked at achievement');
-    onHonkedAt({ carIndex: 1, isDaytime: true });
-}
-
-export function debug_triggerFlashedAt() {
-    if (DEBUG_GENERAL) console.log('DEBUG: Triggering flashed at achievement');
-    onFlashedAt({ carIndex: 2, isDaytime: false });
-}
-
-export function debug_triggerNotAScratch() {
-    if (DEBUG_GENERAL) console.log('DEBUG: Triggering not a scratch achievement');
-    achievementsState.session.levelProgress.hasCrashed = false;
-    onLevelCompleted({ level: 0 });
-}
-
-export function debug_triggerPerfectRun() {
-    if (DEBUG_GENERAL) console.log('DEBUG: Triggering perfect run achievement');
-    achievementsState.session.levelProgress.hasCrashed = false;
-    achievementsState.session.levelProgress.hasGoneOnGrass = false;
-    achievementsState.session.levelProgress.hasGoneOutOfBounds = false;
-    onLevelCompleted({ level: 0 });
-}
-
-export function debug_triggerReverseDriver() {
-    if (DEBUG_GENERAL) console.log('DEBUG: Triggering reverse driver achievement');
-    trackReverseDistance(105);
-}
-
-export function debug_triggerShowcaseMode() {
-    if (DEBUG_GENERAL) console.log('DEBUG: Triggering showcase mode achievement');
-    onIdleCameraTriggered();
-}
-
-export function debug_triggerSevenDaysNights() {
-    if (DEBUG_GENERAL) console.log('DEBUG: Triggering seven days/nights achievement');
-    initDayNightTracking(0.9);
-
-    for (let i = 0; i < 8; i++) {
-        achievementsState.session.dayNightTracking.lastTime = 0.5;
-        updateDayNightCycleTracking(0.9, false);
-    }
 }

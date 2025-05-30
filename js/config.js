@@ -58,7 +58,6 @@ export const IDLE_CAMERA_TRIGGER_TIME = 5;
 export const IDLE_CAMERA_FADE_DURATION = 1.0;
 export const IDLE_CAMERA_BLACK_DURATION = 1.0;
 export const IDLE_CAMERA_TIME_SCALE_MIN = 0.0;
-export const IDLE_CAMERA_DEBUG = false;
 
 export const IDLE_FIREFLY_ENABLED = true;
 export const IDLE_FIREFLY_HEIGHT = 1.5;
@@ -143,15 +142,6 @@ export const CAMERA_HEIGHT = 10;
 export const LOOK_AT_Y_OFFSET = 3.5;
 export const FIRST_PERSON_HEIGHT_OFFSET = 1.2;
 export const FIRST_PERSON_FORWARD_OFFSET = 0.3;
-
-export const DEBUG_GENERAL = false;
-export const DEBUG_CAR_COORDS = false;
-export const DEBUG_COLLISIONS = false;
-export const DEBUG_MODEL_LOADING = false;
-export const DEBUG_MAP_LEVEL_LOGIC = false;
-export const DEBUG_REWIND = false;
-export const DEBUG_CAR_REACTIONS = false;
-export const DEBUG_CAR_HEALTH = false;
 
 export const SHADOW_MAP_SIZE = 2048;
 export const HEADLIGHT_SHADOW_MAP_SIZE = 1024;

@@ -1,8 +1,6 @@
 import * as THREE from "three";
 import * as Achievements from "./achievements.js";
-import { 
-    DEBUG_COLLISIONS, 
-    DEBUG_MODEL_LOADING,
+import {
     GRASS_SPEED_SCALE,
     GRASS_HEIGHT,
     MAX_SPEED,
@@ -34,7 +32,6 @@ function getOBBData(car, obbData, positionOverride = null, isStaticTile = false)
     if (car.userData.halfExtents) {
         obbData.halfExtents.copy(car.userData.halfExtents);
     } else {
-        if (DEBUG_MODEL_LOADING) console.warn(`Object ${car.uuid} missing userData.halfExtents. Falling back to less accurate AABB sizing for OBB.`);
         satTempBox.setFromObject(car); 
         satTempBox.getSize(obbData.halfExtents).multiplyScalar(0.5);
     }
@@ -120,8 +117,7 @@ function checkOBBCollisionSAT(carA, carB, positionAOverride = null, isCarBStatic
     }
 
     if (!mtvAxis || mtvAxis.lengthSq() < EPSILON * EPSILON) {
-         if (DEBUG_COLLISIONS) console.warn("SAT collision detected but MTV axis is invalid.");
-         return { collision: false, mtvAxis: null, mtvDepth: null };
+        return { collision: false, mtvAxis: null, mtvDepth: null };
     }
 
     return { collision: true, mtvAxis: mtvAxis, mtvDepth: minOverlap };
@@ -153,19 +149,18 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
             acceleration = 0;
         }
     }
-    
+
     speed += acceleration * deltaTime;
 
     let maxSpeedForTerrain = MAX_SPEED;
     if (mapDefinition && isOnGrass(activeCar.position.x, activeCar.position.z, mapDefinition)) {
         maxSpeedForTerrain = MAX_SPEED * GRASS_SPEED_SCALE;
     }
-    
+
     speed = Math.max(-maxSpeedForTerrain / 2, Math.min(maxSpeedForTerrain, speed)); 
     if (isBraking && Math.abs(speed) < 0.1) speed = 0; 
-    
-    // Check for speed achievement
-    if (Math.abs(speed) >= MAX_SPEED * 0.95) { // 95% of max speed
+
+    if (Math.abs(speed) >= MAX_SPEED) {
         Achievements.onMaxSpeedReached({ 
             speed: Math.abs(speed), 
             maxSpeed: MAX_SPEED,
@@ -207,7 +202,6 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
             isStaticCollision = false;
             penetrationDepth = collisionResult.mtvDepth;
             collisionNormal.copy(collisionResult.mtvAxis);
-            if (DEBUG_COLLISIONS) console.log("Collision with another car detected!");
 
             const activeForward = new THREE.Vector3(0, 0, 1).applyQuaternion(activeCar.quaternion);
             const otherForward = new THREE.Vector3(0, 0, 1).applyQuaternion(otherCar.quaternion);
@@ -219,7 +213,7 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
                 otherCarName: otherCar.name || 'unknown',
                 penetrationDepth: penetrationDepth
             });
-            
+
             break; 
         }
     }
@@ -236,7 +230,6 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
                 isStaticCollision = true;
                 penetrationDepth = collisionResult.mtvDepth;
                 collisionNormal.copy(collisionResult.mtvAxis);
-                if (DEBUG_COLLISIONS) console.log("Collision with map tile detected! Tile:", tile.name || tile.uuid);
 
                 Achievements.onBuildingCollision({
                     speed: speed,
@@ -269,23 +262,12 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
                     speed = 0; 
                 }
                 speed = Math.max(-MAX_SPEED / 2, Math.min(MAX_SPEED, speed));
-
-                if (isStaticCollision) {
-                    if (DEBUG_COLLISIONS) console.log(`Static collision bounce. New speed: ${speed.toFixed(2)}`);
-                } else {
-                    if (DEBUG_COLLISIONS) console.log(`Car-Car collision bounce. New speed: ${speed.toFixed(2)}`);
-                }
-            } else if (isStaticCollision && separatingVelocity >= 0) {
-                if (DEBUG_COLLISIONS) console.log(`Static collision, but moving away or parallel. Speed: ${speed.toFixed(2)}`);
             }
 
             separationVector.copy(collisionNormal).multiplyScalar(penetrationDepth * COLLISION_SEPARATION_FACTOR);
             activeCar.position.copy(originalPosition).add(separationVector); 
-            
-            if (DEBUG_COLLISIONS) console.log(`Applying separation push: ${separationVector.toArray().map(n => n.toFixed(2)).join(',')}`);
 
         } else {
-            if (DEBUG_COLLISIONS) console.warn("Collision detected but MTV invalid. Applying fallback response.");
             if (!isStaticCollision) speed *= -COLLISION_RESTITUTION;
             else speed = 0; 
             activeCar.position.copy(originalPosition);
@@ -298,22 +280,18 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
         const isCarOnGrass = isOnGrass(activeCar.position.x, activeCar.position.z, mapDefinition);
         const targetHeight = isCarOnGrass ? GRASS_HEIGHT : 0;
         activeCar.position.y = targetHeight;
-        
-        // Check for achievements related to terrain
+
         if (isCarOnGrass) {
-            // Check if truly out of bounds (from mapLoader.js logic)
             const layout = mapDefinition.layout;
             const gridCoords = getGridCoordinates(activeCar.position.x, activeCar.position.z, mapDefinition);
-            const isOutOfBounds = gridCoords.z < 0 || gridCoords.z >= layout.length || 
-                                 gridCoords.x < 0 || gridCoords.x >= layout[0].length;
-            
+            const isOutOfBounds = gridCoords.z < 0 || gridCoords.z >= layout.length || gridCoords.x < 0 || gridCoords.x >= layout[0].length;
+
             if (isOutOfBounds) {
                 Achievements.onOutOfBounds({
                     position: { x: activeCar.position.x, y: activeCar.position.y, z: activeCar.position.z },
                     gridCoords: gridCoords
                 });
             } else {
-                // Just on grass, not out of bounds
                 Achievements.onGrassDetected({
                     position: { x: activeCar.position.x, y: activeCar.position.y, z: activeCar.position.z }
                 });

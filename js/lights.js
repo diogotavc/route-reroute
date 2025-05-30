@@ -262,17 +262,12 @@ function getSkyColorForPhase(phase, factor) {
 
 export function registerStreetLights(lights) {
     streetLights = lights;
-    console.log(`Registering ${lights.length} streetlights:`, lights);
-    lights.forEach((light, index) => {
-        console.log(`Streetlight ${index}: Position (${light.position.x}, ${light.position.y}, ${light.position.z}), Intensity: ${light.intensity}`);
-    });
     updateStreetLights();
 }
 
 export function toggleStreetLights() {
     streetLightsEnabled = !streetLightsEnabled;
     updateStreetLights();
-    console.log(`Streetlights ${streetLightsEnabled ? 'enabled' : 'disabled'}`);
 }
 
 export function setStreetLightsEnabled(enabled) {
@@ -281,11 +276,9 @@ export function setStreetLightsEnabled(enabled) {
 }
 
 function updateStreetLights() {
-    console.log(`Updating streetlights: enabled=${streetLightsEnabled}, count=${streetLights.length}`);
     streetLights.forEach((light, index) => {
         const newIntensity = streetLightsEnabled ? STREETLIGHT_INTENSITY : 0;
         light.intensity = newIntensity;
-        console.log(`Light ${index} intensity set to ${newIntensity}`);
     });
 }
 
@@ -305,9 +298,9 @@ function updateStreetLightsSmooth(timeOfDay) {
     } else if (phases.phase === 'dusk') {
         targetIntensity = STREETLIGHT_INTENSITY * Math.max(0, phases.factor - 0.3) / 0.7;
     }
-    
+
     targetIntensity = Math.max(0, Math.min(targetIntensity, STREETLIGHT_INTENSITY));
-    
+
     streetLights.forEach(light => {
         light.intensity = targetIntensity;
     });
@@ -331,121 +324,8 @@ window.setStreetLightsEnabled = setStreetLightsEnabled;
 window.forceStreetLightsOn = () => {
     streetLights.forEach((light, index) => {
         light.intensity = STREETLIGHT_INTENSITY;
-        console.log(`Forced light ${index} to max intensity (${STREETLIGHT_INTENSITY})`);
     });
-    console.log("All streetlights forced to maximum intensity");
 };
-
-window.toggleHeadlights = toggleHeadlights;
-window.setHeadlightsEnabled = setHeadlightsEnabled;
-
-window.debugHeadlights = () => {
-    console.log("=== Headlight Debug Info ===");
-    const carHeadlights = getCarHeadlights();
-    const loadedCarModels = getLoadedCarModels();
-    const currentTimeOfDay = getCurrentTimeOfDay();
-    const headlightsEnabled = getHeadlightsEnabled();
-    
-    for (const carIndex in carHeadlights) {
-        const headlightSet = carHeadlights[carIndex];
-        const car = loadedCarModels[carIndex];
-        console.log(`Car ${carIndex}:`, {
-            carVisible: car?.visible,
-            leftIntensity: headlightSet.left.intensity,
-            rightIntensity: headlightSet.right.intensity,
-            leftPosition: headlightSet.left.position,
-            rightPosition: headlightSet.right.position,
-            leftTargetPosition: headlightSet.leftTarget.position,
-            rightTargetPosition: headlightSet.rightTarget.position
-        });
-    }
-    console.log(`Current time: ${currentTimeOfDay}, Headlights enabled: ${headlightsEnabled}`);
-};
-
-window.forceHeadlightsOn = () => {
-    const carHeadlights = getCarHeadlights();
-    for (const carIndex in carHeadlights) {
-        const headlightSet = carHeadlights[carIndex];
-        headlightSet.left.intensity = HEADLIGHT_INTENSITY;
-        headlightSet.right.intensity = HEADLIGHT_INTENSITY;
-    }
-    console.log("All headlights forced to maximum intensity");
-};
-
-window.debugSunShadows = () => {
-    if (!directionalLight) {
-        console.log("Directional light not available");
-        return;
-    }
-    
-    console.log("=== SUN SHADOW SETTINGS ===");
-    console.log(`Shadow Map Size: ${directionalLight.shadow.mapSize.width}x${directionalLight.shadow.mapSize.height}`);
-    console.log(`Shadow Camera Bounds: ${directionalLight.shadow.camera.left} to ${directionalLight.shadow.camera.right} (X), ${directionalLight.shadow.camera.bottom} to ${directionalLight.shadow.camera.top} (Y)`);
-    console.log(`Shadow Camera Near/Far: ${directionalLight.shadow.camera.near} to ${directionalLight.shadow.camera.far}`);
-    console.log(`Shadow Bias: ${directionalLight.shadow.bias}`);
-    console.log(`Shadow Normal Bias: ${directionalLight.shadow.normalBias}`);
-    console.log(`Shadow Radius: ${directionalLight.shadow.radius || 'N/A'}`);
-    console.log(`Shadow Blur Samples: ${directionalLight.shadow.blurSamples || 'N/A'}`);
-    console.log(`Sun Position: (${directionalLight.position.x.toFixed(1)}, ${directionalLight.position.y.toFixed(1)}, ${directionalLight.position.z.toFixed(1)})`);
-    console.log(`Sun Intensity: ${directionalLight.intensity}`);
-};
-
-window.debugDayPhase = (timeOfDay) => {
-    if (timeOfDay === undefined) {
-        console.log("Usage: debugDayPhase(timeOfDay) where timeOfDay is between 0 and 1");
-        return;
-    }
-
-    const dayPhase = getDayPhase(timeOfDay);
-    console.log(`Time of Day: ${timeOfDay.toFixed(3)}`);
-    console.log(`Phase: ${dayPhase.phase}`);
-    console.log(`Factor: ${dayPhase.factor.toFixed(3)}`);
-
-    console.log("\nDay cycle ranges:");
-    console.log(`Night: 0.00 - ${DAY_CYCLE.DAWN_START.toFixed(2)} & ${DAY_CYCLE.DUSK_END.toFixed(2)} - 1.00`);
-    console.log(`Dawn: ${DAY_CYCLE.DAWN_START.toFixed(2)} - ${DAY_CYCLE.DAWN_END.toFixed(2)}`);
-    console.log(`Day: ${DAY_CYCLE.DAWN_END.toFixed(2)} - ${DAY_CYCLE.DUSK_START.toFixed(2)}`);
-    console.log(`Dusk: ${DAY_CYCLE.DUSK_START.toFixed(2)} - ${DAY_CYCLE.DUSK_END.toFixed(2)}`);
-    console.log(`Streetlights: ON from ${STREETLIGHT_TURN_ON_TIME.toFixed(2)} to ${STREETLIGHT_TURN_OFF_TIME.toFixed(2)}`);
-};
-
-window.debugSunPosition = (timeOfDay) => {
-    if (timeOfDay === undefined) {
-        console.log("Usage: debugSunPosition(timeOfDay) where timeOfDay is between 0 and 1");
-        return;
-    }
-
-    let sunAngle;
-    if (timeOfDay < 0.25) {
-        sunAngle = -Math.PI/4 + (timeOfDay / 0.25) * (Math.PI/4);
-    } else if (timeOfDay <= 0.75) {
-        const dayProgress = (timeOfDay - 0.25) / 0.5;
-        sunAngle = dayProgress * Math.PI;
-    } else {
-        sunAngle = Math.PI + ((timeOfDay - 0.75) / 0.25) * (Math.PI/4);
-    }
-
-    const distance = 120;
-    const height = Math.sin(sunAngle) * 80 + 10;
-    const x = Math.cos(sunAngle) * distance;
-    
-    console.log(`Time: ${timeOfDay.toFixed(3)} | Angle: ${(sunAngle * 180 / Math.PI).toFixed(1)}° | Pos: (${x.toFixed(1)}, ${height.toFixed(1)}, 0)`);
-    
-    if (timeOfDay < 0.25) console.log("Phase: Before dawn (sun below eastern horizon)");
-    else if (timeOfDay <= 0.75) console.log("Phase: Dawn to dusk (sun visible)");
-    else console.log("Phase: After dusk (sun below western horizon)");
-};
-
-window.trackSunMovement = () => {
-    console.log("=== SUN MOVEMENT THROUGHOUT DAY ===");
-    for (let t = 0; t <= 1; t += 0.1) {
-        debugSunPosition(t);
-    }
-};
-
-console.log("Sun debug controls available:");
-console.log("- debugSunPosition(timeOfDay) - Show sun position for specific time");
-console.log("- trackSunMovement() - Show sun positions throughout full day");
 
 export function storeOriginalLightIntensities() {
     if (ambientLight) {

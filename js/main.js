@@ -1,9 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { 
-    DEBUG_GENERAL, 
-    DEBUG_MODEL_LOADING, 
-    DEBUG_MAP_LEVEL_LOGIC, 
+import {
     DAY_CYCLE, 
     AUTO_PAUSE_ON_FOCUS_LOST, 
     IDLE_CAMERA_ENABLED, 
@@ -11,7 +8,6 @@ import {
     IDLE_CAMERA_FADE_DURATION,
     IDLE_CAMERA_BLACK_DURATION,
     IDLE_CAMERA_TIME_SCALE_MIN,
-    IDLE_CAMERA_DEBUG,
     IDLE_CAMERA_ANIMATIONS,
     IDLE_FIREFLY_ENABLED,
     IDLE_FIREFLY_HEIGHT,
@@ -241,11 +237,9 @@ initCars(scene, camera, controls);
 
 let collidableMapElements = []; 
 
-loadMap(scene, level1MapData).then((mapGroup) => { 
-    if (DEBUG_GENERAL) console.log("Map loaded successfully!");
+loadMap(scene, level1MapData).then((mapGroup) => {
     if (mapGroup && mapGroup.userData && mapGroup.userData.collidableTiles) {
         collidableMapElements = mapGroup.userData.collidableTiles;
-        if (DEBUG_MAP_LEVEL_LOGIC) console.log(`Found ${collidableMapElements.length} collidable map elements.`);
     }
 
     initCars(scene, camera, controls);
@@ -253,7 +247,7 @@ loadMap(scene, level1MapData).then((mapGroup) => {
 
     loadCarModelsAndSetupLevel();
 }).catch(error => {
-    if (DEBUG_GENERAL) console.error("Failed to load map in main.js:", error);
+    console.error("Failed to load map in main.js:", error);
 });
 
 const exampleLevel1_Missions = [
@@ -274,12 +268,11 @@ function processLevelMissions(missions, mapDefinition) {
         }
 
         if (!startPointInfo) {
-            if (DEBUG_MAP_LEVEL_LOGIC) console.error(`Start point "${startPointName}" not found in map data for mission "${modelName}"! This mission will be skipped.`);
             return null;
         }
 
         if (finishPointName && !finishPointInfo) {
-             if (DEBUG_MAP_LEVEL_LOGIC) console.warn(`Finish point "${finishPointName}" for mission "${modelName}" not found in map data. Car will not have a specific destination.`);
+            console.warn(`Finish point "${finishPointName}" for mission "${modelName}" not found in map data. Car will not have a specific destination.`);
         }
 
         const startWorldPos = getWorldCoordinates(startPointInfo.x, startPointInfo.z, mapDefinition);
@@ -335,9 +328,9 @@ function loadCarModelsAndSetupLevel() {
     controls.update();
 
     loadCarModels(currentLevelData).then(() => { 
-        if (DEBUG_MODEL_LOADING) console.debug("All car models loaded successfully for the current level.");
+        // All car models loaded successfully
     }).catch(error => {
-        if (DEBUG_MODEL_LOADING) console.error("Failed to load all car models for the current level:", error);
+        console.error("Failed to load all car models for the current level:", error);
     });
 }
 
@@ -364,10 +357,8 @@ function togglePause() {
     
     if (isPaused) {
         clock.stop();
-        if (DEBUG_GENERAL) console.log('Game paused');
     } else {
         clock.start();
-        if (DEBUG_GENERAL) console.log('Game resumed');
     }
 }
 
@@ -395,8 +386,6 @@ function startIdleCameraAnimation() {
 
     createIdleFirefly();
     fireflyOrbitTime = 0;
-
-    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera started - lights will dim after fade in, firefly will appear');
 }
 
 function stopIdleCameraAnimation() {
@@ -423,8 +412,6 @@ function stopIdleCameraAnimation() {
         scene.remove(idleFirefly.group);
         idleFirefly = null;
     }
-
-    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera stopped, car visibility restored, firefly removed, lights restored');
 }
 
 function updateIdleCameraAnimation(deltaTime) {
@@ -448,15 +435,12 @@ function updateActiveIdleCamera(deltaTime) {
     if (idleCameraState.timer < fadeInDuration) {
         idleCameraState.fadeOpacity = idleCameraState.timer / fadeInDuration;
 
-        if (IDLE_CAMERA_DEBUG) console.log(`🎬 Fade IN - Timer: ${idleCameraState.timer.toFixed(2)}s, Opacity: ${idleCameraState.fadeOpacity.toFixed(2)}`);
     } else if (idleCameraState.timer < fadeInDuration + blackDuration) {
         idleCameraState.fadeOpacity = 1;
 
         if (!idleCameraState.lightsAreDimmed) {
             setLightIntensities(IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE);
             idleCameraState.lightsAreDimmed = true;
-
-            if (IDLE_CAMERA_DEBUG) console.log(`🎬 Lights dimmed to ${(IDLE_LIGHT_DIM_SCALE * 100).toFixed(0)}% during blackout phase`);
         }
 
         const currentAnim = IDLE_CAMERA_ANIMATIONS[idleCameraState.currentAnimationIndex];
@@ -514,9 +498,6 @@ function updateActiveIdleCamera(deltaTime) {
 
         camera.lookAt(controls.target);
 
-        if (IDLE_CAMERA_DEBUG && idleCameraState.timer % 0.5 < 0.02) {
-            console.log(`🎬 Blackout - Car visible: ${activeCar?.visible}, Orbit: ${orbitAngle}°, Distance: ${distance}, Firefly hidden`);
-        }
     } else if (idleCameraState.timer < totalPhaseTime) {
         const fadeOutProgress = (idleCameraState.timer - fadeInDuration - blackDuration) / fadeOutDuration;
         idleCameraState.fadeOpacity = 1 - fadeOutProgress;
@@ -524,7 +505,6 @@ function updateActiveIdleCamera(deltaTime) {
         if (idleFirefly && !idleFirefly.hasAppeared) {
             idleFirefly.group.visible = true;
             idleFirefly.hasAppeared = true;
-            if (IDLE_CAMERA_DEBUG) console.log(`🎬 Firefly appears after blackout phase`);
         }
 
         if (idleCameraState.lightsAreDimmed) {
@@ -535,15 +515,12 @@ function updateActiveIdleCamera(deltaTime) {
             const flickerIntensity = idleFirefly.baseIntensity * (1 + Math.sin(Date.now() * 0.01 * IDLE_FIREFLY_FLICKER_SPEED) * IDLE_FIREFLY_FLICKER_INTENSITY);
             idleFirefly.light.intensity = flickerIntensity;
         }
-        
-        if (IDLE_CAMERA_DEBUG) console.log(`🎬 Fade OUT - Progress: ${fadeOutProgress.toFixed(2)}, Opacity: ${idleCameraState.fadeOpacity.toFixed(2)}`);
     } else {
         idleCameraState.fadeOpacity = 0;
 
         if (idleFirefly && !idleFirefly.hasAppeared) {
             idleFirefly.group.visible = true;
             idleFirefly.hasAppeared = true;
-            if (IDLE_CAMERA_DEBUG) console.log(`🎬 Firefly appears in final phase`);
         }
 
         if (idleCameraState.lightsAreDimmed) {
@@ -627,16 +604,10 @@ function updateCameraAnimation(deltaTime) {
     if (idleFirefly && idleFirefly.hasAppeared && activeCar) {
         updateFireflyPosition(centerPoint, deltaTime);
     }
-    
-    if (IDLE_CAMERA_DEBUG) {
-        console.log(`🎬 Animation ${idleCameraState.currentAnimationIndex} - Progress: ${(progress * 100).toFixed(1)}%, Orbit: ${currentOrbitAngle.toFixed(1)}°, Elevation: ${currentElevationAngle.toFixed(1)}°, Distance: ${currentDistance.toFixed(1)}`);
-    }
-    
+
     if (progress >= 1) {
         idleCameraState.currentAnimationIndex = (idleCameraState.currentAnimationIndex + 1) % IDLE_CAMERA_ANIMATIONS.length;
         idleCameraState.animationTimer = 0;
-        
-        if (IDLE_CAMERA_DEBUG) console.log(`🎬 Animation ${idleCameraState.currentAnimationIndex} started`);
     }
 }
 
@@ -770,9 +741,6 @@ function animate() {
         const timeScale = IDLE_CAMERA_TIME_SCALE_MIN;
         if (timeScale < 1.0) {
             scaledDeltaTime = rawDeltaTime * timeScale;
-            if (IDLE_CAMERA_DEBUG && Math.random() < 0.1) {
-                console.log(`⏱️ Time scaling: ${timeScale}x (${rawDeltaTime.toFixed(3)}s → ${scaledDeltaTime.toFixed(3)}s)`);
-            }
         }
     }
 
@@ -822,7 +790,7 @@ window.addEventListener("keydown", (event) => {
         case "n":
             const nextCarResult = nextCar();
             if (nextCarResult === -1) {
-                if (DEBUG_MAP_LEVEL_LOGIC) console.log("End of missions for this level!");
+                console.log("End of missions for the current level!");
             } else {
                 const levelConfig = levels[currentLevelIndex];
                 currentTimeOfDay += levelConfig.timeIncrementPerMission !== undefined ? levelConfig.timeIncrementPerMission : 0.05;
@@ -836,21 +804,6 @@ window.addEventListener("keydown", (event) => {
         case "ArrowRight": case "d": setTurningRight(true); break;
         case "r": setRewinding(); break;        case "c": toggleCameraMode(); break;
         case "p": togglePause(); break;
-        case "1": Achievements.debug_triggerFirstCrash(); break;
-        case "2": Achievements.debug_triggerHealthDepletion(); break;
-        case "3": Achievements.debug_triggerTBone(); break;
-        case "4": Achievements.debug_triggerOutOfBounds(); break;
-        case "5": Achievements.debug_triggerBuildingCrash(); break;
-        case "6": Achievements.debug_triggerGrassDetection(); break;
-        case "7": Achievements.debug_triggerSpeedDemon(); break;
-        case "8": Achievements.debug_triggerRewindMaster(); break;
-        case "9": Achievements.debug_triggerHonkedAt(); break;
-        case "0": Achievements.debug_triggerFlashedAt(); break;
-        case "=": Achievements.debug_triggerNotAScratch(); break;
-        case "[": Achievements.debug_triggerPerfectRun(); break;
-        case "]": Achievements.debug_triggerReverseDriver(); break;
-        case "\\": Achievements.debug_triggerShowcaseMode(); break;
-        case "-": Achievements.debug_triggerSevenDaysNights(); break;
     }
 });
 
@@ -866,32 +819,21 @@ window.addEventListener("keyup", (event) => {
 window.addEventListener("blur", () => {
     if (AUTO_PAUSE_ON_FOCUS_LOST && !isPaused) {
         togglePause();
-        if (DEBUG_GENERAL) console.log('Game auto-paused due to tab losing focus');
     }
-});
-
-window.addEventListener("focus", () => {
-    if (DEBUG_GENERAL) console.log('Tab regained focus - press p to resume if paused');
 });
 
 window.setTimeOfDay = (time) => {
     if (time >= 0 && time <= 1) {
         currentTimeOfDay = time;
         updateDayNightCycle(scene, currentTimeOfDay);
-        console.log(`Time of day set to: ${time.toFixed(3)}`);
     } else {
-        console.log("Time must be between 0 and 1");
+        console.warn("Time must be between 0 and 1");
     }
 };
 
 window.getCurrentTimeOfDay = () => {
     return currentTimeOfDay;
 };
-
-console.log("Time controls available:");
-console.log("- setTimeOfDay(0.0-1.0) - Set specific time of day");
-console.log("- getCurrentTimeOfDay() - Get current time");
-console.log("- debugDayPhase(time) - Debug lighting at specific time");
 
 export function isIdleCameraSystemActive() {
     return isIdleCameraActive;

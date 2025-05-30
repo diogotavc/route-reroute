@@ -3,14 +3,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import * as CarPhysics from "./carPhysics.js";
 import * as Achievements from "./achievements.js";
 import { isIdleCameraSystemActive, isIdleCameraReturning } from "./main.js";
-import { 
-    DEBUG_CAR_COORDS, 
-    DEBUG_MODEL_LOADING, 
-    DEBUG_MAP_LEVEL_LOGIC,
-    DEBUG_REWIND,
-    DEBUG_GENERAL,
-    DEBUG_CAR_REACTIONS,
-    DEBUG_CAR_HEALTH,
+import {
     HEADLIGHT_INTENSITY,
     HEADLIGHT_DISTANCE,
     HEADLIGHT_ANGLE,
@@ -115,11 +108,8 @@ function updateCarHealth(deltaTime, collisionDetected) {
         const oldHealth = carHealth;
         carHealth -= CAR_COLLISION_DAMAGE;
         carHealth = Math.max(0, carHealth);
-        
-        if (DEBUG_CAR_HEALTH) console.log(`Collision damage! Health: ${oldHealth} → ${carHealth} (-${CAR_COLLISION_DAMAGE})`);
 
         if (carHealth <= 0) {
-            if (DEBUG_CAR_HEALTH) console.log("Health depleted! Auto-rewind triggered.");
             Achievements.onHealthDepleted({ oldHealth, newHealth: carHealth, damage: CAR_COLLISION_DAMAGE });
             setRewinding();
             carHealth = CAR_MAX_HEALTH;
@@ -130,7 +120,6 @@ function updateCarHealth(deltaTime, collisionDetected) {
 
 function resetCarHealth() {
     carHealth = CAR_MAX_HEALTH;
-    if (DEBUG_CAR_HEALTH) console.log("Health reset to maximum");
 }
 
 export function getCarHealth() {
@@ -150,14 +139,11 @@ function initAudioSystem() {
         const enableAudio = () => {
             if (!audioInitialized) {
                 audioInitialized = true;
-                if (DEBUG_CAR_REACTIONS) console.log("Audio system enabled after user interaction");
             }
         };
 
         document.addEventListener('click', enableAudio, { once: true });
         document.addEventListener('keydown', enableAudio, { once: true });
-        
-        if (DEBUG_CAR_REACTIONS) console.log("Audio system initialized for car reactions");
     } catch (error) {
         console.warn("Could not load honk audio file:", error);
     }
@@ -165,7 +151,6 @@ function initAudioSystem() {
 
 function playHonkSound() {
     if (!honkAudio || !audioInitialized) {
-        if (DEBUG_CAR_REACTIONS) console.log("Audio not available - user interaction required or audio not loaded");
         return;
     }
     
@@ -175,13 +160,13 @@ function playHonkSound() {
         
         if (playPromise !== undefined) {
             playPromise.then(() => {
-                if (DEBUG_CAR_REACTIONS) console.log("Playing honk sound");
+                // Sound played successfully
             }).catch(error => {
-                if (DEBUG_CAR_REACTIONS) console.warn("Could not play honk sound:", error);
+                console.warn("Could not play honk sound:", error);
             });
         }
     } catch (error) {
-        if (DEBUG_CAR_REACTIONS) console.warn("Could not play honk sound:", error);
+        console.warn("Could not play honk sound:", error);
     }
 }
 
@@ -245,8 +230,6 @@ function triggerCarReaction(carIndex, isDaytime) {
         setTimeout(() => {
             reaction.isHonking = false;
         }, CAR_HONK_TIMES * 800 + 500);
-        
-        if (DEBUG_CAR_REACTIONS) console.log(`Car ${carIndex} honking ${CAR_HONK_TIMES} times (daytime)${!audioInitialized ? ' - Audio disabled until user interaction' : ''}`);
     } else {
         const headlightSet = carHeadlights[carIndex];
         if (headlightSet) {
@@ -256,8 +239,6 @@ function triggerCarReaction(carIndex, isDaytime) {
             reaction.originalRightIntensity = headlightSet.right.intensity;
 
             Achievements.onFlashedAt({ carIndex, isDaytime: false, time: currentTime });
-
-            if (DEBUG_CAR_REACTIONS) console.log(`Car ${carIndex} flashing headlights (nighttime)`);
         }
     }
 }
@@ -289,7 +270,6 @@ function updateCarReactions(deltaTime) {
                     headlightSet.right.intensity = reaction.originalRightIntensity;
                 }
                 reaction.isFlashing = false;
-                if (DEBUG_CAR_REACTIONS) console.log(`Car ${carIndex} finished flashing headlights`);
             }
         }
     }
@@ -419,13 +399,6 @@ function createHeadlights(carModel, carIndex) {
 
     leftHeadlight.intensity = 0;
     rightHeadlight.intensity = 0;
-    
-    if (DEBUG_MODEL_LOADING) {
-        console.log(`Created headlights for car ${carIndex} (${carModel.name || 'unnamed'}) at positions:`, 
-                   `Left: (${leftHeadlight.position.x.toFixed(2)}, ${leftHeadlight.position.y.toFixed(2)}, ${leftHeadlight.position.z.toFixed(2)})`,
-                   `Right: (${rightHeadlight.position.x.toFixed(2)}, ${rightHeadlight.position.y.toFixed(2)}, ${rightHeadlight.position.z.toFixed(2)})`,
-                   `Car size: (${size.x.toFixed(2)}, ${size.y.toFixed(2)}, ${size.z.toFixed(2)})`);
-    }
 }
 
 export function loadCarModels(processedLevelData) {
@@ -436,7 +409,6 @@ export function loadCarModels(processedLevelData) {
         const name = mission[0];
         const path = carModels[name]?.[0];
         if (!path) {
-            if (DEBUG_MODEL_LOADING) console.error(`Model path for "${name}" not found in carModels config.`);
             return Promise.reject(`Missing model path for ${name}`);
         }
         const startingPoint = mission[3];
@@ -473,14 +445,10 @@ export function loadCarModels(processedLevelData) {
                     scene.add(model);
                     loadedCarModels[index] = model;
 
-                    if (DEBUG_MODEL_LOADING) console.debug(
-                        `Loaded car model ${index + 1}/${levels.length} - ${name} at [${startingPoint.join(',')}] rotY: ${initialRotationY}`,
-                    );
                     resolve();
                 },
                 undefined,
                 (error) => {
-                    if (DEBUG_MODEL_LOADING) console.error(`Error loading car model ${name} (index ${index}):`, error);
                     reject(error);
                 },
             );
@@ -503,7 +471,6 @@ function createFinishPointMarker(position) {
     }
 
     if (!position) {
-        if (DEBUG_MAP_LEVEL_LOGIC) console.log("createFinishPointMarker: No position provided, marker not created.");
         return;
     }
 
@@ -517,19 +484,16 @@ function createFinishPointMarker(position) {
     currentFinishPointMarker = new THREE.Mesh(markerGeometry, markerMaterial);
     currentFinishPointMarker.position.set(position.x, position.y + 5, position.z); 
     scene.add(currentFinishPointMarker);
-    if (DEBUG_MAP_LEVEL_LOGIC) console.log("createFinishPointMarker - Marker added to scene at:", currentFinishPointMarker.position, "Visible:", currentFinishPointMarker.visible);
 }
 
 function setActiveCar(index) {
     var carCount = Object.keys(loadedCarModels).length;
     if (index < 0 || index >= carCount) {
-        if (DEBUG_MAP_LEVEL_LOGIC) console.error("Invalid car index:", index);
         return;
     }
 
     if (currentRecording.length > 0) {
         recordedMovements[missionIndex] = currentRecording;
-        if (DEBUG_REWIND) console.log(`Stored recording for car index ${missionIndex} with ${currentRecording.length} states.`);
     }
 
     currentRecording = [];
@@ -541,29 +505,17 @@ function setActiveCar(index) {
 
     const missionData = levels[index];
     if (!missionData) {
-        if (DEBUG_MAP_LEVEL_LOGIC) console.error(`setActiveCar: No mission data found for index ${index}.`);
         currentMissionDestination = null;
         createFinishPointMarker(null);
         return null;
     }
-    if (DEBUG_MAP_LEVEL_LOGIC) console.log("setActiveCar - Full Mission Data for index", index, ":", missionData);
 
     var [modelName, character, backstory, startingPoint, finishingPoint, initialRotationY] = missionData;
-    if (DEBUG_MAP_LEVEL_LOGIC) console.log("setActiveCar - Raw finishingPoint from missionData:", finishingPoint);
-
-    var characterName =
-        String(character).charAt(0).toUpperCase() + String(character).slice(1);
-    if (DEBUG_GENERAL) console.log(`${characterName}: ${backstory}`);
-    if (DEBUG_MAP_LEVEL_LOGIC) console.log(
-        `Drive ${modelName} from ${startingPoint.join(',')} to ${finishingPoint && Array.isArray(finishingPoint) ? finishingPoint.join(',') : 'an open area'}.`
-    );
 
     if (finishingPoint && Array.isArray(finishingPoint) && finishingPoint.length === 3) {
         currentMissionDestination = new THREE.Vector3(finishingPoint[0], finishingPoint[1], finishingPoint[2]);
-        if (DEBUG_MAP_LEVEL_LOGIC) console.log("setActiveCar - currentMissionDestination successfully set to:", currentMissionDestination);
         createFinishPointMarker(currentMissionDestination);
     } else {
-        if (DEBUG_MAP_LEVEL_LOGIC) console.log("setActiveCar - No valid finishingPoint data. No destination marker will be created. finishingPoint was:", finishingPoint);
         currentMissionDestination = null;
         createFinishPointMarker(null);
     }
@@ -634,7 +586,6 @@ function setActiveCar(index) {
 export function nextCar() {
     var carCount = Object.keys(loadedCarModels).length;
     if (carCount == missionIndex + 1) {
-        if (DEBUG_MAP_LEVEL_LOGIC) console.log("All missions for this level completed!");
         if (currentFinishPointMarker) {
             scene.remove(currentFinishPointMarker);
             currentFinishPointMarker.geometry.dispose();
@@ -675,10 +626,8 @@ export function toggleCameraMode() {
     
     if (isFirstPersonMode) {
         activeCar.visible = false;
-        console.log("Switched to first-person camera mode");
     } else {
         activeCar.visible = true;
-        console.log("Switched to third-person camera mode");
     }
 }
 
@@ -692,8 +641,6 @@ export function setRewinding() {
     elapsedTime = totalRecordedTime;
 
     rewindSpeedFactor = totalRecordedTime > 0 ? totalRecordedTime / TARGET_REWIND_DURATION : 1.0;
-    
-    console.log(`Starting rewind. Total recorded time: ${totalRecordedTime.toFixed(2)}s, Speed factor: ${rewindSpeedFactor.toFixed(2)}, Rewind duration: ${TARGET_REWIND_DURATION}s, Interpolation: ${REWIND_INTERPOLATION}`);
 }
 
 export function updateHeadlights(timeOfDay) {
@@ -720,8 +667,6 @@ export function toggleHeadlights() {
         headlightSet.left.intensity = targetIntensity;
         headlightSet.right.intensity = targetIntensity;
     }
-
-    console.log(`Headlights ${headlightsEnabled ? 'enabled' : 'disabled'}`);
 }
 
 export function setHeadlightsEnabled(enabled) {
@@ -762,12 +707,8 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefiniti
     debug_timeSinceLastCoordinateLog += deltaTime;
     if (debug_timeSinceLastCoordinateLog >= debug_coordinateLogInterval) {
         const pos = activeCar.position;
-        if (DEBUG_CAR_COORDS) console.log(
-            `Active Car Coords: X=${pos.x.toFixed(2)}, Y=${pos.y.toFixed( 2 )}, Z=${pos.z.toFixed(2)}`
-        );
         if (currentMissionDestination) {
             const distanceToDestination = pos.distanceTo(currentMissionDestination);
-            if (DEBUG_CAR_COORDS) console.log(`  Mission Dest: ${currentMissionDestination.x.toFixed(2)},${currentMissionDestination.y.toFixed(2)},${currentMissionDestination.z.toFixed(2)}. Dist: ${distanceToDestination.toFixed(2)}`);
         }
         debug_timeSinceLastCoordinateLog -= debug_coordinateLogInterval;
     }
@@ -828,7 +769,6 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefiniti
         }
 
         if (elapsedTime <= 0 && currentRecording.length > 0) {
-            console.log("Rewind finished.");
             isRewinding = false;
 
             activeCar.position.copy(currentRecording[0].position);
@@ -842,7 +782,6 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefiniti
             steeringAngle = 0;
 
             currentRecording = [currentRecording[0]];
-            console.log(`Recording reset to initial state at time 0.`);
         }
 
     } else {

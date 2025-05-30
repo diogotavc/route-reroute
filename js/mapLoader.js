@@ -1,8 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { 
-    DEBUG_MODEL_LOADING, 
-    DEBUG_GENERAL, 
+import {
     STREETLIGHT_INTENSITY, 
     GRASS_HEIGHT, 
     GRASS_COLOR,
@@ -40,7 +38,6 @@ function loadTileModels(mapDefinition) {
                         const box = new THREE.Box3().setFromObject(model);
                         model.userData.originalHalfExtents = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);
                         loadedTileModels[modelPath] = model;
-                        if (DEBUG_MODEL_LOADING) console.log(`Loaded map tile model: ${modelPath}`);
                         resolve();
                     },
                     undefined, 
@@ -58,7 +55,7 @@ function loadTileModels(mapDefinition) {
 
 function createMapLayout(scene, mapDefinition) {
     if (!scene) {
-        if (DEBUG_GENERAL) console.error("A valid scene object must be provided to createMapLayout.");
+        console.error("A valid scene object must be provided to createMapLayout.");
         return null; 
     }
 
@@ -119,7 +116,7 @@ function createMapLayout(scene, mapDefinition) {
 
                     mapGroup.add(tileInstance);
                 } else {
-                    if (DEBUG_MODEL_LOADING) console.warn(`Model for tile '${tileAssetName}' at [${x},${z}] not found or not loaded.`);
+                    console.warn(`Model for tile '${tileAssetName}' at [${x},${z}] not found or not loaded.`);
                 }
             }
         });
@@ -230,7 +227,7 @@ function createMapLayout(scene, mapDefinition) {
                         mapGroup.add(lightInstance);
                         mapGroup.userData.streetLights.push(spotlight);
                     } else {
-                        if (DEBUG_MODEL_LOADING) console.warn(`Model for streetlight '${lightAssetName}' at [${x},${z}] not found or not loaded.`);
+                        console.warn(`Model for streetlight '${lightAssetName}' at [${x},${z}] not found or not loaded.`);
                     }
                 }
             });
@@ -241,10 +238,8 @@ function createMapLayout(scene, mapDefinition) {
 
     if (mapGroup.userData.streetLights.length > 0) {
         registerStreetLights(mapGroup.userData.streetLights);
-        if (DEBUG_GENERAL) console.log(`Registered ${mapGroup.userData.streetLights.length} streetlights with lighting and collision systems.`);
     }
-    
-    if (DEBUG_GENERAL) console.log("Map layout created and added to scene.");
+
     return mapGroup;
 }
 
