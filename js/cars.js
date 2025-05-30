@@ -1020,10 +1020,6 @@ export function getHeadlightsEnabled() {
     return headlightsEnabled;
 }
 
-export function isInFirstPersonMode() {
-    return isFirstPersonMode;
-}
-
 export { isRewinding };
 
 export function getCurrentRewindInterpolation() {

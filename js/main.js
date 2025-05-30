@@ -11,7 +11,6 @@ import {
     IDLE_CAMERA_FADE_DURATION,
     IDLE_CAMERA_BLACK_DURATION,
     IDLE_CAMERA_TIME_SCALE_MIN,
-    IDLE_CAMERA_RETURN_DURATION,
     IDLE_CAMERA_DEBUG,
     IDLE_CAMERA_ANIMATIONS,
     IDLE_SPOTLIGHT_INTENSITY,
@@ -22,11 +21,7 @@ import {
     IDLE_SPOTLIGHT_DECAY,
     IDLE_SPOTLIGHT_DISTANCE,
     IDLE_SPOTLIGHT_COLOR,
-    IDLE_LIGHT_DIM_SCALE,
-    CAMERA_FOLLOW_SPEED, 
-    CAMERA_DISTANCE, 
-    CAMERA_HEIGHT, 
-    LOOK_AT_Y_OFFSET 
+    IDLE_LIGHT_DIM_SCALE
 } from './config.js';
 
 import { setupLights, updateDayNightCycle, storeOriginalLightIntensities, setLightIntensities, restoreOriginalLightIntensities } from './lights.js';
@@ -43,8 +38,7 @@ import {
     updateCarPhysics,
     isRewinding,
     toggleCameraMode,
-    getActiveCar,
-    isInFirstPersonMode
+    getActiveCar
 } from './cars.js';
 import { loadMap, getWorldCoordinates } from './mapLoader.js';
 import { mapData as level1MapData } from './maps/level1_map.js';

@@ -58,7 +58,6 @@ export const IDLE_CAMERA_TRIGGER_TIME = 1;
 export const IDLE_CAMERA_FADE_DURATION = 1.0;
 export const IDLE_CAMERA_BLACK_DURATION = 1.0;
 export const IDLE_CAMERA_TIME_SCALE_MIN = 0.0;
-export const IDLE_CAMERA_RETURN_DURATION = 2.0;
 export const IDLE_CAMERA_DEBUG = false;
 
 export const IDLE_SPOTLIGHT_INTENSITY = 50;
