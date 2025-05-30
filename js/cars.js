@@ -1021,6 +1021,10 @@ export function getHeadlightsEnabled() {
     return headlightsEnabled;
 }
 
+export function getCarSpeed() {
+    return carSpeed;
+}
+
 export { isRewinding };
 
 export function getCurrentRewindInterpolation() {

@@ -47,7 +47,8 @@ import {
     updateCarPhysics,
     isRewinding,
     toggleCameraMode,
-    getActiveCar
+    getActiveCar,
+    getCarSpeed
 } from './cars.js';
 import { loadMap, getWorldCoordinates } from './mapLoader.js';
 import { mapData as level1MapData } from './maps/level1_map.js';
@@ -653,10 +654,11 @@ function checkIdleTimeout() {
     
     const now = Date.now();
     const lastInputTime = Achievements.getLastInputTime();
-    
+    const currentSpeed = Math.abs(getCarSpeed());
+
     if (lastInputTime > 0) {
         const timeSinceInput = (now - lastInputTime) / 1000;
-        if (timeSinceInput >= IDLE_CAMERA_TRIGGER_TIME) {
+        if (timeSinceInput >= IDLE_CAMERA_TRIGGER_TIME && currentSpeed < 0.1) {
             startIdleCameraAnimation();
         }
     }

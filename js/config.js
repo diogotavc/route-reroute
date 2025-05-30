@@ -54,7 +54,7 @@ export const HITBOX_SCALE_FACTOR = 0.8;
 export const AUTO_PAUSE_ON_FOCUS_LOST = false;
 
 export const IDLE_CAMERA_ENABLED = true;
-export const IDLE_CAMERA_TRIGGER_TIME = 1;
+export const IDLE_CAMERA_TRIGGER_TIME = 5;
 export const IDLE_CAMERA_FADE_DURATION = 1.0;
 export const IDLE_CAMERA_BLACK_DURATION = 1.0;
 export const IDLE_CAMERA_TIME_SCALE_MIN = 0.0;
