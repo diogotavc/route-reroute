@@ -69,11 +69,7 @@ controls.enableRotate = false;
 controls.enableZoom = false;
 
 initCamera(camera, scene, controls, idleFadeOverlay);
-initMusicSystem().then(() => {
-    // Music system ready
-}).catch(error => {
-    console.warn('Music system initialization failed:', error);
-});
+initMusicSystem();
 
 initCars(scene, camera, controls);
 

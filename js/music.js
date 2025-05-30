@@ -14,115 +14,58 @@ let audioContext = null;
 let gainNode = null;
 let currentAudio = null;
 let currentTrackIndex = 0;
-let playlist = [];
 let isPlaying = false;
-let isInitialized = false;
 let isMuted = false;
 let isIdleMode = false;
-
 let musicUI = null;
 let uiTimeout = null;
 
-const STATIC_PLAYLIST = [
+const PLAYLIST = [
     'An Old Bassman.mp3',
     'Be At Home.mp3',
     'Hypnosis.mp3'
 ];
 
-export async function initMusicSystem() {
-    if (!MUSIC_ENABLED || isInitialized) return;
+export function initMusicSystem() {
+    if (!MUSIC_ENABLED) return;
 
-    try {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        gainNode = audioContext.createGain();
-        gainNode.gain.value = MUSIC_VOLUME_GAMEPLAY; // Start with gameplay volume
-        gainNode.connect(audioContext.destination);
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    gainNode = audioContext.createGain();
+    gainNode.gain.value = MUSIC_VOLUME_GAMEPLAY;
+    gainNode.connect(audioContext.destination);
 
-        await initializePlaylist();
-
-        if (playlist.length === 0) {
-            console.log('No music files found - music system disabled');
-            return;
-        }
-
-        createMusicUI();
-        isInitialized = true;
-
-        const enableAudio = () => {
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-            if (playlist.length > 0 && !isPlaying) {
-                playCurrentTrack();
-            }
-        };
-        
-        document.addEventListener('click', enableAudio, { once: true });
-        document.addEventListener('keydown', enableAudio, { once: true });
-        
-        console.log('Music system initialized with', playlist.length, 'tracks');
-        
-    } catch (error) {
-        console.warn('Failed to initialize music system:', error);
-    }
-}
-
-async function initializePlaylist() {
-    try {
-        const availableFiles = [];
-
-        for (const filename of STATIC_PLAYLIST) {
-            try {
-                const response = await fetch(MUSIC_FOLDER + filename, { method: 'HEAD' });
-                if (response.ok) {
-                    availableFiles.push(filename);
-                    console.log(`Found music file: ${filename}`);
-                }
-            } catch (error) {
-                // File doesn't exist, skip silently
-            }
-        }
-
-        playlist = availableFiles;
-
-        if (playlist.length === 0) {
-            console.warn('No music files found in static playlist');
-            return;
-        }
-
-        console.log(`Music system initialized with ${playlist.length} tracks`);
-
-        if (MUSIC_SHUFFLE && playlist.length > 0) {
-            shufflePlaylist();
-        }
-        
-        currentTrackIndex = 0;
-    } catch (error) {
-        console.warn('Failed to initialize playlist:', error);
-        playlist = [];
-    }
-}
-
-function shufflePlaylist() {
-    for (let i = playlist.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [playlist[i], playlist[j]] = [playlist[j], playlist[i]];
-    }
-}
-
-function createMusicUI() {
+    if (MUSIC_SHUFFLE) shuffleArray(PLAYLIST);
+    
     musicUI = document.getElementById('music-ui');
-    if (!musicUI) {
-        console.warn('Music UI element not found in HTML');
-        return;
+    if (musicUI) {
+        document.getElementById('music-prev').addEventListener('click', previousTrack);
+        document.getElementById('music-play-pause').addEventListener('click', togglePlayPause);
+        document.getElementById('music-next').addEventListener('click', nextTrack);
+        document.getElementById('music-mute').addEventListener('click', toggleMute);
+
+        updateMusicUI();
     }
+}
 
-    document.getElementById('music-prev').addEventListener('click', previousTrack);
-    document.getElementById('music-play-pause').addEventListener('click', togglePlayPause);
-    document.getElementById('music-next').addEventListener('click', nextTrack);
-    document.getElementById('music-mute').addEventListener('click', toggleMute);
+let progressInterval = null;
 
-    hideMusicUI();
+function startProgressUpdates() {
+    if (progressInterval) clearInterval(progressInterval);
+    progressInterval = setInterval(updateMusicUI, 1000);
+}
+
+function stopProgressUpdates() {
+    if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+    }
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
 }
 
 function showMusicUI() {
@@ -145,26 +88,40 @@ function hideMusicUI() {
 }
 
 function updateMusicUI() {
-    if (!musicUI || !currentAudio) return;
+    if (!musicUI) return;
 
-    const title = getCurrentTrackName();
-    const currentTime = currentAudio.currentTime || 0;
-    const duration = currentAudio.duration || 0;
+    const title = currentAudio ? getCurrentTrackName() : 'No Track Loaded';
+    const currentTime = currentAudio ? currentAudio.currentTime || 0 : 0;
+    const duration = currentAudio ? currentAudio.duration || 0 : 0;
     const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
     musicUI.querySelector('.music-title').textContent = title;
 
     const playPauseBtn = document.getElementById('music-play-pause');
-    playPauseBtn.textContent = isPlaying ? '⏸' : '▶';
+    if (playPauseBtn) {
+        playPauseBtn.textContent = isPlaying ? '⏸' : '▶';
+    }
 
     const muteBtn = document.getElementById('music-mute');
-    muteBtn.textContent = isMuted ? '🔇' : '🔊';
+    if (muteBtn) {
+        muteBtn.textContent = isMuted ? '🔇' : '🔊';
+    }
 
     const progressFill = musicUI.querySelector('.progress-fill');
-    progressFill.style.width = `${progress}%`;
+    if (progressFill) {
+        progressFill.style.width = `${progress}%`;
+    }
 
-    musicUI.querySelector('.current-time').textContent = formatTime(currentTime);
-    musicUI.querySelector('.total-time').textContent = formatTime(duration);
+    const currentTimeEl = musicUI.querySelector('.current-time');
+    const totalTimeEl = musicUI.querySelector('.total-time');
+    if (currentTimeEl) currentTimeEl.textContent = formatTime(currentTime);
+    if (totalTimeEl) totalTimeEl.textContent = formatTime(duration);
+
+    if (isIdleMode) {
+        musicUI.classList.add('idle-mode');
+    } else {
+        musicUI.classList.remove('idle-mode');
+    }
 }
 
 function formatTime(seconds) {
@@ -174,88 +131,65 @@ function formatTime(seconds) {
 }
 
 function getCurrentTrackName() {
-    if (playlist.length === 0) return 'No Track';
-    const filename = playlist[currentTrackIndex];
+    const filename = PLAYLIST[currentTrackIndex] || 'No Track';
     return filename.replace(/\.(mp3|wav|ogg)$/i, '').replace(/_/g, ' ');
 }
 
-async function playCurrentTrack() {
-    if (!isInitialized || playlist.length === 0) return;
+function playCurrentTrack() {
+    if (currentAudio) {
+        currentAudio.pause();
+    }
     
-    try {
-        if (currentAudio) {
-            currentAudio.pause();
-            currentAudio = null;
-        }
-        
-        const trackPath = MUSIC_FOLDER + playlist[currentTrackIndex];
-        console.log('Loading track:', trackPath);
-        
-        currentAudio = new Audio(trackPath);
-        currentAudio.volume = 1.0;
-        currentAudio.crossOrigin = 'anonymous';
+    currentAudio = new Audio(MUSIC_FOLDER + PLAYLIST[currentTrackIndex]);
+    currentAudio.volume = 1.0;
 
+    if (audioContext) {
         const source = audioContext.createMediaElementSource(currentAudio);
         source.connect(gainNode);
+    }
 
-        currentAudio.addEventListener('loadedmetadata', () => {
-            updateMusicUI();
-            showMusicUI();
-        });
+    currentAudio.addEventListener('ended', () => {
+        if (MUSIC_AUTO_NEXT) nextTrack();
+    });
 
-        currentAudio.addEventListener('timeupdate', updateMusicUI);
-        
-        currentAudio.addEventListener('ended', () => {
-            if (MUSIC_AUTO_NEXT) {
-                nextTrack();
-            } else {
-                isPlaying = false;
-                updateMusicUI();
-            }
-        });
+    currentAudio.addEventListener('error', () => {
+        if (MUSIC_AUTO_NEXT) nextTrack();
+    });
 
-        currentAudio.addEventListener('error', (e) => {
-            console.warn('Failed to load track:', trackPath, e);
-            if (MUSIC_AUTO_NEXT && playlist.length > 1) {
-                nextTrack();
-            } else {
-                isPlaying = false;
-                updateMusicUI();
-            }
-        });
-
-        await currentAudio.play();
+    currentAudio.addEventListener('play', () => {
         isPlaying = true;
         updateMusicUI();
-        showMusicUI();
-        
-    } catch (error) {
-        console.warn('Failed to play track:', error);
-        if (MUSIC_AUTO_NEXT && playlist.length > 1) {
-            nextTrack();
-        } else {
-            isPlaying = false;
-            updateMusicUI();
-        }
-    }
+        startProgressUpdates();
+    });
+
+    currentAudio.addEventListener('pause', () => {
+        isPlaying = false;
+        updateMusicUI();
+        stopProgressUpdates();
+    });
+
+    currentAudio.play().catch(() => {});
+    updateMusicUI();
+    showMusicUI();
+}
+
+export function startMusic() {
+    if (!MUSIC_ENABLED || !PLAYLIST.length) return;
+    playCurrentTrack();
 }
 
 export function nextTrack() {
-    if (playlist.length === 0) return;
-
-    currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+    currentTrackIndex = (currentTrackIndex + 1) % PLAYLIST.length;
 
     if (currentTrackIndex === 0 && MUSIC_SHUFFLE) {
-        shufflePlaylist();
+        shuffleArray(PLAYLIST);
     }
 
     playCurrentTrack();
 }
 
 export function previousTrack() {
-    if (playlist.length === 0) return;
-
-    currentTrackIndex = currentTrackIndex === 0 ? playlist.length - 1 : currentTrackIndex - 1;
+    currentTrackIndex = currentTrackIndex === 0 ? PLAYLIST.length - 1 : currentTrackIndex - 1;
     playCurrentTrack();
 }
 
@@ -295,8 +229,6 @@ export function setVolume(volume) {
 }
 
 export function setIdleMode(enabled) {
-    if (!isInitialized || isIdleMode === enabled) return;
-
     isIdleMode = enabled;
 
     if (!gainNode) return;
@@ -309,6 +241,8 @@ export function setIdleMode(enabled) {
 
     gainNode.gain.setValueAtTime(startVolume, startTime);
     gainNode.gain.linearRampToValueAtTime(targetVolume, startTime + duration);
+
+    updateMusicUI();
     
     console.log('Music idle mode:', enabled ? 'enabled (louder)' : 'disabled (quieter)');
 }
@@ -320,7 +254,7 @@ export function getMusicInfo() {
         currentTime: currentAudio ? currentAudio.currentTime : 0,
         duration: currentAudio ? currentAudio.duration : 0,
         trackIndex: currentTrackIndex,
-        playlistLength: playlist.length,
+        playlistLength: PLAYLIST.length,
         volume: isIdleMode ? MUSIC_VOLUME_IDLE : MUSIC_VOLUME_GAMEPLAY,
         isMuted,
         isIdleMode
@@ -328,8 +262,6 @@ export function getMusicInfo() {
 }
 
 document.addEventListener('keydown', (event) => {
-    if (!isInitialized) return;
-
     if (event.ctrlKey || event.altKey || event.shiftKey) return;
 
     switch (event.key.toLowerCase()) {
@@ -351,11 +283,29 @@ document.addEventListener('keydown', (event) => {
                 nextTrack();
             }
             break;
+        case ' ':
+            if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
+                event.preventDefault();
+                togglePlayPause();
+            }
+            break;
     }
 });
 
 document.addEventListener('keydown', (event) => {
-    if (['m', ',', '.'].includes(event.key.toLowerCase())) {
+    if (['m', '[', ']', ' '].includes(event.key.toLowerCase())) {
         showMusicUI();
     }
 });
+
+let hasUserInteracted = false;
+function handleFirstInteraction() {
+    if (!hasUserInteracted && MUSIC_ENABLED) {
+        hasUserInteracted = true;
+        document.removeEventListener('click', handleFirstInteraction);
+        document.removeEventListener('keydown', handleFirstInteraction);
+    }
+}
+
+document.addEventListener('click', handleFirstInteraction);
+document.addEventListener('keydown', handleFirstInteraction);
