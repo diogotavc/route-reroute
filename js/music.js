@@ -17,7 +17,6 @@ let gainNode = null;
 let currentAudio = null;
 let currentTrackIndex = 0;
 let isPlaying = false;
-let isMuted = false;
 let isIdleMode = false;
 let musicUI = null;
 let uiTimeout = null;
@@ -43,7 +42,6 @@ export function initMusicSystem() {
         document.getElementById('music-prev').addEventListener('click', previousTrack);
         document.getElementById('music-play-pause').addEventListener('click', togglePlayPause);
         document.getElementById('music-next').addEventListener('click', nextTrack);
-        document.getElementById('music-mute').addEventListener('click', toggleMute);
 
         updateMusicUI();
     }
@@ -102,11 +100,6 @@ function updateMusicUI() {
     const playPauseBtn = document.getElementById('music-play-pause');
     if (playPauseBtn) {
         playPauseBtn.textContent = isPlaying ? '⏸' : '▶';
-    }
-
-    const muteBtn = document.getElementById('music-mute');
-    if (muteBtn) {
-        muteBtn.textContent = isMuted ? '🔇' : '🔊';
     }
 
     const progressFill = musicUI.querySelector('.progress-fill');
@@ -209,19 +202,9 @@ export function togglePlayPause() {
     showMusicUI();
 }
 
-export function toggleMute() {
-    isMuted = !isMuted;
-    if (gainNode) {
-        const targetVolume = isIdleMode ? MUSIC_VOLUME_IDLE : MUSIC_VOLUME_GAMEPLAY;
-        gainNode.gain.value = isMuted ? 0 : targetVolume;
-    }
-    updateMusicUI();
-    showMusicUI();
-}
-
 export function setVolume(volume) {
     const targetVolume = isIdleMode ? MUSIC_VOLUME_IDLE : MUSIC_VOLUME_GAMEPLAY;
-    if (gainNode && !isMuted) {
+    if (gainNode) {
         gainNode.gain.value = targetVolume;
     }
 }
@@ -273,7 +256,6 @@ export function getMusicInfo() {
         trackIndex: currentTrackIndex,
         playlistLength: PLAYLIST.length,
         volume: isIdleMode ? MUSIC_VOLUME_IDLE : MUSIC_VOLUME_GAMEPLAY,
-        isMuted,
         isIdleMode
     };
 }
@@ -285,7 +267,7 @@ document.addEventListener('keydown', (event) => {
         case 'm':
             if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
                 event.preventDefault();
-                toggleMute();
+                togglePlayPause();
             }
             break;
         case '[':
