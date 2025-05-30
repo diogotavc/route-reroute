@@ -60,14 +60,21 @@ export const IDLE_CAMERA_BLACK_DURATION = 1.0;
 export const IDLE_CAMERA_TIME_SCALE_MIN = 0.0;
 export const IDLE_CAMERA_DEBUG = false;
 
-export const IDLE_SPOTLIGHT_INTENSITY = 50;
-export const IDLE_SPOTLIGHT_HEIGHT = 8;
-export const IDLE_SPOTLIGHT_OFFSET = 0;
-export const IDLE_SPOTLIGHT_ANGLE = Math.PI / 8;
-export const IDLE_SPOTLIGHT_PENUMBRA = 0.1;
-export const IDLE_SPOTLIGHT_DECAY = 2;
-export const IDLE_SPOTLIGHT_DISTANCE = 60;
-export const IDLE_SPOTLIGHT_COLOR = 0xffffff;
+export const IDLE_FIREFLY_ENABLED = true;
+export const IDLE_FIREFLY_HEIGHT = 1.5;
+export const IDLE_FIREFLY_DISTANCE_FROM_CAR = 2.5;
+export const IDLE_FIREFLY_ORBIT_DURATION = 25.0;
+export const IDLE_FIREFLY_SIZE = 0.1;
+export const IDLE_FIREFLY_INTENSITY = 8;
+export const IDLE_FIREFLY_COLOR = 0xffff88;
+export const IDLE_FIREFLY_GLOW_COLOR = 0xffdd44;
+export const IDLE_FIREFLY_FLICKER_SPEED = 2.0;
+export const IDLE_FIREFLY_FLICKER_INTENSITY = 0.3;
+export const IDLE_FIREFLY_VERTICAL_BOBBING = 0.3;
+export const IDLE_FIREFLY_BOBBING_SPEED = 2.0;
+export const IDLE_FIREFLY_LIGHT_DISTANCE = 15;
+export const IDLE_FIREFLY_LIGHT_DECAY = 1.5;
+export const IDLE_FIREFLY_CAST_SHADOWS = false;
 
 export const IDLE_LIGHT_DIM_SCALE = 0.15;
 

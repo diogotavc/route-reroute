@@ -13,14 +13,21 @@ import {
     IDLE_CAMERA_TIME_SCALE_MIN,
     IDLE_CAMERA_DEBUG,
     IDLE_CAMERA_ANIMATIONS,
-    IDLE_SPOTLIGHT_INTENSITY,
-    IDLE_SPOTLIGHT_HEIGHT,
-    IDLE_SPOTLIGHT_OFFSET,
-    IDLE_SPOTLIGHT_ANGLE,
-    IDLE_SPOTLIGHT_PENUMBRA,
-    IDLE_SPOTLIGHT_DECAY,
-    IDLE_SPOTLIGHT_DISTANCE,
-    IDLE_SPOTLIGHT_COLOR,
+    IDLE_FIREFLY_ENABLED,
+    IDLE_FIREFLY_HEIGHT,
+    IDLE_FIREFLY_DISTANCE_FROM_CAR,
+    IDLE_FIREFLY_ORBIT_DURATION,
+    IDLE_FIREFLY_SIZE,
+    IDLE_FIREFLY_INTENSITY,
+    IDLE_FIREFLY_COLOR,
+    IDLE_FIREFLY_GLOW_COLOR,
+    IDLE_FIREFLY_FLICKER_SPEED,
+    IDLE_FIREFLY_FLICKER_INTENSITY,
+    IDLE_FIREFLY_VERTICAL_BOBBING,
+    IDLE_FIREFLY_BOBBING_SPEED,
+    IDLE_FIREFLY_LIGHT_DISTANCE,
+    IDLE_FIREFLY_LIGHT_DECAY,
+    IDLE_FIREFLY_CAST_SHADOWS,
     IDLE_LIGHT_DIM_SCALE
 } from './config.js';
 
@@ -46,36 +53,72 @@ import { mapData as level1MapData } from './maps/level1_map.js';
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-let idleSpotlight = null;
+let idleFirefly = null;
+let fireflyOrbitTime = 0;
 
-function createIdleSpotlight() {
-    if (idleSpotlight) {
-        scene.remove(idleSpotlight);
-        scene.remove(idleSpotlight.target);
+function createIdleFirefly() {
+    if (idleFirefly) {
+        scene.remove(idleFirefly.group);
     }
 
-    idleSpotlight = new THREE.SpotLight(
-        IDLE_SPOTLIGHT_COLOR, 
-        IDLE_SPOTLIGHT_INTENSITY, 
-        IDLE_SPOTLIGHT_DISTANCE, 
-        IDLE_SPOTLIGHT_ANGLE, 
-        IDLE_SPOTLIGHT_PENUMBRA, 
-        IDLE_SPOTLIGHT_DECAY
+    if (!IDLE_FIREFLY_ENABLED) return null;
+
+    const fireflyGroup = new THREE.Group();
+
+    const fireflyLight = new THREE.PointLight(
+        IDLE_FIREFLY_COLOR,
+        IDLE_FIREFLY_INTENSITY,
+        IDLE_FIREFLY_LIGHT_DISTANCE,
+        IDLE_FIREFLY_LIGHT_DECAY
     );
-    idleSpotlight.castShadow = true;
-    idleSpotlight.shadow.mapSize.width = 2048;
-    idleSpotlight.shadow.mapSize.height = 2048;
-    idleSpotlight.shadow.camera.near = 0.5;
-    idleSpotlight.shadow.camera.far = IDLE_SPOTLIGHT_DISTANCE;
-    idleSpotlight.shadow.bias = -0.0001;
 
-    idleSpotlight.target = new THREE.Object3D();
-    scene.add(idleSpotlight.target);
-    scene.add(idleSpotlight);
+    fireflyLight.castShadow = IDLE_FIREFLY_CAST_SHADOWS;
+    if (IDLE_FIREFLY_CAST_SHADOWS) {
+        fireflyLight.shadow.mapSize.width = 512;
+        fireflyLight.shadow.mapSize.height = 512;
+        fireflyLight.shadow.camera.near = 0.1;
+        fireflyLight.shadow.camera.far = IDLE_FIREFLY_LIGHT_DISTANCE;
+        fireflyLight.shadow.bias = -0.001;
+        fireflyLight.shadow.normalBias = 0.1;
+    }
 
-    idleSpotlight.intensity = 0;
+    const fireflyGeometry = new THREE.SphereGeometry(IDLE_FIREFLY_SIZE, 8, 6);
+    const fireflyMaterial = new THREE.MeshBasicMaterial({
+        color: IDLE_FIREFLY_COLOR,
+        transparent: true,
+        opacity: 0.9
+    });
+    const fireflyMesh = new THREE.Mesh(fireflyGeometry, fireflyMaterial);
 
-    return idleSpotlight;
+    const glowGeometry = new THREE.SphereGeometry(IDLE_FIREFLY_SIZE * 2, 8, 6);
+    const glowMaterial = new THREE.MeshBasicMaterial({
+        color: IDLE_FIREFLY_GLOW_COLOR,
+        transparent: true,
+        opacity: 0.3
+    });
+    const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
+
+    fireflyGroup.add(fireflyLight);
+    fireflyGroup.add(fireflyMesh);
+    fireflyGroup.add(glowMesh);
+    
+    // Initially hide the firefly - it will be shown after blackout
+    fireflyGroup.visible = false;
+    
+    scene.add(fireflyGroup);
+
+    idleFirefly = {
+        group: fireflyGroup,
+        light: fireflyLight,
+        mesh: fireflyMesh,
+        glow: glowMesh,
+        baseIntensity: IDLE_FIREFLY_INTENSITY,
+        originalOpacity: fireflyMaterial.opacity,
+        originalGlowOpacity: glowMaterial.opacity,
+        hasAppeared: false  // Track whether firefly has appeared yet
+    };
+
+    return idleFirefly;
 }
 
 const renderer = new THREE.WebGLRenderer({ 
@@ -346,9 +389,10 @@ function startIdleCameraAnimation() {
 
     storeOriginalLightIntensities();
 
-    createIdleSpotlight();
+    createIdleFirefly();
+    fireflyOrbitTime = 0;
 
-    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera started - lights will dim after fade in, spotlight will turn on immediately after');
+    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera started - lights will dim after fade in, firefly will appear');
 }
 
 function stopIdleCameraAnimation() {
@@ -371,13 +415,12 @@ function stopIdleCameraAnimation() {
 
     restoreOriginalLightIntensities();
 
-    if (idleSpotlight) {
-        scene.remove(idleSpotlight);
-        scene.remove(idleSpotlight.target);
-        idleSpotlight = null;
+    if (idleFirefly) {
+        scene.remove(idleFirefly.group);
+        idleFirefly = null;
     }
 
-    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera stopped, car visibility restored, spotlight removed, lights restored');
+    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera stopped, car visibility restored, firefly removed, lights restored');
 }
 
 function updateIdleCameraAnimation(deltaTime) {
@@ -409,11 +452,7 @@ function updateActiveIdleCamera(deltaTime) {
             setLightIntensities(IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE);
             idleCameraState.lightsAreDimmed = true;
 
-            if (idleSpotlight) {
-                idleSpotlight.intensity = IDLE_SPOTLIGHT_INTENSITY;
-            }
-
-            if (IDLE_CAMERA_DEBUG) console.log(`🎬 Lights dimmed to ${(IDLE_LIGHT_DIM_SCALE * 100).toFixed(0)}% and spotlight activated`);
+            if (IDLE_CAMERA_DEBUG) console.log(`🎬 Lights dimmed to ${(IDLE_LIGHT_DIM_SCALE * 100).toFixed(0)}% during blackout phase`);
         }
 
         const currentAnim = IDLE_CAMERA_ANIMATIONS[idleCameraState.currentAnimationIndex];
@@ -471,19 +510,9 @@ function updateActiveIdleCamera(deltaTime) {
 
         camera.lookAt(controls.target);
 
-        if (idleSpotlight && activeCar) {
-            const spotlightHeight = IDLE_SPOTLIGHT_HEIGHT;
-            const spotlightOffset = IDLE_SPOTLIGHT_OFFSET;
-
-            const spotlightBackwardOffset = new THREE.Vector3(0, 0, spotlightOffset);
-            spotlightBackwardOffset.applyEuler(new THREE.Euler(0, carRotationY, 0));
-
-            idleSpotlight.position.set(
-                centerPoint.x + spotlightBackwardOffset.x,
-                centerPoint.y + spotlightHeight,
-                centerPoint.z + spotlightBackwardOffset.z
-            );
-            idleSpotlight.target.position.copy(centerPoint);
+        // Update firefly position
+        if (idleFirefly && activeCar) {
+            updateFireflyPosition(centerPoint, deltaTime);
         }
         
         if (IDLE_CAMERA_DEBUG && idleCameraState.timer % 0.5 < 0.02) {
@@ -493,24 +522,38 @@ function updateActiveIdleCamera(deltaTime) {
         const fadeOutProgress = (idleCameraState.timer - fadeInDuration - blackDuration) / fadeOutDuration;
         idleCameraState.fadeOpacity = 1 - fadeOutProgress;
 
+        if (idleFirefly && !idleFirefly.hasAppeared) {
+            idleFirefly.group.visible = true;
+            idleFirefly.hasAppeared = true;
+            if (IDLE_CAMERA_DEBUG) console.log(`🎬 Firefly appears after blackout phase`);
+        }
+
         if (idleCameraState.lightsAreDimmed) {
             setLightIntensities(IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE);
         }
-
-        if (idleSpotlight) {
-            idleSpotlight.intensity = IDLE_SPOTLIGHT_INTENSITY;
+        
+        if (idleFirefly && idleFirefly.hasAppeared) {
+            const flickerIntensity = idleFirefly.baseIntensity * (1 + Math.sin(Date.now() * 0.01 * IDLE_FIREFLY_FLICKER_SPEED) * IDLE_FIREFLY_FLICKER_INTENSITY);
+            idleFirefly.light.intensity = flickerIntensity;
         }
         
         if (IDLE_CAMERA_DEBUG) console.log(`🎬 Fade OUT - Progress: ${fadeOutProgress.toFixed(2)}, Opacity: ${idleCameraState.fadeOpacity.toFixed(2)}`);
     } else {
         idleCameraState.fadeOpacity = 0;
 
+        if (idleFirefly && !idleFirefly.hasAppeared) {
+            idleFirefly.group.visible = true;
+            idleFirefly.hasAppeared = true;
+            if (IDLE_CAMERA_DEBUG) console.log(`🎬 Firefly appears in final phase`);
+        }
+
         if (idleCameraState.lightsAreDimmed) {
             setLightIntensities(IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE);
         }
-        
-        if (idleSpotlight) {
-            idleSpotlight.intensity = IDLE_SPOTLIGHT_INTENSITY;
+
+        if (idleFirefly && idleFirefly.hasAppeared) {
+            const flickerIntensity = idleFirefly.baseIntensity * (1 + Math.sin(Date.now() * 0.01 * IDLE_FIREFLY_FLICKER_SPEED) * IDLE_FIREFLY_FLICKER_INTENSITY);
+            idleFirefly.light.intensity = flickerIntensity;
         }
 
         updateCameraAnimation(deltaTime);
@@ -577,21 +620,8 @@ function updateCameraAnimation(deltaTime) {
     
     camera.lookAt(controls.target);
 
-    if (idleSpotlight && activeCar) {
-        const spotlightHeight = IDLE_SPOTLIGHT_HEIGHT;
-        const spotlightOffset = IDLE_SPOTLIGHT_OFFSET;
-
-        const spotlightBackwardOffset = new THREE.Vector3(0, 0, spotlightOffset);
-        spotlightBackwardOffset.applyEuler(new THREE.Euler(0, carRotationY, 0));
-
-        idleSpotlight.position.set(
-            centerPoint.x + spotlightBackwardOffset.x,
-            centerPoint.y + spotlightHeight,
-            centerPoint.z + spotlightBackwardOffset.z
-        );
-        idleSpotlight.target.position.copy(centerPoint);
-
-        idleSpotlight.intensity = IDLE_SPOTLIGHT_INTENSITY;
+    if (idleFirefly && activeCar) {
+        updateFireflyPosition(centerPoint, deltaTime);
     }
     
     if (IDLE_CAMERA_DEBUG) {
@@ -686,6 +716,40 @@ function showAchievementNotification(notification) {
     }, 4000);
 }
 
+function updateFireflyPosition(carPosition, deltaTime) {
+    if (!idleFirefly || !IDLE_FIREFLY_ENABLED) return;
+
+    fireflyOrbitTime += deltaTime;
+
+    const orbitProgress = (fireflyOrbitTime / IDLE_FIREFLY_ORBIT_DURATION) % 1;
+    const orbitAngle = orbitProgress * Math.PI * 2;
+
+    const orbitX = Math.cos(orbitAngle) * IDLE_FIREFLY_DISTANCE_FROM_CAR;
+    const orbitZ = Math.sin(orbitAngle) * IDLE_FIREFLY_DISTANCE_FROM_CAR;
+
+    const bobbingTime = fireflyOrbitTime * IDLE_FIREFLY_BOBBING_SPEED;
+    const verticalOffset = Math.sin(bobbingTime) * IDLE_FIREFLY_VERTICAL_BOBBING;
+
+    const fireflyPosition = new THREE.Vector3(
+        carPosition.x + orbitX,
+        carPosition.y + IDLE_FIREFLY_HEIGHT + verticalOffset,
+        carPosition.z + orbitZ
+    );
+
+    idleFirefly.group.position.copy(fireflyPosition);
+
+    const flickerTime = Date.now() * 0.001 * IDLE_FIREFLY_FLICKER_SPEED;
+    const flickerFactor = 1 + Math.sin(flickerTime) * IDLE_FIREFLY_FLICKER_INTENSITY;
+    const flickerFactor2 = 1 + Math.sin(flickerTime * 1.7 + 1.2) * IDLE_FIREFLY_FLICKER_INTENSITY * 0.5;
+    const combinedFlicker = flickerFactor * flickerFactor2;
+
+    idleFirefly.light.intensity = idleFirefly.baseIntensity * combinedFlicker;
+
+    const opacityFlicker = 1 + Math.sin(flickerTime * 2.3) * 0.1;
+    idleFirefly.mesh.material.opacity = idleFirefly.originalOpacity * opacityFlicker;
+    idleFirefly.glow.material.opacity = idleFirefly.originalGlowOpacity * opacityFlicker;
+}
+
 function animate() {
     if (isPaused) {
         renderer.render(scene, camera);
@@ -715,6 +779,13 @@ function animate() {
 
     if (currentLevelData) {
         updateCarPhysics(scaledDeltaTime, collidableMapElements, currentMapDefinition);
+    }
+
+    if (idleFirefly && isIdleCameraActive) {
+        const activeCar = getActiveCar();
+        if (activeCar) {
+            updateFireflyPosition(activeCar.position, rawDeltaTime);
+        }
     }
 
     rewindOverlay.style.display = isRewinding ? 'block' : 'none';
