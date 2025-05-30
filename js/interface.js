@@ -31,17 +31,23 @@ export function createAchievementNotification(notification, notificationId) {
     notificationElement.id = `achievement-notification-${notificationId}`;
     notificationElement.className = 'achievement-notification';
 
-    // Try to load background image
-    const testImage = new Image();
-    testImage.onload = function() {
-        notificationElement.style.background = `linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), url('${notification.backgroundImage}')`;
-        notificationElement.style.backgroundSize = 'cover';
-        notificationElement.style.backgroundPosition = 'center';
-    };
-    testImage.onerror = function() {
-        console.log(`Banner image not found for achievement: ${notification.id}`);
-    };
-    testImage.src = notification.backgroundImage;
+    const imagePromise = new Promise((resolve) => {
+        const testImage = new Image();
+        
+        testImage.onload = function() {
+            notificationElement.style.background = `linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), url('${notification.backgroundImage}')`;
+            notificationElement.style.backgroundSize = 'cover';
+            notificationElement.style.backgroundPosition = 'center';
+            resolve(true);
+        };
+        
+        testImage.onerror = function() {
+            console.log(`Banner image not found for achievement: ${notification.id}, using fallback styling`);
+            resolve(false);
+        };
+        
+        testImage.src = notification.backgroundImage;
+    });
 
     notificationElement.innerHTML = `
         <div>
@@ -49,6 +55,8 @@ export function createAchievementNotification(notification, notificationId) {
             <div class="achievement-description">${notification.description}</div>
         </div>
     `;
+
+    notificationElement._imagePromise = imagePromise;
     
     return notificationElement;
 }
@@ -56,11 +64,19 @@ export function createAchievementNotification(notification, notificationId) {
 export function animateAchievementNotification(notificationElement, container) {
     container.insertBefore(notificationElement, container.firstChild);
 
-    // Slide in animation
-    setTimeout(() => {
-        notificationElement.style.transform = 'translateX(0)';
-        notificationElement.style.opacity = '1';
-    }, 10);
+    if (notificationElement._imagePromise) {
+        notificationElement._imagePromise.then(() => {
+            setTimeout(() => {
+                notificationElement.style.transform = 'translateX(0)';
+                notificationElement.style.opacity = '1';
+            }, 10);
+        });
+    } else {
+        setTimeout(() => {
+            notificationElement.style.transform = 'translateX(0)';
+            notificationElement.style.opacity = '1';
+        }, 10);
+    }
 
     // Slide out animation after 5 seconds
     setTimeout(() => {
