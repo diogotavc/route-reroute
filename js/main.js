@@ -100,10 +100,9 @@ function createIdleFirefly() {
     fireflyGroup.add(fireflyLight);
     fireflyGroup.add(fireflyMesh);
     fireflyGroup.add(glowMesh);
-    
-    // Initially hide the firefly - it will be shown after blackout
+
     fireflyGroup.visible = false;
-    
+
     scene.add(fireflyGroup);
 
     idleFirefly = {
@@ -114,7 +113,7 @@ function createIdleFirefly() {
         baseIntensity: IDLE_FIREFLY_INTENSITY,
         originalOpacity: fireflyMaterial.opacity,
         originalGlowOpacity: glowMaterial.opacity,
-        hasAppeared: false  // Track whether firefly has appeared yet
+        hasAppeared: false
     };
 
     return idleFirefly;
@@ -654,20 +653,15 @@ function showAchievementNotification(notification) {
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         min-width: 250px;
         max-width: 350px;
-        border: 2px solid #FFD700;
         transform: translateX(100%);
         opacity: 0;
         transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
     `;
-    
+
     notificationElement.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 24px;">${notification.icon}</span>
-            <div>
-                <div style="font-size: 18px; font-weight: bold;">🏆 Achievement Unlocked!</div>
-                <div style="font-size: 16px; margin-top: 3px;">${notification.name}</div>
-                <div style="font-size: 13px; opacity: 0.9; margin-top: 2px;">${notification.description}</div>
-            </div>
+        <div>
+            <div style="font-size: 16px; margin-top: 3px;">${notification.name}</div>
+            <div style="font-size: 13px; opacity: 0.9; margin-top: 2px;">${notification.description}</div>
         </div>
     `;
     

@@ -3,57 +3,49 @@ const ACHIEVEMENT_DEFINITIONS = {
         id: 'first_crash',
         name: 'Bumper Buddy',
         description: 'Crash into another car for the first time',
-        type: 'milestone',
-        icon: '💥'
+        type: 'milestone'
     },
     HEALTH_DEPLETED: {
         id: 'health_depleted', 
         name: 'Wrecked and Ruined',
         description: 'Lose all health for the first time',
-        type: 'milestone',
-        icon: '💔'
+        type: 'milestone'
     },
     T_BONED: {
         id: 't_boned',
         name: 'Side Hustle',
         description: 'Get hit from the side (perpendicular collision)',
-        type: 'collision',
-        icon: '⚡'
+        type: 'collision'
     },
     OUT_OF_BOUNDS: {
         id: 'out_of_bounds',
         name: 'Off the Grid',
         description: 'Go completely out of bounds',
-        type: 'exploration',
-        icon: '🗺️'
+        type: 'exploration'
     },
     BUILDING_CRASH: {
         id: 'building_crash',
         name: 'Urban Assault',
         description: 'Crash into a building or static object',
-        type: 'collision',
-        icon: '🏢'
+        type: 'collision'
     },
     GRASS_DRIVER: {
         id: 'grass_driver',
         name: 'Lawn Enforcement',
         description: 'Drive on grass for the first time',
-        type: 'exploration',
-        icon: '🌱'
+        type: 'exploration'
     },
     SPEED_DEMON: {
         id: 'speed_demon',
         name: 'Terminal Velocity',
         description: 'Reach maximum speed',
-        type: 'performance',
-        icon: '🚀'
+        type: 'performance'
     },
     REWIND_MASTER: {
         id: 'rewind_master',
         name: 'Déjà Vu',
         description: 'Use rewind 5 times in a single mission',
         type: 'gameplay',
-        icon: '⏰',
         counter: true,
         target: 5
     },
@@ -61,36 +53,31 @@ const ACHIEVEMENT_DEFINITIONS = {
         id: 'honked_at',
         name: 'Road Rage Target',
         description: 'Get honked at by another car',
-        type: 'social',
-        icon: '📯'
+        type: 'social'
     },
     FLASHED_AT: {
         id: 'flashed_at',
         name: 'Spotlight Stealer',
         description: 'Get flashed at by another car',
-        type: 'social',
-        icon: '💡'
+        type: 'social'
     },
     NOT_A_SCRATCH: {
         id: 'not_a_scratch',
         name: 'Not a Scratch',
         description: 'Complete all missions in a level without crashing',
-        type: 'perfectionist',
-        icon: '✨'
+        type: 'perfectionist'
     },
     PERFECT_RUN: {
         id: 'perfect_run',
         name: 'Flawless Victory',
         description: 'Complete all missions without crashing, going on grass, or out of bounds',
-        type: 'perfectionist',
-        icon: '🏆'
+        type: 'perfectionist'
     },
     REVERSE_DRIVER: {
         id: 'reverse_driver',
         name: 'Moonwalker',
         description: 'Drive 50 meters in reverse',
         type: 'quirky',
-        icon: '🔄',
         counter: true,
         target: 50
     },
@@ -98,15 +85,13 @@ const ACHIEVEMENT_DEFINITIONS = {
         id: 'showcase_mode',
         name: 'Director\'s Cut',
         description: 'Trigger idle camera showcase for the first time',
-        type: 'camera',
-        icon: '🎬'
+        type: 'camera'
     },
     SEVEN_DAYS_NIGHTS: {
         id: 'seven_days_nights',
         name: '8th World Wonder',
         description: 'Experience 7 Days and 7 Nights',
         type: 'endurance',
-        icon: '🌅',
         counter: true,
         target: 7
     }
@@ -197,7 +182,6 @@ function queueNotification(achievement, context) {
         id: achievement.id,
         name: achievement.name,
         description: achievement.description,
-        icon: achievement.icon,
         timestamp: Date.now(),
         context
     };
