@@ -643,12 +643,8 @@ function showAchievementNotification(notification) {
     const notificationId = `achievement-notification-${++notificationIdCounter}`;
     notificationElement.id = notificationId;
 
-    const backgroundStyle = notification.backgroundImage 
-        ? `background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), url('${notification.backgroundImage}'); background-size: cover; background-position: center;`
-        : `background: linear-gradient(135deg, #4CAF50, #45a049);`;
-
     notificationElement.style.cssText = `
-        ${backgroundStyle}
+        background: linear-gradient(135deg, #4CAF50, #45a049);
         color: white;
         padding: 15px 20px;
         border-radius: 10px;
@@ -663,6 +659,17 @@ function showAchievementNotification(notification) {
         transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     `;
+
+    const testImage = new Image();
+    testImage.onload = function() {
+        notificationElement.style.background = `linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), url('${notification.backgroundImage}')`;
+        notificationElement.style.backgroundSize = 'cover';
+        notificationElement.style.backgroundPosition = 'center';
+    };
+    testImage.onerror = function() {
+        console.log(`Banner image not found for achievement: ${notification.id}`);
+    };
+    testImage.src = notification.backgroundImage;
 
     notificationElement.innerHTML = `
         <div>
