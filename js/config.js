@@ -85,20 +85,14 @@ export const IDLE_FIREFLY_CAST_SHADOWS = false;
 export const IDLE_LIGHT_DIM_SCALE = 0.15;
 
 export const MUSIC_ENABLED = true;
-export const MUSIC_VOLUME = 0.6;
-export const MUSIC_FADE_DURATION = 2.0;
 export const MUSIC_FOLDER = 'assets/audio/music/';
 export const MUSIC_SHUFFLE = true;
 export const MUSIC_AUTO_NEXT = true;
-
 export const MUSIC_UI_SHOW_DURATION = 4.0;
-export const MUSIC_UI_FADE_DURATION = 0.5;
 
-export const IDLE_AUDIO_MUFFLE_FACTOR = 0.3;
-export const IDLE_AUDIO_REVERB_ENABLED = true;
-export const IDLE_AUDIO_REVERB_ROOM_SIZE = 0.8;
-export const IDLE_AUDIO_REVERB_DECAY = 2.5;
-export const IDLE_AUDIO_REVERB_WET = 0.3;
+export const MUSIC_VOLUME_GAMEPLAY = 0.3;
+export const MUSIC_VOLUME_IDLE = 1.0;
+export const MUSIC_VOLUME_TRANSITION_DURATION = 0.5;
 
 export const IDLE_CAMERA_ANIMATIONS = [
     {

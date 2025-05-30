@@ -1,29 +1,22 @@
 import {
     MUSIC_ENABLED,
-    MUSIC_VOLUME,
-    MUSIC_FADE_DURATION,
     MUSIC_FOLDER,
     MUSIC_SHUFFLE,
     MUSIC_AUTO_NEXT,
     MUSIC_UI_SHOW_DURATION,
-    MUSIC_UI_FADE_DURATION,
-    IDLE_AUDIO_MUFFLE_FACTOR,
-    IDLE_AUDIO_REVERB_ENABLED,
-    IDLE_AUDIO_REVERB_ROOM_SIZE,
-    IDLE_AUDIO_REVERB_DECAY,
-    IDLE_AUDIO_REVERB_WET
+    MUSIC_VOLUME_GAMEPLAY,
+    MUSIC_VOLUME_IDLE,
+    MUSIC_VOLUME_TRANSITION_DURATION
 } from './config.js';
 
 let audioContext = null;
 let gainNode = null;
-let reverbNode = null;
 let currentAudio = null;
 let currentTrackIndex = 0;
 let playlist = [];
 let isPlaying = false;
 let isInitialized = false;
 let isMuted = false;
-let currentVolume = MUSIC_VOLUME;
 let isIdleMode = false;
 
 let musicUI = null;
@@ -40,25 +33,18 @@ export async function initMusicSystem() {
 
     try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
         gainNode = audioContext.createGain();
-        gainNode.gain.value = currentVolume;
-
-        if (IDLE_AUDIO_REVERB_ENABLED) {
-            reverbNode = createReverbEffect();
-        }
-
+        gainNode.gain.value = MUSIC_VOLUME_GAMEPLAY; // Start with gameplay volume
         gainNode.connect(audioContext.destination);
 
         await initializePlaylist();
 
         if (playlist.length === 0) {
-            console.error('No music files found - music system disabled');
+            console.log('No music files found - music system disabled');
             return;
         }
 
         createMusicUI();
-
         isInitialized = true;
 
         const enableAudio = () => {
@@ -73,35 +59,10 @@ export async function initMusicSystem() {
         document.addEventListener('click', enableAudio, { once: true });
         document.addEventListener('keydown', enableAudio, { once: true });
         
-        console.log('Music system initialized');
+        console.log('Music system initialized with', playlist.length, 'tracks');
         
     } catch (error) {
         console.warn('Failed to initialize music system:', error);
-    }
-}
-
-function createReverbEffect() {
-    if (!audioContext) return null;
-    
-    try {
-        const convolver = audioContext.createConvolver();
-        const sampleRate = audioContext.sampleRate;
-        const length = sampleRate * IDLE_AUDIO_REVERB_DECAY;
-        const impulse = audioContext.createBuffer(2, length, sampleRate);
-
-        for (let channel = 0; channel < 2; channel++) {
-            const channelData = impulse.getChannelData(channel);
-            for (let i = 0; i < length; i++) {
-                const decay = Math.pow(1 - i / length, 2);
-                channelData[i] = (Math.random() * 2 - 1) * decay * IDLE_AUDIO_REVERB_ROOM_SIZE;
-            }
-        }
-
-        convolver.buffer = impulse;
-        return convolver;
-    } catch (error) {
-        console.warn('Failed to create reverb effect:', error);
-        return null;
     }
 }
 
@@ -149,32 +110,11 @@ function shufflePlaylist() {
 }
 
 function createMusicUI() {
-    if (musicUI) return;
-    
-    musicUI = document.createElement('div');
-    musicUI.id = 'music-ui';
-    musicUI.innerHTML = `
-        <div class="music-info">
-            <div class="music-title">No Track Loaded</div>
-            <div class="music-controls">
-                <button id="music-prev">⏮</button>
-                <button id="music-play-pause">▶</button>
-                <button id="music-next">⏭</button>
-                <button id="music-mute">🔊</button>
-            </div>
-            <div class="music-progress">
-                <div class="progress-bar">
-                    <div class="progress-fill"></div>
-                </div>
-                <div class="music-time">
-                    <span class="current-time">0:00</span>
-                    <span class="total-time">0:00</span>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(musicUI);
+    musicUI = document.getElementById('music-ui');
+    if (!musicUI) {
+        console.warn('Music UI element not found in HTML');
+        return;
+    }
 
     document.getElementById('music-prev').addEventListener('click', previousTrack);
     document.getElementById('music-play-pause').addEventListener('click', togglePlayPause);
@@ -255,17 +195,7 @@ async function playCurrentTrack() {
         currentAudio.crossOrigin = 'anonymous';
 
         const source = audioContext.createMediaElementSource(currentAudio);
-
-        if (isIdleMode && reverbNode) {
-            source.connect(gainNode);
-            gainNode.disconnect();
-            gainNode.connect(reverbNode);
-            reverbNode.connect(audioContext.destination);
-        } else {
-            source.connect(gainNode);
-            gainNode.disconnect();
-            gainNode.connect(audioContext.destination);
-        }
+        source.connect(gainNode);
 
         currentAudio.addEventListener('loadedmetadata', () => {
             updateMusicUI();
@@ -349,16 +279,17 @@ export function togglePlayPause() {
 export function toggleMute() {
     isMuted = !isMuted;
     if (gainNode) {
-        gainNode.gain.value = isMuted ? 0 : currentVolume;
+        const targetVolume = isIdleMode ? MUSIC_VOLUME_IDLE : MUSIC_VOLUME_GAMEPLAY;
+        gainNode.gain.value = isMuted ? 0 : targetVolume;
     }
     updateMusicUI();
     showMusicUI();
 }
 
 export function setVolume(volume) {
-    currentVolume = Math.max(0, Math.min(1, volume));
+    const targetVolume = isIdleMode ? MUSIC_VOLUME_IDLE : MUSIC_VOLUME_GAMEPLAY;
     if (gainNode && !isMuted) {
-        gainNode.gain.value = currentVolume;
+        gainNode.gain.value = targetVolume;
     }
 }
 
@@ -369,34 +300,16 @@ export function setIdleMode(enabled) {
 
     if (!gainNode) return;
 
-    const targetVolume = enabled ? currentVolume * IDLE_AUDIO_MUFFLE_FACTOR : currentVolume;
+    const targetVolume = enabled ? MUSIC_VOLUME_IDLE : MUSIC_VOLUME_GAMEPLAY;
 
     const startVolume = gainNode.gain.value;
     const startTime = audioContext.currentTime;
-    const duration = 1.0; // 1 second transition
+    const duration = MUSIC_VOLUME_TRANSITION_DURATION;
 
     gainNode.gain.setValueAtTime(startVolume, startTime);
     gainNode.gain.linearRampToValueAtTime(targetVolume, startTime + duration);
-
-    if (currentAudio) {
-        try {
-            const source = audioContext.createMediaElementSource(currentAudio);
-            if (enabled && reverbNode) {
-                source.connect(gainNode);
-                gainNode.disconnect();
-                gainNode.connect(reverbNode);
-                reverbNode.connect(audioContext.destination);
-            } else {
-                source.connect(gainNode);
-                gainNode.disconnect();
-                gainNode.connect(audioContext.destination);
-            }
-        } catch (error) {
-            // Source might already be connected, ignore error
-        }
-    }
     
-    console.log('Music idle mode:', enabled ? 'enabled' : 'disabled');
+    console.log('Music idle mode:', enabled ? 'enabled (louder)' : 'disabled (quieter)');
 }
 
 export function getMusicInfo() {
@@ -407,7 +320,7 @@ export function getMusicInfo() {
         duration: currentAudio ? currentAudio.duration : 0,
         trackIndex: currentTrackIndex,
         playlistLength: playlist.length,
-        volume: currentVolume,
+        volume: isIdleMode ? MUSIC_VOLUME_IDLE : MUSIC_VOLUME_GAMEPLAY,
         isMuted,
         isIdleMode
     };
