@@ -177,6 +177,8 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
         if (speed < 0) {
             const reverseDistance = Math.abs(speed * deltaTime);
             Achievements.trackReverseDistance(reverseDistance);
+        } else {
+            Achievements.resetContinuousReverseDistance();
         }
     }
 
@@ -204,6 +206,7 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
             collisionNormal.copy(collisionResult.mtvAxis);
 
             const activeForward = new THREE.Vector3(0, 0, 1).applyQuaternion(activeCar.quaternion);
+            const activeRight = new THREE.Vector3(1, 0, 0).applyQuaternion(activeCar.quaternion);
             const otherForward = new THREE.Vector3(0, 0, 1).applyQuaternion(otherCar.quaternion);
             const collisionAngle = Math.acos(Math.abs(activeForward.dot(otherForward))) * (180 / Math.PI);
 
@@ -211,7 +214,9 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
                 angle: collisionAngle,
                 speed: speed,
                 otherCarName: otherCar.name || 'unknown',
-                penetrationDepth: penetrationDepth
+                penetrationDepth: penetrationDepth,
+                collisionNormal: collisionNormal.clone(),
+                activeCarRight: activeRight.clone()
             });
 
             break; 

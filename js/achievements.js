@@ -88,11 +88,11 @@ const ACHIEVEMENT_DEFINITIONS = {
     REVERSE_DRIVER: {
         id: 'reverse_driver',
         name: 'Moonwalker',
-        description: 'Drive 250 meters in reverse',
+        description: 'Drive 50 meters in reverse',
         type: 'quirky',
         icon: '🔄',
         counter: true,
-        target: 250
+        target: 50
     },
     SHOWCASE_MODE: {
         id: 'showcase_mode',
@@ -127,6 +127,7 @@ let achievementsState = {
             totalMissions: 0
         },
         reverseDistance: 0,
+        continuousReverseDistance: 0,
         lastInputTime: 0,
         dayNightTracking: {
             lastTime: 0,
@@ -161,6 +162,17 @@ function unlockAchievement(achievementId, context = {}) {
     }
 
     if (achievement.counter) {
+        if (achievementId === 'REVERSE_DRIVER') {
+            const continuousDistance = context.continuousDistance || 0;
+            if (continuousDistance >= achievement.target) {
+                achievementsState.unlocked.add(achievementId);
+                queueNotification(achievement, context);
+                saveAchievementsToStorage();
+                return true;
+            }
+            return false;
+        }
+        
         achievementsState.counters[achievementId] = (achievementsState.counters[achievementId] || 0) + 1;
         saveAchievementsToStorage();
         
@@ -204,8 +216,17 @@ export function onCarCollision(collisionData = {}) {
     achievementsState.session.levelProgress.hasCrashed = true;
     unlockAchievement('FIRST_CRASH', { type: 'car_collision', ...collisionData });
 
-    if (collisionData.angle && Math.abs(collisionData.angle) > 60 && Math.abs(collisionData.angle) < 120) {
-        unlockAchievement('T_BONED', { angle: collisionData.angle });
+    if (collisionData.collisionNormal && collisionData.activeCarRight) {
+        const dotProduct = collisionData.collisionNormal.dot(collisionData.activeCarRight);
+        const isLeftSideHit = dotProduct > 0.7;
+        const isRightSideHit = dotProduct < -0.7;
+        
+        if (isLeftSideHit || isRightSideHit) {
+            unlockAchievement('T_BONED', { 
+                sideHit: isLeftSideHit ? 'left' : 'right',
+                collisionNormalDot: dotProduct 
+            });
+        }
     }
 }
 
@@ -271,9 +292,15 @@ export function onLevelCompleted(levelData = {}) {
 
 export function trackReverseDistance(distance) {
     achievementsState.session.reverseDistance += distance;
+    achievementsState.session.continuousReverseDistance += distance;
     unlockAchievement('REVERSE_DRIVER', { 
-        totalDistance: achievementsState.session.reverseDistance 
+        totalDistance: achievementsState.session.reverseDistance,
+        continuousDistance: achievementsState.session.continuousReverseDistance
     });
+}
+
+export function resetContinuousReverseDistance() {
+    achievementsState.session.continuousReverseDistance = 0;
 }
 
 export function onInputDetected() {
