@@ -1,12 +1,9 @@
-- [x] Basic car model loading
-- [ ] Basic map model loading
-- [x] Level data structure
-- [ ] Fix camera
-- [ ] Map loading mechanism
 - [ ] Menus
 - [ ] HUD
 - [ ] Music & SFX
-- [ ] Optional third person view
 - [ ] Mouse interactions _(sort of quick time event, or steering control by clicking the map)_
-- [ ] Performance testing and debugging
-- [ ] Cars can spawn at the bottom going up, or at the top going down -  not just going down every single time (!!!)
+- [ ] fix t-bone achievement
+- [ ] make wrecked and ruined more than 1 crash (maybe crash 10 times)
+- [ ] check what SHADOW_MAP_SIZE is doing
+- [ ] start counting idle time only when car is stationary
+- [ ] check if banner background image exists. if it exists, wait for it to load before showing banner
