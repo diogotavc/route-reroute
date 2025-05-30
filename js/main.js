@@ -248,11 +248,19 @@ window.addEventListener("resize", () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-window.addEventListener("keydown", (event) => {
-    Achievements.onInputDetected();
+function isMovementKey(key) {
+    const movementKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 's', 'a', 'd', 'r'];
+    // THIS WILL BE REPLACED WITH CUSTOM KEY VARIABLES AND SUCH
+    return movementKeys.includes(key);
+}
 
-    if (isIdleCameraSystemActive()) {
-        stopIdleCameraAnimation();
+window.addEventListener("keydown", (event) => {
+    if (isMovementKey(event.key)) {
+        Achievements.onInputDetected();
+        
+        if (isIdleCameraSystemActive()) {
+            stopIdleCameraAnimation();
+        }
     }
 
     switch (event.key) {
