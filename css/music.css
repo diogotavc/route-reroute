@@ -12,11 +12,16 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
-    z-index: 1000;
+    z-index: 1600;
 
     opacity: 0;
     transform: translateY(20px);
-    transition: all 0.5s ease;
+    transition: 
+        opacity 0.5s ease, 
+        transform 0.5s ease, 
+        background 3s ease, 
+        border-color 3s ease, 
+        box-shadow 3s ease;
     pointer-events: none;
 }
 
@@ -40,6 +45,7 @@
     overflow: hidden;
     white-space: nowrap;
     max-width: 250px;
+    transition: color 3s ease;
 }
 
 .music-controls {
@@ -88,7 +94,7 @@
     height: 100%;
     background: linear-gradient(90deg, #ffdd44, #ff6b6b);
     width: 0%;
-    transition: width 0.1s ease;
+    transition: width 0.1s ease, background 3s ease;
     border-radius: 2px;
 }
 
@@ -102,7 +108,21 @@
 #music-ui.idle-mode {
     background: rgba(0, 0, 50, 0.9);
     border-color: rgba(100, 150, 255, 0.3);
-    animation: idlePulse 3s ease-in-out infinite;
+    transition: 
+        opacity 0.5s ease, 
+        transform 0.5s ease, 
+        background 3s ease, 
+        border-color 3s ease, 
+        box-shadow 3s ease;
+}
+
+#music-ui.idle-mode.exiting {
+    transition: 
+        opacity 0.5s ease, 
+        transform 0.5s ease, 
+        background 0.5s ease, 
+        border-color 0.5s ease, 
+        box-shadow 0.5s ease;
 }
 
 #music-ui.idle-mode .music-title {
@@ -111,6 +131,10 @@
 
 #music-ui.idle-mode .progress-fill {
     background: linear-gradient(90deg, #88ddff, #6644ff);
+}
+
+#music-ui.idle-mode.animated {
+    animation: idlePulse 3s ease-in-out infinite;
 }
 
 @keyframes idlePulse {

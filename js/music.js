@@ -118,12 +118,6 @@ function updateMusicUI() {
     const totalTimeEl = musicUI.querySelector('.total-time');
     if (currentTimeEl) currentTimeEl.textContent = formatTime(currentTime);
     if (totalTimeEl) totalTimeEl.textContent = formatTime(duration);
-
-    if (isIdleMode) {
-        musicUI.classList.add('idle-mode');
-    } else {
-        musicUI.classList.remove('idle-mode');
-    }
 }
 
 function formatTime(seconds) {
@@ -236,6 +230,7 @@ export function setIdleMode(enabled) {
     isIdleMode = enabled;
 
     if (!gainNode) return;
+    if (!musicUI) return;
 
     const targetVolume = enabled ? MUSIC_VOLUME_IDLE : MUSIC_VOLUME_GAMEPLAY;
 
@@ -245,6 +240,24 @@ export function setIdleMode(enabled) {
 
     gainNode.gain.setValueAtTime(startVolume, startTime);
     gainNode.gain.linearRampToValueAtTime(targetVolume, startTime + duration);
+
+    if (enabled) {
+        musicUI.classList.remove('exiting');
+        musicUI.classList.add('idle-mode');
+
+        setTimeout(() => {
+            if (isIdleMode && musicUI.classList.contains('idle-mode')) {
+                musicUI.classList.add('animated');
+            }
+        }, 3000);
+    } else {
+        musicUI.classList.remove('animated');
+        musicUI.classList.add('exiting');
+
+        setTimeout(() => {
+            musicUI.classList.remove('idle-mode', 'exiting');
+        }, 500);
+    }
 
     updateMusicUI();
     
