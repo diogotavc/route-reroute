@@ -1,11 +1,11 @@
 - [ ] Menus
 - [ ] HUD
-- [ ] Music
+- [x] Music
 - [ ] SFX
 - [ ] Selectable OST (lists files in the designated folder, and let's you toggle it)
 - [ ] Mouse interactions _(sort of quick time event, or steering control by clicking the map)_
-- [ ] fix t-bone achievement
+- [?] fix t-bone achievement
 - [ ] make wrecked and ruined more than 1 crash (maybe crash 10 times)
-- [ ] check what SHADOW_MAP_SIZE is doing
+- [ ] check what getCarSpeed is doing there
 - [x] start counting idle time only when car is stationary
 - [x] check if banner background image exists. if it exists, wait for it to load before showing banner

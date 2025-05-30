@@ -39,10 +39,6 @@ export function initMusicSystem() {
     
     musicUI = document.getElementById('music-ui');
     if (musicUI) {
-        document.getElementById('music-prev').addEventListener('click', previousTrack);
-        document.getElementById('music-play-pause').addEventListener('click', togglePlayPause);
-        document.getElementById('music-next').addEventListener('click', nextTrack);
-
         updateMusicUI();
     }
 }
@@ -96,11 +92,6 @@ function updateMusicUI() {
     const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
     musicUI.querySelector('.music-title').textContent = title;
-
-    const playPauseBtn = document.getElementById('music-play-pause');
-    if (playPauseBtn) {
-        playPauseBtn.textContent = isPlaying ? '⏸' : '▶';
-    }
 
     const progressFill = musicUI.querySelector('.progress-fill');
     if (progressFill) {
