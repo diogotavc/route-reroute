@@ -137,6 +137,8 @@ let notificationQueue = [];
 export function initAchievements() {
     loadAchievementsFromStorage();
 
+    achievementsState.session.lastInputTime = Date.now();
+
     Object.values(ACHIEVEMENT_DEFINITIONS).forEach(achievement => {
         if (achievement.counter && !(achievement.id in achievementsState.counters)) {
             achievementsState.counters[achievement.id] = 0;
