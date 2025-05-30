@@ -1,4 +1,4 @@
-export const HEADLIGHT_INTENSITY = 12;
+export const HEADLIGHT_INTENSITY = 20;
 export const HEADLIGHT_DISTANCE = 30;
 export const HEADLIGHT_ANGLE = Math.PI / 5;
 export const HEADLIGHT_PENUMBRA = 0.4;
@@ -152,3 +152,16 @@ export const DEBUG_MAP_LEVEL_LOGIC = false;
 export const DEBUG_REWIND = false;
 export const DEBUG_CAR_REACTIONS = false;
 export const DEBUG_CAR_HEALTH = false;
+
+export const SHADOW_MAP_SIZE = 2048;
+export const HEADLIGHT_SHADOW_MAP_SIZE = 1024;
+export const STREETLIGHT_SHADOW_MAP_SIZE = 512;
+export const ENABLE_STREETLIGHT_SHADOWS = false;
+export const SHADOW_CAMERA_NEAR = 0.5;
+export const SHADOW_CAMERA_FAR = 150;
+export const SHADOW_BIAS = -0.0005;
+export const SHADOW_NORMAL_BIAS = 0.05;
+export const MAX_LIGHTS_PER_SCENE = 20;
+export const RENDERER_PIXEL_RATIO = Math.min(window.devicePixelRatio, 2);
+export const ENABLE_FRUSTUM_CULLING = true;
+export const LOD_DISTANCE_THRESHOLD = 50;

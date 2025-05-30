@@ -1,5 +1,17 @@
 import * as THREE from 'three';
-import { STREETLIGHT_INTENSITY, STREETLIGHT_TURN_ON_TIME, STREETLIGHT_TURN_OFF_TIME, STREETLIGHT_SMOOTH_TRANSITIONS, DAY_CYCLE, HEADLIGHT_INTENSITY } from './config.js';
+import { 
+    STREETLIGHT_INTENSITY, 
+    STREETLIGHT_TURN_ON_TIME, 
+    STREETLIGHT_TURN_OFF_TIME, 
+    STREETLIGHT_SMOOTH_TRANSITIONS, 
+    DAY_CYCLE, 
+    HEADLIGHT_INTENSITY,
+    SHADOW_MAP_SIZE,
+    SHADOW_CAMERA_NEAR,
+    SHADOW_CAMERA_FAR,
+    SHADOW_BIAS,
+    SHADOW_NORMAL_BIAS
+} from './config.js';
 import { updateHeadlights, toggleHeadlights, setHeadlightsEnabled, getCarHeadlights, getLoadedCarModels, getCurrentTimeOfDay, getHeadlightsEnabled } from './cars.js';
 
 let ambientLight, directionalLight;
@@ -23,17 +35,17 @@ export function setupLights(scene) {
     directionalLight.position.set(50, 50, 50);
     directionalLight.castShadow = true;
 
-    directionalLight.shadow.mapSize.width = 4096;
-    directionalLight.shadow.mapSize.height = 4096;
-    directionalLight.shadow.camera.near = 0.5;
-    directionalLight.shadow.camera.far = 200;
+    directionalLight.shadow.mapSize.width = SHADOW_MAP_SIZE;
+    directionalLight.shadow.mapSize.height = SHADOW_MAP_SIZE;
+    directionalLight.shadow.camera.near = SHADOW_CAMERA_NEAR;
+    directionalLight.shadow.camera.far = SHADOW_CAMERA_FAR;
     directionalLight.shadow.camera.left = -100;
     directionalLight.shadow.camera.right = 100;
     directionalLight.shadow.camera.top = 100;
     directionalLight.shadow.camera.bottom = -100;
 
-    directionalLight.shadow.bias = -0.0005;
-    directionalLight.shadow.normalBias = 0.05;
+    directionalLight.shadow.bias = SHADOW_BIAS;
+    directionalLight.shadow.normalBias = SHADOW_NORMAL_BIAS;
     
     directionalLight.shadow.camera.updateProjectionMatrix();
     scene.add(directionalLight);

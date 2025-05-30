@@ -34,7 +34,8 @@ import {
     CAMERA_HEIGHT,
     LOOK_AT_Y_OFFSET,
     FIRST_PERSON_HEIGHT_OFFSET,
-    FIRST_PERSON_FORWARD_OFFSET
+    FIRST_PERSON_FORWARD_OFFSET,
+    HEADLIGHT_SHADOW_MAP_SIZE
 } from './config.js';
 
 let debug_coordinateLogInterval = 1.0;
@@ -390,15 +391,15 @@ function createHeadlights(carModel, carIndex) {
     leftHeadlight.castShadow = true;
     rightHeadlight.castShadow = true;
 
-    leftHeadlight.shadow.mapSize.width = 2048;
-    leftHeadlight.shadow.mapSize.height = 2048;
+    leftHeadlight.shadow.mapSize.width = HEADLIGHT_SHADOW_MAP_SIZE;
+    leftHeadlight.shadow.mapSize.height = HEADLIGHT_SHADOW_MAP_SIZE;
     leftHeadlight.shadow.camera.near = 0.1;
     leftHeadlight.shadow.camera.far = HEADLIGHT_DISTANCE;
     leftHeadlight.shadow.bias = -0.0001;
     leftHeadlight.shadow.normalBias = 0.02;
 
-    rightHeadlight.shadow.mapSize.width = 2048;
-    rightHeadlight.shadow.mapSize.height = 2048;
+    rightHeadlight.shadow.mapSize.width = HEADLIGHT_SHADOW_MAP_SIZE;
+    rightHeadlight.shadow.mapSize.height = HEADLIGHT_SHADOW_MAP_SIZE;
     rightHeadlight.shadow.camera.near = 0.1;
     rightHeadlight.shadow.camera.far = HEADLIGHT_DISTANCE;
     rightHeadlight.shadow.bias = -0.0001;
@@ -797,9 +798,6 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefiniti
             const timeDiff = state2.time - state1.time;
             let interpFactor = (timeDiff > 0) ? (easedElapsedTime - state1.time) / timeDiff : (easedElapsedTime >= state2.time ? 1 : 0);
             interpFactor = Math.max(0, Math.min(1, interpFactor));
-
-            tempReplayPosition.lerpVectors(state1.position, state2.position, interpFactor);
-            tempReplayQuaternion.slerpQuaternions(state1.rotation, state2.rotation, interpFactor);
 
             let interpolatedTimeOfDay;
             if (state1.timeOfDay !== undefined && state2.timeOfDay !== undefined) {

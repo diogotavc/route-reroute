@@ -28,7 +28,9 @@ import {
     IDLE_FIREFLY_LIGHT_DISTANCE,
     IDLE_FIREFLY_LIGHT_DECAY,
     IDLE_FIREFLY_CAST_SHADOWS,
-    IDLE_LIGHT_DIM_SCALE
+    IDLE_LIGHT_DIM_SCALE,
+    SHADOW_MAP_SIZE,
+    RENDERER_PIXEL_RATIO
 } from './config.js';
 
 import { setupLights, updateDayNightCycle, storeOriginalLightIntensities, setLightIntensities, restoreOriginalLightIntensities } from './lights.js';
@@ -126,6 +128,7 @@ const renderer = new THREE.WebGLRenderer({
     powerPreference: "high-performance"
 });
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(RENDERER_PIXEL_RATIO);
 renderer.setAnimationLoop(animate);
 renderer.setClearColor(0x212121);
 renderer.shadowMap.enabled = true;
@@ -510,13 +513,8 @@ function updateActiveIdleCamera(deltaTime) {
 
         camera.lookAt(controls.target);
 
-        // Update firefly position
-        if (idleFirefly && activeCar) {
-            updateFireflyPosition(centerPoint, deltaTime);
-        }
-        
         if (IDLE_CAMERA_DEBUG && idleCameraState.timer % 0.5 < 0.02) {
-            console.log(`🎬 Blackout - Car visible: ${activeCar?.visible}, Orbit: ${orbitAngle}°, Distance: ${distance}`);
+            console.log(`🎬 Blackout - Car visible: ${activeCar?.visible}, Orbit: ${orbitAngle}°, Distance: ${distance}, Firefly hidden`);
         }
     } else if (idleCameraState.timer < totalPhaseTime) {
         const fadeOutProgress = (idleCameraState.timer - fadeInDuration - blackDuration) / fadeOutDuration;
@@ -554,6 +552,11 @@ function updateActiveIdleCamera(deltaTime) {
         if (idleFirefly && idleFirefly.hasAppeared) {
             const flickerIntensity = idleFirefly.baseIntensity * (1 + Math.sin(Date.now() * 0.01 * IDLE_FIREFLY_FLICKER_SPEED) * IDLE_FIREFLY_FLICKER_INTENSITY);
             idleFirefly.light.intensity = flickerIntensity;
+
+            const activeCar = getActiveCar();
+            if (activeCar) {
+                updateFireflyPosition(activeCar.position, deltaTime);
+            }
         }
 
         updateCameraAnimation(deltaTime);
@@ -620,7 +623,7 @@ function updateCameraAnimation(deltaTime) {
     
     camera.lookAt(controls.target);
 
-    if (idleFirefly && activeCar) {
+    if (idleFirefly && idleFirefly.hasAppeared && activeCar) {
         updateFireflyPosition(centerPoint, deltaTime);
     }
     
