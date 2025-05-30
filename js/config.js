@@ -70,6 +70,8 @@ export const IDLE_SPOTLIGHT_DECAY = 2;
 export const IDLE_SPOTLIGHT_DISTANCE = 60;
 export const IDLE_SPOTLIGHT_COLOR = 0xffffff;
 
+export const IDLE_LIGHT_DIM_SCALE = 0.15;
+
 export const IDLE_CAMERA_ANIMATIONS = [
     {
         initialOrbitAngle: 0,

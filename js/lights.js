@@ -7,6 +7,14 @@ let streetLights = [];
 let streetLightsEnabled = true;
 let currentScene = null;
 let currentTimeOfDay = 0.5;
+
+let originalLightIntensities = {
+    ambient: null,
+    directional: null,
+    streetlights: null,
+    headlights: null
+};
+
 export function setupLights(scene) {
     currentScene = scene;
     ambientLight = new THREE.AmbientLight(0x404040, 0.5);
@@ -426,3 +434,53 @@ window.trackSunMovement = () => {
 console.log("Sun debug controls available:");
 console.log("- debugSunPosition(timeOfDay) - Show sun position for specific time");
 console.log("- trackSunMovement() - Show sun positions throughout full day");
+
+export function storeOriginalLightIntensities() {
+    if (ambientLight) {
+        originalLightIntensities.ambient = ambientLight.intensity;
+    }
+    if (directionalLight) {
+        originalLightIntensities.directional = directionalLight.intensity;
+    }
+
+    if (streetLights.length > 0) {
+        originalLightIntensities.streetlights = streetLights[0].intensity;
+    }
+
+    const carHeadlights = getCarHeadlights();
+    if (Object.keys(carHeadlights).length > 0) {
+        const firstCarHeadlights = Object.values(carHeadlights)[0];
+        originalLightIntensities.headlights = firstCarHeadlights.left.intensity;
+    }
+}
+
+export function setLightIntensities(ambientScale = 1, directionalScale = 1, streetlightScale = 1, headlightScale = 1) {
+    if (ambientLight && originalLightIntensities.ambient !== null) {
+        ambientLight.intensity = originalLightIntensities.ambient * ambientScale;
+    }
+
+    if (directionalLight && originalLightIntensities.directional !== null) {
+        directionalLight.intensity = originalLightIntensities.directional * directionalScale;
+    }
+
+    if (streetLights.length > 0 && originalLightIntensities.streetlights !== null) {
+        const targetIntensity = originalLightIntensities.streetlights * streetlightScale;
+        streetLights.forEach(light => {
+            light.intensity = targetIntensity;
+        });
+    }
+
+    if (originalLightIntensities.headlights !== null) {
+        const carHeadlights = getCarHeadlights();
+        const targetIntensity = originalLightIntensities.headlights * headlightScale;
+        for (const carIndex in carHeadlights) {
+            const headlightSet = carHeadlights[carIndex];
+            headlightSet.left.intensity = targetIntensity;
+            headlightSet.right.intensity = targetIntensity;
+        }
+    }
+}
+
+export function restoreOriginalLightIntensities() {
+    setLightIntensities(1, 1, 1, 1);
+}

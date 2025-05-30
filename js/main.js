@@ -22,13 +22,14 @@ import {
     IDLE_SPOTLIGHT_DECAY,
     IDLE_SPOTLIGHT_DISTANCE,
     IDLE_SPOTLIGHT_COLOR,
+    IDLE_LIGHT_DIM_SCALE,
     CAMERA_FOLLOW_SPEED, 
     CAMERA_DISTANCE, 
     CAMERA_HEIGHT, 
     LOOK_AT_Y_OFFSET 
 } from './config.js';
 
-import { setupLights, updateDayNightCycle } from './lights.js';
+import { setupLights, updateDayNightCycle, storeOriginalLightIntensities, setLightIntensities, restoreOriginalLightIntensities } from './lights.js';
 import * as Achievements from './achievements.js';
 import {
     initCars,
@@ -312,7 +313,8 @@ let idleCameraState = {
     currentAnimationIndex: 0,
     fadeOpacity: 0,
     originalControlsEnabled: true,
-    originalCarVisibility: true
+    originalCarVisibility: true,
+    lightsAreDimmed: false
 };
 
 function togglePause() {
@@ -342,14 +344,17 @@ function startIdleCameraAnimation() {
     idleCameraState.animationTimer = 0;
     idleCameraState.currentAnimationIndex = 0;
     idleCameraState.fadeOpacity = 0;
+    idleCameraState.lightsAreDimmed = false;
     idleCameraState.originalControlsEnabled = controls.enabled;
 
     controls.enabled = false;
     Achievements.onIdleCameraTriggered();
 
+    storeOriginalLightIntensities();
+
     createIdleSpotlight();
 
-    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera started - spotlight will activate after fade out');
+    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera started - lights will dim after fade in, spotlight will turn on immediately after');
 }
 
 function stopIdleCameraAnimation() {
@@ -370,13 +375,15 @@ function stopIdleCameraAnimation() {
 
     idleFadeOverlay.style.opacity = '0';
 
+    restoreOriginalLightIntensities();
+
     if (idleSpotlight) {
         scene.remove(idleSpotlight);
         scene.remove(idleSpotlight.target);
         idleSpotlight = null;
     }
 
-    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera stopped, car visibility restored, spotlight removed');
+    if (IDLE_CAMERA_DEBUG) console.log('🎬 Idle camera stopped, car visibility restored, spotlight removed, lights restored');
 }
 
 function updateIdleCameraAnimation(deltaTime) {
@@ -399,9 +406,21 @@ function updateActiveIdleCamera(deltaTime) {
     
     if (idleCameraState.timer < fadeInDuration) {
         idleCameraState.fadeOpacity = idleCameraState.timer / fadeInDuration;
+
         if (IDLE_CAMERA_DEBUG) console.log(`🎬 Fade IN - Timer: ${idleCameraState.timer.toFixed(2)}s, Opacity: ${idleCameraState.fadeOpacity.toFixed(2)}`);
     } else if (idleCameraState.timer < fadeInDuration + blackDuration) {
         idleCameraState.fadeOpacity = 1;
+
+        if (!idleCameraState.lightsAreDimmed) {
+            setLightIntensities(IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE);
+            idleCameraState.lightsAreDimmed = true;
+
+            if (idleSpotlight) {
+                idleSpotlight.intensity = IDLE_SPOTLIGHT_INTENSITY;
+            }
+
+            if (IDLE_CAMERA_DEBUG) console.log(`🎬 Lights dimmed to ${(IDLE_LIGHT_DIM_SCALE * 100).toFixed(0)}% and spotlight activated`);
+        }
 
         const currentAnim = IDLE_CAMERA_ANIMATIONS[idleCameraState.currentAnimationIndex];
         const activeCar = getActiveCar();
@@ -471,7 +490,6 @@ function updateActiveIdleCamera(deltaTime) {
                 centerPoint.z + spotlightBackwardOffset.z
             );
             idleSpotlight.target.position.copy(centerPoint);
-            idleSpotlight.intensity = 0;
         }
         
         if (IDLE_CAMERA_DEBUG && idleCameraState.timer % 0.5 < 0.02) {
@@ -481,17 +499,22 @@ function updateActiveIdleCamera(deltaTime) {
         const fadeOutProgress = (idleCameraState.timer - fadeInDuration - blackDuration) / fadeOutDuration;
         idleCameraState.fadeOpacity = 1 - fadeOutProgress;
 
-        if (idleSpotlight && fadeOutProgress > 0) {
-            idleSpotlight.intensity = IDLE_SPOTLIGHT_INTENSITY * fadeOutProgress;
-            if (IDLE_CAMERA_DEBUG && Math.abs(fadeOutProgress - 0.5) < 0.1) {
-                console.log(`🎬 Spotlight activated - Intensity: ${idleSpotlight.intensity.toFixed(1)}`);
-            }
+        if (idleCameraState.lightsAreDimmed) {
+            setLightIntensities(IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE);
+        }
+
+        if (idleSpotlight) {
+            idleSpotlight.intensity = IDLE_SPOTLIGHT_INTENSITY;
         }
         
-        if (IDLE_CAMERA_DEBUG) console.log(`🎬 Fade OUT - Timer: ${idleCameraState.timer.toFixed(2)}s, Progress: ${fadeOutProgress.toFixed(2)}, Opacity: ${idleCameraState.fadeOpacity.toFixed(2)}`);
+        if (IDLE_CAMERA_DEBUG) console.log(`🎬 Fade OUT - Progress: ${fadeOutProgress.toFixed(2)}, Opacity: ${idleCameraState.fadeOpacity.toFixed(2)}`);
     } else {
         idleCameraState.fadeOpacity = 0;
 
+        if (idleCameraState.lightsAreDimmed) {
+            setLightIntensities(IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE);
+        }
+        
         if (idleSpotlight) {
             idleSpotlight.intensity = IDLE_SPOTLIGHT_INTENSITY;
         }
