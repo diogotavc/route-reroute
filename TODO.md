@@ -5,5 +5,5 @@
 - [ ] fix t-bone achievement
 - [ ] make wrecked and ruined more than 1 crash (maybe crash 10 times)
 - [ ] check what SHADOW_MAP_SIZE is doing
-- [ ] start counting idle time only when car is stationary
+- [x] start counting idle time only when car is stationary
 - [ ] check if banner background image exists. if it exists, wait for it to load before showing banner

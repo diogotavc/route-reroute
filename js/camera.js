@@ -388,9 +388,14 @@ export function checkIdleTimeout() {
     const lastInputTime = Achievements.getLastInputTime();
     const currentSpeed = Math.abs(getCarSpeed());
 
+    if (currentSpeed > 0) {
+        Achievements.onInputDetected();
+        return;
+    }
+
     if (lastInputTime > 0) {
         const timeSinceInput = (now - lastInputTime) / 1000;
-        if (timeSinceInput >= IDLE_CAMERA_TRIGGER_TIME && currentSpeed < 0.1) {
+        if (timeSinceInput >= IDLE_CAMERA_TRIGGER_TIME) {
             startIdleCameraAnimation();
         }
     }
