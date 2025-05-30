@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import * as CarPhysics from "./carPhysics.js";
 import * as Achievements from "./achievements.js";
-import { isIdleCameraSystemActive, isIdleCameraReturning } from "./main.js";
+import { isIdleCameraSystemActive, isIdleCameraReturning } from "./camera.js";
 import {
     HEADLIGHT_INTENSITY,
     HEADLIGHT_DISTANCE,
