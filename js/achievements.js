@@ -89,7 +89,7 @@ const ACHIEVEMENT_DEFINITIONS = {
     },
     SEVEN_DAYS_NIGHTS: {
         id: 'seven_days_nights',
-        name: '8th World Wonder',
+        name: 'Dedication and Commitment',
         description: 'Experience 7 Days and 7 Nights',
         type: 'endurance',
         counter: true,

@@ -652,8 +652,8 @@ function showAchievementNotification(notification) {
         font-size: 16px;
         font-weight: bold;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        min-width: 250px;
-        max-width: 350px;
+        min-width: 350px;
+        max-width: 450px;
         transform: translateX(100%);
         opacity: 0;
         transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
@@ -696,7 +696,7 @@ function showAchievementNotification(notification) {
                 }
             }, 300);
         }
-    }, 4000);
+    }, 5000);
 }
 
 function updateFireflyPosition(carPosition, deltaTime) {
