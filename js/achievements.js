@@ -3,43 +3,50 @@ const ACHIEVEMENT_DEFINITIONS = {
         id: 'first_crash',
         name: 'Bumper Buddy',
         description: 'Crash into another car for the first time',
-        type: 'milestone'
+        type: 'milestone',
+        backgroundImage: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=200&fit=crop'
     },
     HEALTH_DEPLETED: {
         id: 'health_depleted', 
         name: 'Wrecked and Ruined',
         description: 'Lose all health for the first time',
-        type: 'milestone'
+        type: 'milestone',
+        backgroundImage: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=200&fit=crop'
     },
     T_BONED: {
         id: 't_boned',
         name: 'Side Hustle',
         description: 'Get hit from the side (perpendicular collision)',
-        type: 'collision'
+        type: 'collision',
+        backgroundImage: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=200&fit=crop'
     },
     OUT_OF_BOUNDS: {
         id: 'out_of_bounds',
         name: 'Off the Grid',
         description: 'Go completely out of bounds',
-        type: 'exploration'
+        type: 'exploration',
+        backgroundImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop'
     },
     BUILDING_CRASH: {
         id: 'building_crash',
         name: 'Urban Assault',
         description: 'Crash into a building or static object',
-        type: 'collision'
+        type: 'collision',
+        backgroundImage: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400&h=200&fit=crop'
     },
     GRASS_DRIVER: {
         id: 'grass_driver',
         name: 'Lawn Enforcement',
         description: 'Drive on grass for the first time',
-        type: 'exploration'
+        type: 'exploration',
+        backgroundImage: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=200&fit=crop'
     },
     SPEED_DEMON: {
         id: 'speed_demon',
         name: 'Terminal Velocity',
         description: 'Reach maximum speed',
-        type: 'performance'
+        type: 'performance',
+        backgroundImage: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=200&fit=crop'
     },
     REWIND_MASTER: {
         id: 'rewind_master',
@@ -47,31 +54,36 @@ const ACHIEVEMENT_DEFINITIONS = {
         description: 'Use rewind 5 times in a single mission',
         type: 'gameplay',
         counter: true,
-        target: 5
+        target: 5,
+        backgroundImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop'
     },
     HONKED_AT: {
         id: 'honked_at',
         name: 'Road Rage Target',
         description: 'Get honked at by another car',
-        type: 'social'
+        type: 'social',
+        backgroundImage: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=200&fit=crop'
     },
     FLASHED_AT: {
         id: 'flashed_at',
         name: 'Spotlight Stealer',
         description: 'Get flashed at by another car',
-        type: 'social'
+        type: 'social',
+        backgroundImage: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=200&fit=crop'
     },
     NOT_A_SCRATCH: {
         id: 'not_a_scratch',
         name: 'Not a Scratch',
         description: 'Complete all missions in a level without crashing',
-        type: 'perfectionist'
+        type: 'perfectionist',
+        backgroundImage: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400&h=200&fit=crop'
     },
     PERFECT_RUN: {
         id: 'perfect_run',
         name: 'Flawless Victory',
         description: 'Complete all missions without crashing, going on grass, or out of bounds',
-        type: 'perfectionist'
+        type: 'perfectionist',
+        backgroundImage: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=200&fit=crop'
     },
     REVERSE_DRIVER: {
         id: 'reverse_driver',
@@ -79,13 +91,15 @@ const ACHIEVEMENT_DEFINITIONS = {
         description: 'Drive 50 meters in reverse',
         type: 'quirky',
         counter: true,
-        target: 50
+        target: 50,
+        backgroundImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop'
     },
     SHOWCASE_MODE: {
         id: 'showcase_mode',
         name: 'Director\'s Cut',
         description: 'Trigger idle camera showcase for the first time',
-        type: 'camera'
+        type: 'camera',
+        backgroundImage: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400&h=200&fit=crop'
     },
     SEVEN_DAYS_NIGHTS: {
         id: 'seven_days_nights',
@@ -93,7 +107,8 @@ const ACHIEVEMENT_DEFINITIONS = {
         description: 'Experience 7 Days and 7 Nights',
         type: 'endurance',
         counter: true,
-        target: 7
+        target: 7,
+        backgroundImage: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=200&fit=crop'
     }
 };
 
@@ -182,6 +197,7 @@ function queueNotification(achievement, context) {
         id: achievement.id,
         name: achievement.name,
         description: achievement.description,
+        backgroundImage: achievement.backgroundImage,
         timestamp: Date.now(),
         context
     };

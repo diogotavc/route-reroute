@@ -642,8 +642,13 @@ function showAchievementNotification(notification) {
     const notificationElement = document.createElement('div');
     const notificationId = `achievement-notification-${++notificationIdCounter}`;
     notificationElement.id = notificationId;
+
+    const backgroundStyle = notification.backgroundImage 
+        ? `background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), url('${notification.backgroundImage}'); background-size: cover; background-position: center;`
+        : `background: linear-gradient(135deg, #4CAF50, #45a049);`;
+
     notificationElement.style.cssText = `
-        background: linear-gradient(135deg, #4CAF50, #45a049);
+        ${backgroundStyle}
         color: white;
         padding: 15px 20px;
         border-radius: 10px;
@@ -656,6 +661,7 @@ function showAchievementNotification(notification) {
         transform: translateX(100%);
         opacity: 0;
         transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     `;
 
     notificationElement.innerHTML = `
