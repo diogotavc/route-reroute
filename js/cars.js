@@ -828,6 +828,7 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefiniti
             carSpeed = 0;
             carAcceleration = 0;
             steeringAngle = 0;
+            lastDamageTime = 0;
 
             currentRecording = [currentRecording[0]];
         }
