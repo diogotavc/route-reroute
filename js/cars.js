@@ -799,6 +799,9 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefiniti
             let interpFactor = (timeDiff > 0) ? (easedElapsedTime - state1.time) / timeDiff : (easedElapsedTime >= state2.time ? 1 : 0);
             interpFactor = Math.max(0, Math.min(1, interpFactor));
 
+            tempReplayPosition.lerpVectors(state1.position, state2.position, interpFactor);
+            tempReplayQuaternion.slerpQuaternions(state1.rotation, state2.rotation, interpFactor);
+
             let interpolatedTimeOfDay;
             if (state1.timeOfDay !== undefined && state2.timeOfDay !== undefined) {
                 let timeDiff = state2.timeOfDay - state1.timeOfDay;
