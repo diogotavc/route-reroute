@@ -10,6 +10,8 @@ import {
     MUSIC_VOLUME_TRANSITION_EXIT_IDLE
 } from './config.js';
 
+import { onManualTrackSkip } from './achievements.js';
+
 let audioContext = null;
 let gainNode = null;
 let currentAudio = null;
@@ -179,6 +181,7 @@ export function startMusic() {
 }
 
 export function nextTrack() {
+    onManualTrackSkip();
     currentTrackIndex = (currentTrackIndex + 1) % PLAYLIST.length;
 
     if (currentTrackIndex === 0 && MUSIC_SHUFFLE) {
@@ -189,6 +192,7 @@ export function nextTrack() {
 }
 
 export function previousTrack() {
+    onManualTrackSkip();
     currentTrackIndex = currentTrackIndex === 0 ? PLAYLIST.length - 1 : currentTrackIndex - 1;
     playCurrentTrack();
 }

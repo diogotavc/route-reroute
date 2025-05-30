@@ -19,6 +19,7 @@ This directory should contain banner images for achievements. Each image should 
 - `reverse_driver.jpg` - Moonwalker (quirky)
 - `showcase_mode.jpg` - Director's Cut (camera)
 - `seven_days_nights.jpg` - Dedication and Commitment (endurance)
+- `dj_master.jpg` - Master of the Mix (music)
 
 ## Image Requirements:
 

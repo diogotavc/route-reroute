@@ -94,6 +94,14 @@ const ACHIEVEMENT_DEFINITIONS = {
         type: 'endurance',
         counter: true,
         target: 7
+    },
+    DJ_MASTER: {
+        id: 'dj_master',
+        name: 'Master of the Mix',
+        description: 'Manually skip or go back 10 songs',
+        type: 'music',
+        counter: true,
+        target: 10
     }
 };
 
@@ -119,7 +127,8 @@ let achievementsState = {
             initialTime: 0,
             cycles: 0,
             initialized: false
-        }
+        },
+        manualTrackSkips: 0
     }
 };
 
@@ -400,4 +409,16 @@ export function unlockAllAchievements() {
         achievementsState.unlocked.add(id);
     });
     saveAchievementsToStorage();
+}
+
+export function onManualTrackSkip() {
+    achievementsState.session.manualTrackSkips++;
+    console.log('Manual track skip detected. Total skips:', achievementsState.session.manualTrackSkips);
+
+    if (achievementsState.session.manualTrackSkips >= 10) {
+        unlockAchievement('DJ_MASTER', {
+            trackSkips: achievementsState.session.manualTrackSkips,
+            timestamp: Date.now()
+        });
+    }
 }
