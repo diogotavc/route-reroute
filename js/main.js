@@ -48,6 +48,7 @@ import {
 } from './cars.js';
 import { loadMap, getWorldCoordinates } from './mapLoader.js';
 import { mapData as level1MapData } from './maps/level1_map.js';
+import { createOverlayElements, createAchievementNotification, animateAchievementNotification } from './interface.js';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -135,96 +136,8 @@ renderer.toneMappingExposure = 1.0;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
-const rewindOverlay = document.createElement('div');
-rewindOverlay.id = 'rewind-overlay';
-rewindOverlay.textContent = 'Rewinding...';
-rewindOverlay.style.cssText = `
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    color: white;
-    font-family: 'Courier New', monospace;
-    font-size: 24px;
-    font-weight: bold;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    z-index: 1000;
-    display: none;
-    pointer-events: none;
-    animation: rewindBlink 0.8s infinite;
-`;
-
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes rewindBlink {
-        0%, 50% { opacity: 1; }
-        51%, 100% { opacity: 0.3; }
-    }
-    @keyframes achievementSlide {
-        0% { transform: translateX(100%); opacity: 0; }
-        10%, 90% { transform: translateX(0); opacity: 1; }
-        100% { transform: translateX(100%); opacity: 0; }
-    }
-    @keyframes achievementPushDown {
-        0% { transform: translateY(0); }
-        100% { transform: translateY(calc(100% + 10px)); }
-    }
-
-`;
-document.head.appendChild(style);
-document.body.appendChild(rewindOverlay);
-
-const pauseOverlay = document.createElement('div');
-pauseOverlay.id = 'pause-overlay';
-pauseOverlay.textContent = 'PAUSED';
-pauseOverlay.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-family: 'Courier New', monospace;
-    font-size: 48px;
-    font-weight: bold;
-    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
-    z-index: 2000;
-    display: none;
-    pointer-events: none;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 20px 40px;
-    border-radius: 10px;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-`;
-document.body.appendChild(pauseOverlay);
-
-const idleFadeOverlay = document.createElement('div');
-idleFadeOverlay.id = 'idle-fade-overlay';
-idleFadeOverlay.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: black;
-    z-index: 1500;
-    opacity: 0;
-    pointer-events: none;
-    transition: none;
-`;
-document.body.appendChild(idleFadeOverlay);
-
-const achievementNotificationContainer = document.createElement('div');
-achievementNotificationContainer.id = 'achievement-notification-container';
-achievementNotificationContainer.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1600;
-    pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-`;
-document.body.appendChild(achievementNotificationContainer);
+const overlayElements = createOverlayElements();
+const { rewindOverlay, pauseOverlay, idleFadeOverlay, achievementNotificationContainer } = overlayElements;
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
@@ -638,65 +551,8 @@ let notificationIdCounter = 0;
 
 function showAchievementNotification(notification) {
     const container = document.getElementById('achievement-notification-container');
-
-    const notificationElement = document.createElement('div');
-    const notificationId = `achievement-notification-${++notificationIdCounter}`;
-    notificationElement.id = notificationId;
-
-    notificationElement.style.cssText = `
-        background: linear-gradient(135deg, #4CAF50, #45a049);
-        color: white;
-        padding: 15px 20px;
-        border-radius: 10px;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        font-size: 16px;
-        font-weight: bold;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        min-width: 350px;
-        max-width: 450px;
-        transform: translateX(100%);
-        opacity: 0;
-        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-    `;
-
-    const testImage = new Image();
-    testImage.onload = function() {
-        notificationElement.style.background = `linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), url('${notification.backgroundImage}')`;
-        notificationElement.style.backgroundSize = 'cover';
-        notificationElement.style.backgroundPosition = 'center';
-    };
-    testImage.onerror = function() {
-        console.log(`Banner image not found for achievement: ${notification.id}`);
-    };
-    testImage.src = notification.backgroundImage;
-
-    notificationElement.innerHTML = `
-        <div>
-            <div style="font-size: 16px; margin-top: 3px;">${notification.name}</div>
-            <div style="font-size: 13px; opacity: 0.9; margin-top: 2px;">${notification.description}</div>
-        </div>
-    `;
-    
-    container.insertBefore(notificationElement, container.firstChild);
-
-    setTimeout(() => {
-        notificationElement.style.transform = 'translateX(0)';
-        notificationElement.style.opacity = '1';
-    }, 10);
-
-    setTimeout(() => {
-        if (notificationElement.parentNode) {
-            notificationElement.style.transform = 'translateX(100%)';
-            notificationElement.style.opacity = '0';
-
-            setTimeout(() => {
-                if (notificationElement.parentNode) {
-                    notificationElement.remove();
-                }
-            }, 300);
-        }
-    }, 5000);
+    const notificationElement = createAchievementNotification(notification, ++notificationIdCounter);
+    animateAchievementNotification(notificationElement, container);
 }
 
 function updateFireflyPosition(carPosition, deltaTime) {
