@@ -30,7 +30,7 @@ export const TARGET_REWIND_DURATION = 2.0;
 export const REWIND_INTERPOLATION = 'ease-in-out';     // 'linear', 'ease', 'ease-in', 'ease-out', 'ease-in-out'
 
 export const CAR_REACTION_DISTANCE = 8.0;
-export const CAR_REACTION_ANGLE_THRESHOLD = Math.PI / 6;
+export const CAR_REACTION_ANGLE_THRESHOLD = Math.PI / 8;
 export const CAR_HONK_TIMES = 2;
 export const CAR_FLASH_DURATION = 1.0;
 export const CAR_FLASH_INTERVALS = 2;
