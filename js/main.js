@@ -12,6 +12,7 @@ import { initMusicSystem, setIdleMode as setMusicIdleMode } from './music.js';
 import {
     initCars,
     loadCarModels,
+    cleanupAllCars,
     nextCar,
     setAccelerating,
     setBraking,

@@ -111,6 +111,86 @@ let audioInitialized = false;
 let carHealth = CAR_MAX_HEALTH;
 let lastDamageTime = 0;
 
+export function cleanupAllCars() {
+    console.log("Cleaning up cars from previous level...");
+
+    for (const carIndex in loadedCarModels) {
+        const car = loadedCarModels[carIndex];
+        if (car) {
+            if (scene) {
+                scene.remove(car);
+            }
+
+            car.traverse((child) => {
+                if (child.isMesh) {
+                    if (child.geometry) {
+                        child.geometry.dispose();
+                    }
+                    if (child.material) {
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(material => material.dispose());
+                        } else {
+                            child.material.dispose();
+                        }
+                    }
+                }
+            });
+
+            if (carHeadlights[carIndex]) {
+                const headlightSet = carHeadlights[carIndex];
+
+                if (headlightSet.left) {
+                    car.remove(headlightSet.left);
+                    if (headlightSet.left.target) car.remove(headlightSet.left.target);
+                }
+                if (headlightSet.right) {
+                    car.remove(headlightSet.right);
+                    if (headlightSet.right.target) car.remove(headlightSet.right.target);
+                }
+
+                delete carHeadlights[carIndex];
+            }
+        }
+    }
+
+    for (const carIndex in loadedCarModels) {
+        delete loadedCarModels[carIndex];
+    }
+
+    for (const carIndex in carReactions) {
+        delete carReactions[carIndex];
+    }
+
+    for (const carIndex in recordedMovements) {
+        delete recordedMovements[carIndex];
+    }
+
+    missionIndex = 0;
+    currentRecording = [];
+    elapsedTime = 0;
+    isRewinding = false;
+
+    if (currentFinishPointMarker) {
+        scene.remove(currentFinishPointMarker);
+        currentFinishPointMarker.geometry.dispose();
+        currentFinishPointMarker.material.dispose();
+        currentFinishPointMarker = null;
+    }
+    currentMissionDestination = null;
+
+    carSpeed = 0;
+    carAcceleration = 0;
+    steeringAngle = 0;
+    isAccelerating = false;
+    isBraking = false;
+    isTurningLeft = false;
+    isTurningRight = false;
+
+    resetCarHealth();
+
+    console.log("Successfully cleaned up all cars and reset car state.");
+}
+
 function updateCarHealth(deltaTime, collisionData) {
     if (collisionData.collisionDetected) {
         const currentTime = elapsedTime;
@@ -453,6 +533,8 @@ function createHeadlights(carModel, carIndex) {
 }
 
 export function loadCarModels(processedLevelData) {
+    cleanupAllCars();
+    
     levels = processedLevelData;
     const loadModelPromises = levels.map((mission, index) => {
         if (!mission) return Promise.resolve();
