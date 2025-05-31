@@ -160,10 +160,23 @@ export function startMusic() {
 
 export function nextTrack() {
     onManualTrackSkip();
-    currentTrackIndex = (currentTrackIndex + 1) % PLAYLIST.length;
 
-    if (currentTrackIndex === 0 && MUSIC_SHUFFLE) {
-        shuffleArray(PLAYLIST);
+    if (PLAYLIST.length > 1 && MUSIC_SHUFFLE) {
+        const previousTrack = PLAYLIST[currentTrackIndex];
+        currentTrackIndex = (currentTrackIndex + 1) % PLAYLIST.length;
+
+        if (currentTrackIndex === 0) {
+            shuffleArray(PLAYLIST);
+            if (PLAYLIST[0] === previousTrack && PLAYLIST.length > 1) {
+                const randomIndex = Math.floor(Math.random() * (PLAYLIST.length - 1)) + 1;
+                [PLAYLIST[0], PLAYLIST[randomIndex]] = [PLAYLIST[randomIndex], PLAYLIST[0]];
+            }
+        }
+    } else {
+        currentTrackIndex = (currentTrackIndex + 1) % PLAYLIST.length;
+        if (currentTrackIndex === 0 && MUSIC_SHUFFLE) {
+            shuffleArray(PLAYLIST);
+        }
     }
 
     playCurrentTrack();
@@ -208,6 +221,8 @@ export function setIdleMode(enabled) {
 
     const targetVolume = enabled ? MUSIC_VOLUME_IDLE : MUSIC_VOLUME_GAMEPLAY;
 
+    gainNode.gain.cancelScheduledValues(audioContext.currentTime);
+    
     const startVolume = gainNode.gain.value;
     const startTime = audioContext.currentTime;
     const duration = enabled ? MUSIC_VOLUME_TRANSITION_ENTER_IDLE : MUSIC_VOLUME_TRANSITION_EXIT_IDLE;
