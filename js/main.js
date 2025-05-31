@@ -309,10 +309,15 @@ const clock = new THREE.Clock();
 
 let isPaused = false;
 let isManualPause = false;
+let wasPausedByFocusLoss = false;
 
 function togglePause(manual = false) {
     isPaused = !isPaused;
     isManualPause = manual;
+
+    if (!isPaused) {
+        wasPausedByFocusLoss = false;
+    }
 
     if (pauseOverlay) {
         pauseOverlay.style.display = (isPaused && isManualPause) ? 'block' : 'none';
@@ -327,14 +332,18 @@ function togglePause(manual = false) {
     }
 }
 
-function pauseGame(manual = false) {
+function pauseGame(manual = false, dueTo = null) {
     if (!isPaused) {
+        if (dueTo === 'focus-loss') {
+            wasPausedByFocusLoss = true;
+        }
         togglePause(manual);
     }
 }
 
 function unpauseGame() {
     if (isPaused) {
+        wasPausedByFocusLoss = false;
         togglePause(false);
     }
 }
@@ -462,7 +471,13 @@ window.addEventListener("keyup", (event) => {
 
 window.addEventListener("blur", () => {
     if (AUTO_PAUSE_ON_FOCUS_LOST && !isPaused) {
-        pauseGame(false);
+        pauseGame(false, 'focus-loss');
+    }
+});
+
+window.addEventListener("focus", () => {
+    if (isPaused && wasPausedByFocusLoss && !isManualPause) {
+        unpauseGame();
     }
 });
 
