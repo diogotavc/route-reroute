@@ -32,10 +32,26 @@ export function createOverlayElements() {
     };
 }
 
-export function updateLevelIndicator(levelNumber) {
+export function updateLevelIndicator(levelNumber, missionInfo = null) {
     const levelIndicator = document.getElementById('level-indicator');
     if (levelIndicator) {
-        levelIndicator.textContent = `Level ${levelNumber}`;
+        const wasHiddenDuringIdle = levelIndicator.classList.contains('hidden-during-idle');
+
+        let content = `Level ${levelNumber}`;
+        
+        if (missionInfo) {
+            content += `<div class="mission-info">
+                <div class="mission-progress">Mission ${missionInfo.missionIndex}/${missionInfo.totalMissions}</div>
+                <div class="mission-character">${missionInfo.character}</div>
+                <div class="mission-backstory">${missionInfo.backstory}</div>
+            </div>`;
+        }
+        
+        levelIndicator.innerHTML = content;
+
+        if (wasHiddenDuringIdle) {
+            levelIndicator.classList.add('hidden-during-idle');
+        }
     }
 }
 

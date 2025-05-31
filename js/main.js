@@ -22,7 +22,9 @@ import {
     isRewinding,
     toggleCameraMode,
     getActiveCar,
-    getCarSpeed
+    getCarSpeed,
+    getCurrentMissionInfo,
+    setOnMissionChangeCallback
 } from './cars.js';
 import { loadMap, getWorldCoordinates } from './mapLoader.js';
 import { mapData as level1MapData } from './maps/level1_map.js';
@@ -81,6 +83,9 @@ loadMap(scene, level1MapData).then((mapGroup) => {
     }
 
     initCars(scene, camera, controls);
+
+    setOnMissionChangeCallback(updateLevelIndicatorWithMission);
+
     setupLights(scene);
 
     loadCarModelsAndSetupLevel();
@@ -204,7 +209,7 @@ function advanceToNextLevel() {
         currentLevelIndex++;
         console.log(`Advancing to level ${currentLevelIndex + 1}`);
         // MISSION COMPLETION / STARTING NEXT ONE LOGIC HERE
-        updateLevelIndicator(currentLevelIndex + 1);
+        updateLevelIndicatorWithMission();
         loadCarModelsAndSetupLevel();
         return true;
     } else {
@@ -216,6 +221,11 @@ function advanceToNextLevel() {
 
 window.advanceToNextLevel = advanceToNextLevel;
 
+function updateLevelIndicatorWithMission() {
+    const missionInfo = getCurrentMissionInfo();
+    updateLevelIndicator(currentLevelIndex + 1, missionInfo);
+}
+
 function loadCarModelsAndSetupLevel() {
     const levelConfig = levels[currentLevelIndex];
     currentLevelData = processLevelMissions(levelConfig.missions, levelConfig.map);
@@ -226,7 +236,7 @@ function loadCarModelsAndSetupLevel() {
 
     Achievements.initDayNightTracking(currentTimeOfDay);
 
-    updateLevelIndicator(currentLevelIndex + 1);
+    updateLevelIndicatorWithMission();
 
     if (levelConfig.cameraStart) {
         camera.position.set(...levelConfig.cameraStart);
@@ -350,6 +360,7 @@ window.addEventListener("keydown", (event) => {
                 currentTimeOfDay += levelConfig.timeIncrementPerMission !== undefined ? levelConfig.timeIncrementPerMission : 0.05;
                 if (currentTimeOfDay > 1) currentTimeOfDay -= 1;
                 updateDayNightCycle(scene, currentTimeOfDay);
+                updateLevelIndicatorWithMission();
             }
             break;
         case "ArrowUp": case "w": setAccelerating(true); break;

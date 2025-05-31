@@ -100,6 +100,12 @@ let levels;
 let currentFinishPointMarker = null;
 let currentMissionDestination = null;
 
+let onMissionChangeCallback = null;
+
+export function setOnMissionChangeCallback(callback) {
+    onMissionChangeCallback = callback;
+}
+
 let carHeadlights = {};
 let headlightsEnabled = HEADLIGHT_AUTO_MODE;
 let currentTimeOfDay = 0.5;
@@ -713,6 +719,10 @@ function setActiveCar(index) {
 
     resetCarHealth();
 
+    if (onMissionChangeCallback) {
+        onMissionChangeCallback();
+    }
+
     return activeCar;
 }
 
@@ -730,6 +740,11 @@ export function nextCar() {
     }
     const nextIndex = (missionIndex + 1) % carCount;
     setActiveCar(nextIndex);
+
+    if (onMissionChangeCallback) {
+        onMissionChangeCallback();
+    }
+
     return loadedCarModels[nextIndex];
 }
 
@@ -1120,6 +1135,24 @@ export function getCarSpeed() {
 
 export { isRewinding };
 
-export function getCurrentRewindInterpolation() {
-    return REWIND_INTERPOLATION;
+export function getCurrentMissionInfo() {
+    if (!levels || missionIndex >= levels.length || missionIndex < 0) {
+        return null;
+    }
+    
+    const missionData = levels[missionIndex];
+    if (!missionData) {
+        return null;
+    }
+    
+    const [modelName, character, backstory, startingPoint, finishingPoint, initialRotationY] = missionData;
+    
+    return {
+        missionIndex: missionIndex + 1,
+        totalMissions: levels.length,
+        modelName,
+        character,
+        backstory,
+        hasDestination: finishingPoint && Array.isArray(finishingPoint) && finishingPoint.length === 3
+    };
 }
