@@ -8,6 +8,8 @@
     - [ ] gamepad support
         - [ ] add steering and pedal gauges specific to the gamepad (analog support)
 - [ ] turn config.js constants into variables that can be changed through the UI
+- [ ] fix camera fricking out sometimes when switching between the browser and the IDE
+- [ ] streetlight and road/building layout are literally not built the same (matrixes are interpreted backwards)
 
 - [ ] SFX (UI, crashes, car engines, other fx)
 - [ ] Selectable OST (lists files in the designated folder, and let's you toggle it)
