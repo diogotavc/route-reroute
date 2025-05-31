@@ -44,7 +44,6 @@ export const CAR_DAMAGE_BASE = 20;
 export const CAR_DAMAGE_SPEED_MULTIPLIER = 3; // How much extra damage per unit of speed
 export const CAR_DAMAGE_MAX = 80;
 export const CAR_DAMAGE_COOLDOWN = 0.2;
-export const CAR_DAMAGE_DEBUG_LOGGING = true;
 
 export const VEHICLE_COORDINATE_DEBUG_LOGGING = true;
 export const VEHICLE_COORDINATE_LOG_INTERVAL = 1.0;

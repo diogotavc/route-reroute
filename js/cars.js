@@ -25,7 +25,6 @@ import {
     CAR_DAMAGE_BASE,
     CAR_DAMAGE_SPEED_MULTIPLIER,
     CAR_DAMAGE_MAX,
-    CAR_DAMAGE_DEBUG_LOGGING,
     CAR_DAMAGE_COOLDOWN,
     CAMERA_FOLLOW_SPEED,
     CAMERA_DISTANCE,
@@ -198,9 +197,6 @@ function updateCarHealth(deltaTime, collisionData) {
         const currentTime = elapsedTime;
 
         if (currentTime - lastDamageTime < CAR_DAMAGE_COOLDOWN) {
-            if (CAR_DAMAGE_DEBUG_LOGGING) {
-                console.log(`Damage on cooldown. Time since last damage: ${(currentTime - lastDamageTime).toFixed(2)}s`);
-            }
             return;
         }
 
@@ -219,19 +215,7 @@ function updateCarHealth(deltaTime, collisionData) {
         carHealth = Math.max(0, carHealth);
         lastDamageTime = currentTime;
 
-        if (CAR_DAMAGE_DEBUG_LOGGING) {
-            console.log(`COLLISION DAMAGE:
-Speed: ${collisionData.collisionSpeed.toFixed(2)} units/s
-Type: ${collisionData.collisionType}
-Damage: ${damage.toFixed(1)}
-Health: ${carHealth}/${CAR_MAX_HEALTH} (${((carHealth/CAR_MAX_HEALTH)*100).toFixed(1)}%)
-Time: ${currentTime.toFixed(2)}s`);
-        }
-
         if (carHealth <= 0) {
-            if (CAR_DAMAGE_DEBUG_LOGGING) {
-                console.log(`HEALTH DEPLETED! Triggering rewind...`);
-            }
             Achievements.onHealthDepleted({ 
                 oldHealth, 
                 newHealth: carHealth, 
@@ -250,9 +234,6 @@ Time: ${currentTime.toFixed(2)}s`);
 function resetCarHealth() {
     carHealth = CAR_MAX_HEALTH;
     lastDamageTime = 0;
-    if (CAR_DAMAGE_DEBUG_LOGGING) {
-        console.log(`Health reset to ${CAR_MAX_HEALTH}. Damage cooldown cleared.`);
-    }
 }
 
 export function getCarHealth() {
