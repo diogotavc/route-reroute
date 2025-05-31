@@ -1,3 +1,5 @@
+import { isIdleCameraSystemActive } from './camera.js';
+
 export function createOverlayElements() {
     const rewindOverlay = document.createElement('div');
     rewindOverlay.id = 'rewind-overlay';
@@ -6,6 +8,16 @@ export function createOverlayElements() {
     const pauseOverlay = document.createElement('div');
     pauseOverlay.id = 'pause-overlay';
     pauseOverlay.textContent = 'PAUSED';
+
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.id = 'loading-overlay';
+    loadingOverlay.innerHTML = `
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading Level...</div>
+            <div class="loading-subtitle"></div>
+        </div>
+    `;
 
     const idleFadeOverlay = document.createElement('div');
     idleFadeOverlay.id = 'idle-fade-overlay';
@@ -19,6 +31,7 @@ export function createOverlayElements() {
 
     document.body.appendChild(rewindOverlay);
     document.body.appendChild(pauseOverlay);
+    document.body.appendChild(loadingOverlay);
     document.body.appendChild(idleFadeOverlay);
     document.body.appendChild(achievementNotificationContainer);
     document.body.appendChild(levelIndicator);
@@ -26,18 +39,23 @@ export function createOverlayElements() {
     return {
         rewindOverlay,
         pauseOverlay,
+        loadingOverlay,
         idleFadeOverlay,
         achievementNotificationContainer,
         levelIndicator
     };
 }
 
-export function updateLevelIndicator(levelNumber, missionInfo = null) {
+export function updateLevelIndicator(levelNumber, missionInfo = null, levelName = null) {
     const levelIndicator = document.getElementById('level-indicator');
     if (levelIndicator) {
         const wasHiddenDuringIdle = levelIndicator.classList.contains('hidden-during-idle');
 
         let content = `Level ${levelNumber}`;
+        
+        if (levelName) {
+            content += ` - ${levelName}`;
+        }
         
         if (missionInfo) {
             content += `<div class="mission-info">
@@ -120,4 +138,27 @@ export function animateAchievementNotification(notificationElement, container) {
             }, 300);
         }
     }, 5000);
+}
+
+export function showLoadingOverlay(levelName = "", subtitle = "") {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingSubtitle = loadingOverlay.querySelector('.loading-subtitle');
+    
+    if (levelName) {
+        loadingOverlay.querySelector('.loading-text').textContent = `Loading ${levelName}...`;
+    }
+    
+    if (subtitle) {
+        loadingSubtitle.textContent = subtitle;
+        loadingSubtitle.style.display = 'block';
+    } else {
+        loadingSubtitle.style.display = 'none';
+    }
+    
+    loadingOverlay.style.display = 'flex';
+}
+
+export function hideLoadingOverlay() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    loadingOverlay.style.display = 'none';
 }

@@ -28,7 +28,7 @@ import {
 } from './cars.js';
 import { loadMap, getWorldCoordinates } from './mapLoader.js';
 import { mapData as level1MapData } from './maps/level1_map.js';
-import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator } from './interface.js';
+import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay } from './interface.js';
 import {
     initCamera,
     setCameraPaused,
@@ -62,7 +62,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
 const overlayElements = createOverlayElements();
-const { rewindOverlay, pauseOverlay, idleFadeOverlay, achievementNotificationContainer, levelIndicator } = overlayElements;
+const { rewindOverlay, pauseOverlay, loadingOverlay, idleFadeOverlay, achievementNotificationContainer, levelIndicator } = overlayElements;
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
@@ -165,6 +165,7 @@ function processLevelMissions(missions, mapDefinition) {
 
 const levels = [
     { 
+        name: "Basic Tutorial",
         missions: exampleLevel1_Missions, 
         map: level1MapData, 
         cameraStart: [0, 20, 30], 
@@ -173,6 +174,7 @@ const levels = [
         timeSpeed: 0.005
     },
     { 
+        name: "Rush Hour",
         missions: exampleLevel2_Missions, 
         map: level1MapData, 
         cameraStart: [0, 20, 30], 
@@ -181,6 +183,7 @@ const levels = [
         timeSpeed: 0.008
     },
     { 
+        name: "Traffic Chaos",
         missions: exampleLevel3_Missions, 
         map: level1MapData, 
         cameraStart: [0, 20, 30], 
@@ -189,6 +192,7 @@ const levels = [
         timeSpeed: 0.012
     },
     { 
+        name: "Night Shift",
         missions: exampleLevel4_Missions, 
         map: level1MapData, 
         cameraStart: [0, 20, 30], 
@@ -201,10 +205,16 @@ const levels = [
 let currentLevelIndex = 0;
 let currentTimeOfDay = 0.25;
 let currentMapDefinition = null;
+let isLoading = false;
 
 window.getCurrentLevelIndex = () => currentLevelIndex;
 
 function advanceToNextLevel() {
+    if (isLoading) {
+        console.log("Cannot advance level while loading...");
+        return false;
+    }
+
     if (currentLevelIndex < levels.length - 1) {
         currentLevelIndex++;
         console.log(`Advancing to level ${currentLevelIndex + 1}`);
@@ -223,11 +233,31 @@ window.advanceToNextLevel = advanceToNextLevel;
 
 function updateLevelIndicatorWithMission() {
     const missionInfo = getCurrentMissionInfo();
-    updateLevelIndicator(currentLevelIndex + 1, missionInfo);
+    const levelConfig = levels[currentLevelIndex];
+    const levelName = levelConfig ? levelConfig.name : null;
+    updateLevelIndicator(currentLevelIndex + 1, missionInfo, levelName);
+}
+
+function safeUpdateLevelIndicatorWithMission() {
+    if (!isIdleCameraSystemActive()) {
+        updateLevelIndicatorWithMission();
+    }
 }
 
 function loadCarModelsAndSetupLevel() {
+    if (isLoading) return;
+
+    isLoading = true;
     const levelConfig = levels[currentLevelIndex];
+    const levelName = levelConfig ? levelConfig.name : `Level ${currentLevelIndex + 1}`;
+
+    showLoadingOverlay(levelName, "Preparing vehicles and setting up environment...");
+
+    const wasAlreadyPaused = isPaused;
+    if (!isPaused) {
+        togglePause();
+    }
+
     currentLevelData = processLevelMissions(levelConfig.missions, levelConfig.map);
     currentMapDefinition = levelConfig.map;
 
@@ -250,9 +280,28 @@ function loadCarModelsAndSetupLevel() {
     controls.update();
 
     loadCarModels(currentLevelData).then(() => { 
-        // All car models loaded successfully
+        console.log(`Successfully loaded ${levelName}`);
+
+        setTimeout(() => {
+            hideLoadingOverlay();
+
+            setTimeout(() => {
+                if (!wasAlreadyPaused && isPaused) {
+                    togglePause();
+                }
+                isLoading = false;
+
+                console.log(`${levelName} ready to play!`);
+            }, 500);
+        }, 800);
     }).catch(error => {
         console.error("Failed to load all car models for the current level:", error);
+        hideLoadingOverlay();
+
+        if (!wasAlreadyPaused && isPaused) {
+            togglePause();
+        }
+        isLoading = false;
     });
 }
 
@@ -306,7 +355,7 @@ function animate() {
 
     Achievements.updateDayNightCycleTracking(currentTimeOfDay, isRewinding);
 
-    if (currentLevelData) {
+    if (currentLevelData && !isLoading) {
         updateCarPhysics(scaledDeltaTime, collidableMapElements, currentMapDefinition);
     }
 
@@ -342,6 +391,10 @@ function isMovementKey(key) {
 }
 
 window.addEventListener("keydown", (event) => {
+    if (isLoading) {
+        return;
+    }
+
     if (isMovementKey(event.key)) {
         Achievements.onInputDetected();
         
@@ -373,6 +426,10 @@ window.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("keyup", (event) => {
+    if (isLoading) {
+        return;
+    }
+
     switch (event.key) {
         case "ArrowUp": case "w": setAccelerating(false); break;
         case "ArrowDown": case "s": setBraking(false); break;
