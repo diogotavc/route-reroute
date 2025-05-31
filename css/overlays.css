@@ -250,7 +250,7 @@
 #combined-hud {
     position: fixed;
     bottom: 30px;
-    left: 30px;
+    right: 30px;
     background: linear-gradient(135deg, rgba(0, 0, 0, 0.75), rgba(20, 20, 20, 0.75));
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 16px;

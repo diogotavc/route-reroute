@@ -1,27 +1,28 @@
 #music-ui {
     position: fixed;
-    bottom: 20px;
-    left: 20px;
-    background: rgba(0, 0, 0, 0.8);
+    bottom: 30px;
+    left: 30px;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.75), rgba(20, 20, 20, 0.75));
     color: white;
-    border-radius: 10px;
-    padding: 15px;
+    border-radius: 16px;
+    padding: 20px;
     min-width: 280px;
-    font-family: 'Courier New', monospace;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
     z-index: 1600;
 
     opacity: 0;
     transform: translateY(20px);
     transition: 
-        opacity 0.5s ease, 
-        transform 0.5s ease, 
-        background 3s ease, 
-        border-color 3s ease, 
-        box-shadow 3s ease;
+        opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+        transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+        background 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+        border-color 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+        box-shadow 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
 }
 
@@ -34,39 +35,70 @@
 .music-info {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
 .music-title {
     font-size: 14px;
-    font-weight: bold;
-    color: #ffdd44;
+    font-weight: 600;
+    color: #ffffff;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
     max-width: 250px;
-    transition: color 3s ease;
+    transition: color 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .music-progress {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
+}
+
+.music-progress::before {
+    content: 'PLAYING';
+    font-size: 10px;
+    color: #a0a0a0;
+    letter-spacing: 1.5px;
+    font-weight: 500;
+    text-transform: uppercase;
+    margin-bottom: -4px;
 }
 
 .progress-bar {
+    position: relative;
     width: 100%;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 2px;
+    height: 6px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.1));
+    border-radius: 3px;
     overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #ffdd44, #ff6b6b);
+    background: linear-gradient(90deg, #66bb6a, #4caf50, #43a047);
     width: 0%;
-    transition: width 0.1s ease, background 3s ease;
+    transition: width 0.1s ease, background 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+    border-radius: 2px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.2) 40%, 
+        rgba(255, 255, 255, 0.2) 60%, 
+        transparent 100%);
     border-radius: 2px;
 }
 
@@ -74,27 +106,29 @@
     display: flex;
     justify-content: space-between;
     font-size: 10px;
-    color: rgba(255, 255, 255, 0.7);
+    color: #a0a0a0;
+    font-weight: 500;
+    letter-spacing: 0.3px;
 }
 
 #music-ui.idle-mode {
-    background: rgba(0, 0, 50, 0.9);
+    background: linear-gradient(135deg, rgba(0, 20, 50, 0.85), rgba(10, 30, 60, 0.85));
     border-color: rgba(100, 150, 255, 0.3);
     transition: 
-        opacity 0.5s ease, 
-        transform 0.5s ease, 
-        background 3s ease, 
-        border-color 3s ease, 
-        box-shadow 3s ease;
+        opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+        transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+        background 1.0s cubic-bezier(0.4, 0, 0.2, 1), 
+        border-color 1.0s cubic-bezier(0.4, 0, 0.2, 1), 
+        box-shadow 1.0s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #music-ui.idle-mode.exiting {
     transition: 
-        opacity 0.5s ease, 
-        transform 0.5s ease, 
-        background 0.5s ease, 
-        border-color 0.5s ease, 
-        box-shadow 0.5s ease;
+        opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+        transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+        background 0.7s cubic-bezier(0.4, 0, 0.2, 1), 
+        border-color 0.7s cubic-bezier(0.4, 0, 0.2, 1), 
+        box-shadow 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #music-ui.idle-mode .music-title {
@@ -105,25 +139,100 @@
     background: linear-gradient(90deg, #88ddff, #6644ff);
 }
 
+#music-ui.idle-mode.paused {
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.85), rgba(50, 50, 50, 0.85));
+    border-color: rgba(120, 120, 120, 0.4);
+}
+
+#music-ui.idle-mode.paused .music-title {
+    color: #c0c0c0;
+}
+
+#music-ui.idle-mode.paused .progress-fill {
+    background: linear-gradient(90deg, #888888, #666666);
+    opacity: 0.7;
+}
+
+#music-ui.idle-mode.paused .music-progress::before {
+    content: 'PAUSED - IDLE';
+    color: #999999;
+}
+
+#music-ui.idle-mode.playing .music-progress::before {
+    content: 'PLAYING - IDLE';
+    color: #88ddff;
+}
+
 #music-ui.idle-mode.animated {
     animation: idlePulse 3s ease-in-out infinite;
 }
 
+#music-ui.idle-mode.paused.animated {
+    animation: idlePulsePaused 3s ease-in-out infinite;
+}
+
+#music-ui.paused:not(.idle-mode) {
+    background: linear-gradient(135deg, rgba(40, 20, 0, 0.75), rgba(60, 30, 10, 0.75));
+    border-color: rgba(255, 150, 100, 0.3);
+}
+
+#music-ui.paused:not(.idle-mode) .music-title {
+    color: #ffb380;
+}
+
+#music-ui.paused:not(.idle-mode) .progress-fill {
+    background: linear-gradient(90deg, #ff9800, #ff6f00, #e65100);
+    opacity: 0.7;
+}
+
+#music-ui.paused:not(.idle-mode) .music-progress::before {
+    content: 'PAUSED';
+    color: #ff9800;
+}
+
+#music-ui.playing:not(.idle-mode) .progress-fill {
+    opacity: 1;
+}
+
 @keyframes idlePulse {
-    0%, 100% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); }
-    50% { box-shadow: 0 4px 30px rgba(100, 150, 255, 0.4); }
+    0%, 100% { 
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 
+                    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+    50% { 
+        box-shadow: 0 4px 30px rgba(100, 150, 255, 0.4), 
+                    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+}
+
+@keyframes idlePulsePaused {
+    0%, 100% { 
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 
+                    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+    50% { 
+        box-shadow: 0 4px 25px rgba(120, 120, 120, 0.3), 
+                    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
 }
 
 @media (max-width: 480px) {
     #music-ui {
-        left: 10px;
-        bottom: 10px;
+        left: 20px;
+        bottom: 20px;
         min-width: 250px;
-        padding: 12px;
+        padding: 16px;
     }
 
     .music-title {
         font-size: 13px;
         max-width: 220px;
+    }
+    
+    #combined-hud {
+        right: 20px;
+        bottom: 20px;
+        min-width: 250px;
+        padding: 16px;
     }
 }

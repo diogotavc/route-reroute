@@ -102,6 +102,13 @@ function updateMusicUI() {
     const totalTimeEl = musicUI.querySelector('.total-time');
     if (currentTimeEl) currentTimeEl.textContent = formatTime(currentTime);
     if (totalTimeEl) totalTimeEl.textContent = formatTime(duration);
+
+    musicUI.classList.remove('playing', 'paused');
+    if (isPlaying) {
+        musicUI.classList.add('playing');
+    } else {
+        musicUI.classList.add('paused');
+    }
 }
 
 function formatTime(seconds) {

@@ -1,15 +1,16 @@
 - [ ] HUD
-    - [ ] speed
+    - [x] speed
+        - [x] move it to the right side, match Music UI styling
     - [ ] time
-    - [ ] health
-    - [ ] move achievements to the left side
+    - [x] health
+    - [x] move achievements to the left side
 - [ ] Menus (keyboard driven, but supporting mice)
 - [ ] parameterizable controls
     - [ ] gamepad support
         - [ ] add steering and pedal gauges specific to the gamepad (analog support)
 - [ ] turn config.js constants into variables that can be changed through the UI
 - [ ] fix camera fricking out sometimes when switching between the browser and the IDE
-- [ ] streetlight and road/building layout are literally not built the same (matrixes are interpreted backwards)
+- [-] streetlight and road/building layout are literally not built the same (matrixes are interpreted backwards)
 
 - [ ] SFX (UI, crashes, car engines, other fx)
 - [ ] Selectable OST (lists files in the designated folder, and let's you toggle it)
@@ -23,6 +24,7 @@
 - [ ] balance out achievements (wrecked and ruined can be 10 crashes, instead of 1; lawn enforcement can be for a few meters; terminal velocity can be for enough time)
 - [ ] reset certain achievements on level reset
 - [ ] save system
+- [ ] make sure rewind resets health
 
 - [ ] add power-ups and special effects (same implementation, but one shows up at a certain mission index (place and index configurable), and can be picked up - and the other is applied instantly after the mission begins)
     - [ ] Sleepiness
