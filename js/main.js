@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import {
-    DAY_CYCLE, 
     AUTO_PAUSE_ON_FOCUS_LOST, 
     RENDERER_PIXEL_RATIO
 } from './config.js';
@@ -165,28 +164,32 @@ const levels = [
         map: level1MapData, 
         cameraStart: [0, 20, 30], 
         initialTimeOfDay: 0.3, 
-        timeIncrementPerMission: 0.05 
+        timeIncrementPerMission: 0.05,
+        timeSpeed: 0.005
     },
     { 
         missions: exampleLevel2_Missions, 
         map: level1MapData, 
         cameraStart: [0, 20, 30], 
         initialTimeOfDay: 0.45, 
-        timeIncrementPerMission: 0.04 
+        timeIncrementPerMission: 0.04,
+        timeSpeed: 0.008
     },
     { 
         missions: exampleLevel3_Missions, 
         map: level1MapData, 
         cameraStart: [0, 20, 30], 
         initialTimeOfDay: 0.6, 
-        timeIncrementPerMission: 0.03 
+        timeIncrementPerMission: 0.03,
+        timeSpeed: 0.012
     },
     { 
         missions: exampleLevel4_Missions, 
         map: level1MapData, 
         cameraStart: [0, 20, 30], 
         initialTimeOfDay: 0.85, 
-        timeIncrementPerMission: 0.02 
+        timeIncrementPerMission: 0.02,
+        timeSpeed: 0
     }
 ];
 
@@ -284,7 +287,10 @@ function animate() {
         scaledDeltaTime = rawDeltaTime * timeScale;
     }
 
-    currentTimeOfDay += scaledDeltaTime * DAY_CYCLE.SPEED;
+    const levelConfig = levels[currentLevelIndex];
+    const timeSpeed = levelConfig && levelConfig.timeSpeed !== undefined ? levelConfig.timeSpeed : 0.01;
+
+    currentTimeOfDay += scaledDeltaTime * timeSpeed;
     if (currentTimeOfDay > 1) currentTimeOfDay -= 1;
     updateDayNightCycle(scene, currentTimeOfDay);
 
