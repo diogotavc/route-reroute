@@ -6,6 +6,7 @@ import {
 } from './config.js';
 
 import { setupLights, updateDayNightCycle } from './lights.js';
+import { initGraphicsPresets, setGraphicsPreset, registerLights, setGraphicsPresetConsole } from './graphicsPresets.js';
 import * as Achievements from './achievements.js';
 import { initMusicSystem, setIdleMode as setMusicIdleMode } from './music.js';
 import {
@@ -86,7 +87,14 @@ loadMap(scene, level1MapData).then((mapGroup) => {
 
     setOnMissionChangeCallback(updateLevelIndicatorWithMission);
 
-    setupLights(scene);
+    const lights = setupLights(scene);
+
+    initGraphicsPresets(renderer, scene);
+
+    window.setGraphicsPreset = setGraphicsPresetConsole;
+    console.log('Graphics presets system initialized! Use setGraphicsPreset("LOW"|"MEDIUM"|"HIGH") in console to change settings.');
+
+    registerLights(lights.directionalLight);
 
     loadCarModelsAndSetupLevel();
 }).catch(error => {

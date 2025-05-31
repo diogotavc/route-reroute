@@ -175,3 +175,83 @@ export const MAX_LIGHTS_PER_SCENE = 20;
 export const RENDERER_PIXEL_RATIO = Math.min(window.devicePixelRatio, 2);
 export const ENABLE_FRUSTUM_CULLING = true;
 export const LOD_DISTANCE_THRESHOLD = 50;
+
+export const GRAPHICS_PRESETS = {
+    LOW: {
+        SHADOW_MAP_SIZE: 512,
+        HEADLIGHT_SHADOW_MAP_SIZE: 256,
+        STREETLIGHT_SHADOW_MAP_SIZE: 256,
+        ENABLE_STREETLIGHT_SHADOWS: false,
+        SHADOW_CAMERA_NEAR: 20,
+        SHADOW_CAMERA_FAR: 150,
+        SHADOW_BIAS: -0.002,
+        SHADOW_NORMAL_BIAS: 0.2,
+        MAX_LIGHTS_PER_SCENE: 10,
+        RENDERER_PIXEL_RATIO: 1,
+        ENABLE_FRUSTUM_CULLING: true,
+        LOD_DISTANCE_THRESHOLD: 30,
+        ENABLE_ANTIALIAS: false,
+        SHADOW_MAP_TYPE: 'BasicShadowMap',
+        TONE_MAPPING_EXPOSURE: 0.8,
+        IDLE_FIREFLY_CAST_SHADOWS: false,
+        ENABLE_FOG: false,
+        STREETLIGHT_INTENSITY_MULTIPLIER: 0.7,
+        HEADLIGHT_INTENSITY_MULTIPLIER: 0.8
+    },
+    MEDIUM: {
+        SHADOW_MAP_SIZE: 1024,
+        HEADLIGHT_SHADOW_MAP_SIZE: 512,
+        STREETLIGHT_SHADOW_MAP_SIZE: 256,
+        ENABLE_STREETLIGHT_SHADOWS: true,
+        SHADOW_CAMERA_NEAR: 15,
+        SHADOW_CAMERA_FAR: 200,
+        SHADOW_BIAS: -0.001,
+        SHADOW_NORMAL_BIAS: 0.15,
+        MAX_LIGHTS_PER_SCENE: 15,
+        RENDERER_PIXEL_RATIO: Math.min(window.devicePixelRatio, 1.5),
+        ENABLE_FRUSTUM_CULLING: true,
+        LOD_DISTANCE_THRESHOLD: 40,
+        ENABLE_ANTIALIAS: true,
+        SHADOW_MAP_TYPE: 'PCFShadowMap',
+        TONE_MAPPING_EXPOSURE: 0.9,
+        IDLE_FIREFLY_CAST_SHADOWS: false,
+        ENABLE_FOG: true,
+        STREETLIGHT_INTENSITY_MULTIPLIER: 0.85,
+        HEADLIGHT_INTENSITY_MULTIPLIER: 0.9
+    },
+    HIGH: {
+        SHADOW_MAP_SIZE: 2048,
+        HEADLIGHT_SHADOW_MAP_SIZE: 1024,
+        STREETLIGHT_SHADOW_MAP_SIZE: 512,
+        ENABLE_STREETLIGHT_SHADOWS: true,
+        SHADOW_CAMERA_NEAR: 10,
+        SHADOW_CAMERA_FAR: 200,
+        SHADOW_BIAS: -0.001,
+        SHADOW_NORMAL_BIAS: 0.1,
+        MAX_LIGHTS_PER_SCENE: 20,
+        RENDERER_PIXEL_RATIO: Math.min(window.devicePixelRatio, 2),
+        ENABLE_FRUSTUM_CULLING: true,
+        LOD_DISTANCE_THRESHOLD: 50,
+        ENABLE_ANTIALIAS: true,
+        SHADOW_MAP_TYPE: 'PCFShadowMap',
+        TONE_MAPPING_EXPOSURE: 1.0,
+        IDLE_FIREFLY_CAST_SHADOWS: false,
+        ENABLE_FOG: true,
+        STREETLIGHT_INTENSITY_MULTIPLIER: 1.0,
+        HEADLIGHT_INTENSITY_MULTIPLIER: 1.0
+    }
+};
+
+export let CURRENT_GRAPHICS_PRESET = 'MEDIUM';
+
+export function getCurrentPresetValues() {
+    return GRAPHICS_PRESETS[CURRENT_GRAPHICS_PRESET];
+}
+
+export function setCurrentGraphicsPreset(preset) {
+    if (GRAPHICS_PRESETS[preset]) {
+        CURRENT_GRAPHICS_PRESET = preset;
+        return true;
+    }
+    return false;
+}

@@ -265,6 +265,10 @@ export function registerStreetLights(lights) {
     updateStreetLights();
 }
 
+export function getStreetLights() {
+    return streetLights;
+}
+
 export function toggleStreetLights() {
     streetLightsEnabled = !streetLightsEnabled;
     updateStreetLights();
