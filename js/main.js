@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import {
+    AUTO_PAUSE_ON_FOCUS_LOST, 
     RENDERER_PIXEL_RATIO
 } from './config.js';
 
@@ -75,83 +76,22 @@ initMusicSystem();
 initCars(scene, camera, controls);
 
 let collidableMapElements = []; 
-let gameInitialized = false;
-let menuSystem;
 
-let gameSettings = {
-    autoPauseOnFocusLost: false,
-    idleCameraEnabled: true,
-    idleFireflyEnabled: true,
-    musicEnabled: true,
-    musicShuffle: true,
-    musicAutoNext: true,
-    musicVolumeGameplay: 0.2,
-    musicVolumeIdle: 1.0
-};
-
-function loadGameSettings() {
-    try {
-        const saved = localStorage.getItem('gameSettings');
-        if (saved) {
-            gameSettings = { ...gameSettings, ...JSON.parse(saved) };
-        }
-    } catch (e) {
-        console.warn('Could not load game settings:', e);
+loadMap(scene, level1MapData).then((mapGroup) => {
+    if (mapGroup && mapGroup.userData && mapGroup.userData.collidableTiles) {
+        collidableMapElements = mapGroup.userData.collidableTiles;
     }
-}
 
-window.updateGameSettings = function(newSettings) {
-    gameSettings = { ...gameSettings, ...newSettings };
+    initCars(scene, camera, controls);
 
-    if (window.updateMusicSettings) {
-        window.updateMusicSettings({
-            enabled: gameSettings.musicEnabled,
-            shuffle: gameSettings.musicShuffle,
-            autoNext: gameSettings.musicAutoNext,
-            volumeGameplay: gameSettings.musicVolumeGameplay,
-            volumeIdle: gameSettings.musicVolumeIdle
-        });
-    }
-    
-    if (window.updateCameraSettings) {
-        window.updateCameraSettings({
-            idleCameraEnabled: gameSettings.idleCameraEnabled,
-            idleFireflyEnabled: gameSettings.idleFireflyEnabled
-        });
-    }
-};
+    setOnMissionChangeCallback(updateLevelIndicatorWithMission);
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadGameSettings();
-    menuSystem = new MenuSystem();
-    menuSystem.setGameStartCallback(initializeGame);
+    setupLights(scene);
+
+    loadCarModelsAndSetupLevel();
+}).catch(error => {
+    console.error("Failed to load map in main.js:", error);
 });
-
-window.addEventListener('gameSettingsChanged', (event) => {
-    const newSettings = event.detail;
-    window.updateGameSettings(newSettings);
-});
-
-function initializeGame() {
-    if (gameInitialized) return;
-    gameInitialized = true;
-
-    loadMap(scene, level1MapData).then((mapGroup) => {
-        if (mapGroup && mapGroup.userData && mapGroup.userData.collidableTiles) {
-            collidableMapElements = mapGroup.userData.collidableTiles;
-        }
-
-        initCars(scene, camera, controls);
-
-        setOnMissionChangeCallback(updateLevelIndicatorWithMission);
-
-        setupLights(scene);
-
-        loadCarModelsAndSetupLevel();
-    }).catch(error => {
-        console.error("Failed to load map in main.js:", error);
-    });
-}
 
 const exampleLevel1_Missions = [
     ["ambulance", "Dr. Healmore", "Rushing to save a critical patient.", "start1", "finish1"],
@@ -345,7 +285,6 @@ function loadCarModelsAndSetupLevel() {
                     togglePause();
                 }
                 isLoading = false;
-                Achievements.setGameReady(true);
             }, 500);
         }, 800);
     }).catch(error => {
@@ -356,7 +295,6 @@ function loadCarModelsAndSetupLevel() {
             togglePause();
         }
         isLoading = false;
-        Achievements.setGameReady(true);
     });
 }
 
@@ -386,11 +324,6 @@ function showAchievementNotification(notification) {
 }
 
 function animate() {
-    if (!gameInitialized || (menuSystem && menuSystem.isMenuActive)) {
-        renderer.render(scene, camera);
-        return;
-    }
-
     if (isPaused) {
         renderer.render(scene, camera);
         return;
@@ -451,17 +384,6 @@ function isMovementKey(key) {
 }
 
 window.addEventListener("keydown", (event) => {
-    if (menuSystem && menuSystem.isMenuActive) {
-        return;
-    }
-
-    if (event.key === "Escape") {
-        if (menuSystem) {
-            menuSystem.showMenu();
-        }
-        return;
-    }
-
     if (isMovementKey(event.key)) {
         Achievements.onInputDetected();
         
@@ -481,10 +403,6 @@ window.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("keyup", (event) => {
-    if (menuSystem && menuSystem.isMenuActive) {
-        return;
-    }
-
     switch (event.key) {
         case "ArrowUp": case "w": setAccelerating(false); break;
         case "ArrowDown": case "s": setBraking(false); break;
@@ -494,7 +412,7 @@ window.addEventListener("keyup", (event) => {
 });
 
 window.addEventListener("blur", () => {
-    if (gameSettings.autoPauseOnFocusLost && !isPaused) {
+    if (AUTO_PAUSE_ON_FOCUS_LOST && !isPaused) {
         togglePause();
     }
 });

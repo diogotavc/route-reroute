@@ -134,19 +134,6 @@ let achievementsState = {
 
 let notificationQueue = [];
 
-let gameReadyForIdleTracking = false;
-
-export function setGameReady(ready) {
-    gameReadyForIdleTracking = ready;
-    if (ready) {
-        achievementsState.session.lastInputTime = Date.now();
-    }
-}
-
-export function isGameReady() {
-    return gameReadyForIdleTracking;
-}
-
 export function initAchievements() {
     loadAchievementsFromStorage();
 
