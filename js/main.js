@@ -391,10 +391,6 @@ function isMovementKey(key) {
 }
 
 window.addEventListener("keydown", (event) => {
-    if (isLoading) {
-        return;
-    }
-
     if (isMovementKey(event.key)) {
         Achievements.onInputDetected();
         
@@ -426,10 +422,6 @@ window.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("keyup", (event) => {
-    if (isLoading) {
-        return;
-    }
-
     switch (event.key) {
         case "ArrowUp": case "w": setAccelerating(false); break;
         case "ArrowDown": case "s": setBraking(false); break;
