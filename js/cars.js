@@ -760,10 +760,15 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefiniti
     if (debug_timeSinceLastCoordinateLog >= debug_coordinateLogInterval && VEHICLE_COORDINATE_DEBUG_LOGGING) {
         const pos = activeCar.position;
         const gridCoords = getGridCoordinates(pos.x, pos.z, mapDefinition);
+
+        const tileSize = mapDefinition.tileSize;
+        const preciseGridX = (pos.x + tileSize / 2) / tileSize;
+        const preciseGridZ = (pos.z + tileSize / 2) / tileSize;
         
         let logMessage = `VEHICLE COORDINATES:
 World: (${pos.x.toFixed(2)}, ${pos.y.toFixed(2)}, ${pos.z.toFixed(2)})
-Grid: (${gridCoords.x}, ${gridCoords.z})`;
+Grid: (${preciseGridX.toFixed(2)}, ${preciseGridZ.toFixed(2)})
+Grid (integer): (${gridCoords.x}, ${gridCoords.z})`;
 
         if (currentMissionDestination) {
             const distanceToDestination = pos.distanceTo(currentMissionDestination);
