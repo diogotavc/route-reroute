@@ -47,6 +47,9 @@ export const CAR_DAMAGE_MAX = 80;
 export const CAR_DAMAGE_COOLDOWN = 0.2;
 export const CAR_DAMAGE_DEBUG_LOGGING = true;
 
+export const VEHICLE_COORDINATE_DEBUG_LOGGING = true;
+export const VEHICLE_COORDINATE_LOG_INTERVAL = 1.0;
+
 export const MAX_SPEED = 15;
 export const ACCELERATION_RATE = 5;
 export const BRAKING_RATE = 10;

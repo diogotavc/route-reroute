@@ -3,6 +3,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import * as CarPhysics from "./carPhysics.js";
 import * as Achievements from "./achievements.js";
 import { isIdleCameraSystemActive, isIdleCameraReturning, updateIdleCameraOriginalVisibility } from "./camera.js";
+import { getGridCoordinates } from "./mapLoader.js";
 import {
     HEADLIGHT_INTENSITY,
     HEADLIGHT_DISTANCE,
@@ -32,10 +33,12 @@ import {
     LOOK_AT_Y_OFFSET,
     FIRST_PERSON_HEIGHT_OFFSET,
     FIRST_PERSON_FORWARD_OFFSET,
-    HEADLIGHT_SHADOW_MAP_SIZE
+    HEADLIGHT_SHADOW_MAP_SIZE,
+    VEHICLE_COORDINATE_DEBUG_LOGGING,
+    VEHICLE_COORDINATE_LOG_INTERVAL
 } from './config.js';
 
-let debug_coordinateLogInterval = 1.0;
+let debug_coordinateLogInterval = VEHICLE_COORDINATE_LOG_INTERVAL;
 let debug_timeSinceLastCoordinateLog = 0;
 
 
@@ -754,11 +757,21 @@ export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefiniti
     if (!activeCar) return;
 
     debug_timeSinceLastCoordinateLog += deltaTime;
-    if (debug_timeSinceLastCoordinateLog >= debug_coordinateLogInterval) {
+    if (debug_timeSinceLastCoordinateLog >= debug_coordinateLogInterval && VEHICLE_COORDINATE_DEBUG_LOGGING) {
         const pos = activeCar.position;
+        const gridCoords = getGridCoordinates(pos.x, pos.z, mapDefinition);
+        
+        let logMessage = `VEHICLE COORDINATES:
+World: (${pos.x.toFixed(2)}, ${pos.y.toFixed(2)}, ${pos.z.toFixed(2)})
+Grid: (${gridCoords.x}, ${gridCoords.z})`;
+
         if (currentMissionDestination) {
             const distanceToDestination = pos.distanceTo(currentMissionDestination);
+            logMessage += `
+Distance to destination: ${distanceToDestination.toFixed(2)} units`;
         }
+        
+        console.log(logMessage);
         debug_timeSinceLastCoordinateLog -= debug_coordinateLogInterval;
     }
 
