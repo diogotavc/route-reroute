@@ -767,6 +767,8 @@ export function setRewinding() {
     elapsedTime = totalRecordedTime;
 
     rewindSpeedFactor = totalRecordedTime > 0 ? totalRecordedTime / TARGET_REWIND_DURATION : 1.0;
+
+    resetCarHealth();
 }
 
 export function updateHeadlights(timeOfDay) {
