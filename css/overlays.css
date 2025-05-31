@@ -4,9 +4,9 @@
 }
 
 @keyframes achievementSlide {
-    0% { transform: translateX(100%); opacity: 0; }
-    10%, 90% { transform: translateX(0); opacity: 1; }
-    100% { transform: translateX(100%); opacity: 0; }
+    0% { transform: translateY(-100%); opacity: 0; }
+    10%, 90% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(0); opacity: 0; }
 }
 
 @keyframes achievementPushDown {
@@ -112,7 +112,8 @@
 #achievement-notification-container {
     position: fixed;
     top: 20px;
-    right: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 1600;
     pointer-events: none;
     display: flex;
@@ -123,29 +124,36 @@
 .achievement-notification {
     background: linear-gradient(135deg, #4CAF50, #45a049);
     color: white;
-    padding: 15px 20px;
+    padding: 20px;
     border-radius: 10px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 16px;
     font-weight: bold;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    min-width: 350px;
-    max-width: 450px;
-    transform: translateX(100%);
+    width: 320px;
+    height: 90px;
+    transform: translateY(-100%);
     opacity: 0;
     transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 
 .achievement-notification .achievement-title {
-    font-size: 16px;
-    margin-top: 3px;
+    font-size: 18px;
+    margin-bottom: 8px;
+    line-height: 1.2;
 }
 
 .achievement-notification .achievement-description {
-    font-size: 13px;
+    font-size: 14px;
     opacity: 0.9;
-    margin-top: 2px;
+    line-height: 1.3;
+    max-width: 280px;
 }
 
 #loading-overlay {

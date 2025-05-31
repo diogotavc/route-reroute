@@ -114,21 +114,19 @@ export function animateAchievementNotification(notificationElement, container) {
     if (notificationElement._imagePromise) {
         notificationElement._imagePromise.then(() => {
             setTimeout(() => {
-                notificationElement.style.transform = 'translateX(0)';
+                notificationElement.style.transform = 'translateY(0)';
                 notificationElement.style.opacity = '1';
             }, 10);
         });
     } else {
         setTimeout(() => {
-            notificationElement.style.transform = 'translateX(0)';
+            notificationElement.style.transform = 'translateY(0)';
             notificationElement.style.opacity = '1';
         }, 10);
     }
 
-    // Slide out animation after 5 seconds
     setTimeout(() => {
         if (notificationElement.parentNode) {
-            notificationElement.style.transform = 'translateX(100%)';
             notificationElement.style.opacity = '0';
 
             setTimeout(() => {
