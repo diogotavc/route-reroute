@@ -162,6 +162,9 @@ export function hideLoadingOverlay() {
 }
 
 export function createHUDElements() {
+    const combinedHUD = document.createElement('div');
+    combinedHUD.id = 'combined-hud';
+    
     const speedometer = document.createElement('div');
     speedometer.id = 'speedometer';
     speedometer.innerHTML = `
@@ -180,10 +183,12 @@ export function createHUDElements() {
         </div>
     `;
 
-    document.body.appendChild(speedometer);
-    document.body.appendChild(healthBar);
+    combinedHUD.appendChild(speedometer);
+    combinedHUD.appendChild(healthBar);
+    document.body.appendChild(combinedHUD);
 
     return {
+        combinedHUD,
         speedometer,
         healthBar
     };
@@ -211,11 +216,25 @@ export function updateHUD(speed, health) {
             healthText.textContent = `${Math.round(healthPercentage)}%`;
 
             if (healthPercentage > 60) {
-                healthFill.style.backgroundColor = '#4caf50'; // Green
+                healthFill.style.background = 'linear-gradient(90deg, #66bb6a, #4caf50, #43a047)';
             } else if (healthPercentage > 30) {
-                healthFill.style.backgroundColor = '#ff9800'; // Orange
+                healthFill.style.background = 'linear-gradient(90deg, #ffb74d, #ff9800, #f57c00)';
             } else {
-                healthFill.style.backgroundColor = '#f44336'; // Red
+                healthFill.style.background = 'linear-gradient(90deg, #ef5350, #f44336, #d32f2f)';
+
+                if (healthPercentage < 20) {
+                    const combinedHUD = document.getElementById('combined-hud');
+                    if (combinedHUD) {
+                        combinedHUD.style.animation = 'pulse 1.5s infinite alternate';
+                    }
+                }
+            }
+
+            if (healthPercentage >= 20) {
+                const combinedHUD = document.getElementById('combined-hud');
+                if (combinedHUD) {
+                    combinedHUD.style.animation = 'none';
+                }
             }
         }
     }

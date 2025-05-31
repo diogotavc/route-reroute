@@ -14,6 +14,17 @@
     100% { transform: translateY(calc(100% + 10px)); }
 }
 
+@keyframes pulse {
+    0% { 
+        transform: scale(1);
+        filter: brightness(1);
+    }
+    100% { 
+        transform: scale(1.02);
+        filter: brightness(1.1);
+    }
+}
+
 #rewind-overlay {
     position: fixed;
     top: 20px;
@@ -50,55 +61,61 @@
 
 #level-indicator {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    top: 30px;
+    right: 30px;
     color: white;
-    font-family: 'Courier New', monospace;
-    font-size: 18px;
-    font-weight: bold;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     z-index: 1000;
     pointer-events: none;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 10px 15px;
-    border-radius: 5px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    transition: opacity 0.3s ease-in-out;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.75), rgba(20, 20, 20, 0.75));
+    padding: 16px 20px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
 }
 
 #level-indicator.hidden-during-idle {
     opacity: 0;
+    transform: translateY(-10px);
 }
 
-#speedometer.hidden-during-idle,
-#health-bar.hidden-during-idle {
+#combined-hud.hidden-during-idle {
     opacity: 0;
+    transform: translateY(10px);
 }
 
 #level-indicator .mission-info {
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 #level-indicator .mission-progress {
-    font-size: 14px;
-    color: #ffeb3b;
-    margin-bottom: 4px;
+    font-size: 13px;
+    color: #ffc107;
+    margin-bottom: 6px;
+    font-weight: 500;
 }
 
 #level-indicator .mission-character {
-    font-size: 16px;
-    color: #4fc3f7;
-    margin-bottom: 2px;
-    font-weight: bold;
+    font-size: 14px;
+    color: #64b5f6;
+    margin-bottom: 4px;
+    font-weight: 600;
 }
 
 #level-indicator .mission-backstory {
-    font-size: 12px;
+    font-size: 11px;
     color: #e0e0e0;
-    line-height: 1.3;
+    line-height: 1.4;
     max-width: 200px;
+    font-weight: 400;
 }
 
 #idle-fade-overlay {
@@ -210,84 +227,112 @@
     display: none;
 }
 
-#speedometer {
+#combined-hud {
     position: fixed;
-    bottom: 20px;
-    left: 20px;
-    background: rgba(0, 0, 0, 0.8);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 10px;
-    padding: 15px 20px;
+    bottom: 30px;
+    left: 30px;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.75), rgba(20, 20, 20, 0.75));
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 20px;
     color: white;
-    font-family: 'Courier New', monospace;
-    text-align: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     z-index: 1000;
     pointer-events: none;
-    min-width: 100px;
-    transition: opacity 0.3s ease-in-out;
+    min-width: 280px;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+#speedometer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
 }
 
 #speedometer .hud-label {
-    font-size: 12px;
-    color: #bbb;
-    margin-bottom: 5px;
-    letter-spacing: 1px;
+    font-size: 10px;
+    color: #a0a0a0;
+    margin-bottom: 6px;
+    letter-spacing: 1.5px;
+    font-weight: 500;
+    text-transform: uppercase;
 }
 
 #speedometer .speed-value {
     font-size: 32px;
-    font-weight: bold;
-    color: #00e676;
-    text-shadow: 0 0 10px rgba(0, 230, 118, 0.5);
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     margin-bottom: 2px;
+    line-height: 1;
 }
 
 #speedometer .speed-unit {
-    font-size: 10px;
-    color: #bbb;
+    font-size: 8px;
+    color: #888;
     letter-spacing: 1px;
+    font-weight: 400;
+    text-transform: uppercase;
 }
 
 #health-bar {
-    position: fixed;
-    bottom: 20px;
-    left: 160px;
-    background: rgba(0, 0, 0, 0.8);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 10px;
-    padding: 15px 20px;
-    color: white;
-    font-family: 'Courier New', monospace;
-    z-index: 1000;
-    pointer-events: none;
-    min-width: 150px;
-    transition: opacity 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    flex: 1.2;
 }
 
 #health-bar .hud-label {
-    font-size: 12px;
-    color: #bbb;
+    font-size: 10px;
+    color: #a0a0a0;
     margin-bottom: 8px;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
     text-align: center;
+    font-weight: 500;
+    text-transform: uppercase;
 }
 
 .health-bar-container {
     position: relative;
     width: 100%;
-    height: 25px;
-    background: rgba(255, 255, 255, 0.1);
+    height: 24px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.1));
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .health-bar-fill {
     height: 100%;
-    background: #4caf50;
-    border-radius: 12px;
-    transition: width 0.3s ease, background-color 0.3s ease;
-    box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+    background: linear-gradient(90deg, #66bb6a, #4caf50, #43a047);
+    border-radius: 11px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                background 0.3s ease;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+}
+
+.health-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.2) 40%, 
+        rgba(255, 255, 255, 0.2) 60%, 
+        transparent 100%);
+    border-radius: 11px;
 }
 
 .health-bar-text {
@@ -295,9 +340,15 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 12px;
-    font-weight: bold;
+    font-size: 11px;
+    font-weight: 600;
     color: white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-    z-index: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+    z-index: 2;
+    letter-spacing: 0.3px;
+}
+
+#combined-hud.hidden-during-idle {
+    opacity: 0;
+    transform: translateY(10px);
 }

@@ -66,7 +66,7 @@ const overlayElements = createOverlayElements();
 const { rewindOverlay, pauseOverlay, loadingOverlay, idleFadeOverlay, achievementNotificationContainer, levelIndicator } = overlayElements;
 
 const hudElements = createHUDElements();
-const { speedometer, healthBar } = hudElements;
+const { combinedHUD, speedometer, healthBar } = hudElements;
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;

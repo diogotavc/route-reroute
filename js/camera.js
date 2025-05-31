@@ -177,14 +177,9 @@ export function stopIdleCameraAnimation() {
         levelIndicator.classList.remove('hidden-during-idle');
     }
 
-    const speedometer = document.getElementById('speedometer');
-    if (speedometer) {
-        speedometer.classList.remove('hidden-during-idle');
-    }
-
-    const healthBar = document.getElementById('health-bar');
-    if (healthBar) {
-        healthBar.classList.remove('hidden-during-idle');
+    const combinedHUD = document.getElementById('combined-hud');
+    if (combinedHUD) {
+        combinedHUD.classList.remove('hidden-during-idle');
     }
 
     if (idleFirefly) {
@@ -222,14 +217,9 @@ function updateActiveIdleCamera(deltaTime) {
             levelIndicator.classList.add('hidden-during-idle');
         }
 
-        const speedometer = document.getElementById('speedometer');
-        if (speedometer && !speedometer.classList.contains('hidden-during-idle')) {
-            speedometer.classList.add('hidden-during-idle');
-        }
-
-        const healthBar = document.getElementById('health-bar');
-        if (healthBar && !healthBar.classList.contains('hidden-during-idle')) {
-            healthBar.classList.add('hidden-during-idle');
+        const combinedHUD = document.getElementById('combined-hud');
+        if (combinedHUD && !combinedHUD.classList.contains('hidden-during-idle')) {
+            combinedHUD.classList.add('hidden-during-idle');
         }
 
         if (!idleCameraState.lightsAreDimmed) {
