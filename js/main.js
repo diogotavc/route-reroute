@@ -93,6 +93,30 @@ const exampleLevel1_Missions = [
     ["firetruck", "Chief Blaze", "A fire broke out.", "start2", "finish2"],
 ];
 
+const exampleLevel2_Missions = [
+    ["police", "Officer Justice", "Pursuing a speeding vehicle through the city.", "start3", "finish3"],
+    ["taxi", "Taxi Driver", "Getting passengers to their destination on time.", "start4", "finish4"],
+    ["delivery", "Express Courier", "Rush delivery before the store closes.", "start5", "finish5"],
+    ["sedan", "Commuter Carl", "Late for an important business meeting.", "start6", "finish6"],
+];
+
+const exampleLevel3_Missions = [
+    ["garbage-truck", "Sanitation Sam", "Emergency garbage collection before the storm.", "start7", "finish7"],
+    ["van", "Moving Mike", "Urgent furniture delivery across town.", "start8", "finish8"],
+    ["suv", "Soccer Mom", "Racing to pick up kids from practice.", "start9", "finish9"],
+    ["truck", "Trucker Tom", "Heavy cargo delivery to the construction site.", "start10", "finish10"],
+    ["sedan-sports", "Speed Racer", "Testing the new sports car around the city.", "start11", "finish11"],
+    ["race", "Pro Driver", "Training run through the urban circuit.", "start12", "finish12"],
+];
+
+const exampleLevel4_Missions = [
+    ["tractor-police", "Night Patrol", "Special police tractor patrolling the quiet streets.", "start13", "finish13"],
+    ["suv-luxury", "VIP Transport", "Luxury ride for an important client.", "start14", "finish14"],
+    ["hatchback-sports", "Street Racer", "Underground racing through the night.", "start15", "finish15"],
+    ["race-future", "Future Racer", "Testing tomorrow's racing technology.", "start16", "finish16"],
+    ["truck-flat", "Night Hauler", "Moving heavy equipment under cover of darkness.", "start17", "finish17"],
+];
+
 let currentLevelData;
 
 function processLevelMissions(missions, mapDefinition) {
@@ -135,7 +159,34 @@ function processLevelMissions(missions, mapDefinition) {
 }
 
 const levels = [
-    { missions: exampleLevel1_Missions, map: level1MapData, cameraStart: [0, 20, 30], initialTimeOfDay: 0.3, timeIncrementPerMission: 0.05 },
+    { 
+        missions: exampleLevel1_Missions, 
+        map: level1MapData, 
+        cameraStart: [0, 20, 30], 
+        initialTimeOfDay: 0.3, 
+        timeIncrementPerMission: 0.05 
+    },
+    { 
+        missions: exampleLevel2_Missions, 
+        map: level1MapData, 
+        cameraStart: [0, 20, 30], 
+        initialTimeOfDay: 0.45, 
+        timeIncrementPerMission: 0.04 
+    },
+    { 
+        missions: exampleLevel3_Missions, 
+        map: level1MapData, 
+        cameraStart: [0, 20, 30], 
+        initialTimeOfDay: 0.6, 
+        timeIncrementPerMission: 0.03 
+    },
+    { 
+        missions: exampleLevel4_Missions, 
+        map: level1MapData, 
+        cameraStart: [0, 20, 30], 
+        initialTimeOfDay: 0.85, 
+        timeIncrementPerMission: 0.02 
+    }
 ];
 
 let currentLevelIndex = 0;
