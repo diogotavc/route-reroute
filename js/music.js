@@ -234,8 +234,6 @@ export function setIdleMode(enabled) {
     }
 
     updateMusicUI();
-    
-    console.log('Music idle mode:', enabled ? 'enabled (louder)' : 'disabled (quieter)');
 }
 
 export function getMusicInfo() {

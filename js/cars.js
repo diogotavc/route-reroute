@@ -118,8 +118,6 @@ let carHealth = CAR_MAX_HEALTH;
 let lastDamageTime = 0;
 
 export function cleanupAllCars() {
-    console.log("Cleaning up cars from previous level...");
-
     for (const carIndex in loadedCarModels) {
         const car = loadedCarModels[carIndex];
         if (car) {
@@ -193,8 +191,6 @@ export function cleanupAllCars() {
     isTurningRight = false;
 
     resetCarHealth();
-
-    console.log("Successfully cleaned up all cars and reset car state.");
 }
 
 function updateCarHealth(deltaTime, collisionData) {
@@ -968,8 +964,6 @@ Distance to destination: ${distanceToDestination.toFixed(2)} units`;
 
                 const nextCarResult = nextCar();
                 if (nextCarResult === -1) {
-                    console.log("All missions finished for the current level.");
-
                     const levelIndex = typeof window.getCurrentLevelIndex === 'function' ? window.getCurrentLevelIndex() : 0;
                     Achievements.onLevelCompleted({ level: levelIndex });
 

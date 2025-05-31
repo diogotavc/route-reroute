@@ -92,7 +92,6 @@ loadMap(scene, level1MapData).then((mapGroup) => {
     initGraphicsPresets(renderer, scene);
 
     window.setGraphicsPreset = setGraphicsPresetConsole;
-    console.log('Graphics presets system initialized! Use setGraphicsPreset("LOW"|"MEDIUM"|"HIGH") in console to change settings.');
 
     registerLights(lights.directionalLight);
 
@@ -219,19 +218,16 @@ window.getCurrentLevelIndex = () => currentLevelIndex;
 
 function advanceToNextLevel() {
     if (isLoading) {
-        console.log("Cannot advance level while loading...");
         return false;
     }
 
     if (currentLevelIndex < levels.length - 1) {
         currentLevelIndex++;
-        console.log(`Advancing to level ${currentLevelIndex + 1}`);
         // MISSION COMPLETION / STARTING NEXT ONE LOGIC HERE
         updateLevelIndicatorWithMission();
         loadCarModelsAndSetupLevel();
         return true;
     } else {
-        console.log("All levels completed! Congratulations!");
         // LEVEL COMPLETION LOGIC WILL GO HERE
         return false;
     }
@@ -287,9 +283,7 @@ function loadCarModelsAndSetupLevel() {
     }
     controls.update();
 
-    loadCarModels(currentLevelData).then(() => { 
-        console.log(`Successfully loaded ${levelName}`);
-
+    loadCarModels(currentLevelData).then(() => {
         setTimeout(() => {
             hideLoadingOverlay();
 
@@ -298,8 +292,6 @@ function loadCarModelsAndSetupLevel() {
                     togglePause();
                 }
                 isLoading = false;
-
-                console.log(`${levelName} ready to play!`);
             }, 500);
         }, 800);
     }).catch(error => {
@@ -408,18 +400,6 @@ window.addEventListener("keydown", (event) => {
     }
 
     switch (event.key) {
-        case "n":
-            const nextCarResult = nextCar();
-            if (nextCarResult === -1) {
-                console.log("End of missions for the current level!");
-            } else {
-                const levelConfig = levels[currentLevelIndex];
-                currentTimeOfDay += levelConfig.timeIncrementPerMission !== undefined ? levelConfig.timeIncrementPerMission : 0.05;
-                if (currentTimeOfDay > 1) currentTimeOfDay -= 1;
-                updateDayNightCycle(scene, currentTimeOfDay);
-                updateLevelIndicatorWithMission();
-            }
-            break;
         case "ArrowUp": case "w": setAccelerating(true); break;
         case "ArrowDown": case "s": setBraking(true); break;
         case "ArrowLeft": case "a": setTurningLeft(true); break;
