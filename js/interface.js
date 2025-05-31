@@ -202,12 +202,27 @@ export function createHUDElements() {
 export function updateHUD(speed, health) {
     const speedometer = document.getElementById('speedometer');
     const healthBar = document.getElementById('health-bar');
+    const combinedHUD = document.getElementById('combined-hud');
     
     if (speedometer) {
         const speedValue = speedometer.querySelector('.speed-value');
         if (speedValue) {
             const kmh = Math.abs(speed * 3.5).toFixed(0);
             speedValue.textContent = kmh;
+        }
+    }
+
+    if (combinedHUD) {
+        const kmh = Math.abs(speed * 3.5);
+
+        combinedHUD.classList.remove('speed-glow-low', 'speed-glow-medium', 'speed-glow-high');
+
+        if (kmh > 40) {
+            combinedHUD.classList.add('speed-glow-high');
+        } else if (kmh > 20) {
+            combinedHUD.classList.add('speed-glow-medium');
+        } else if (kmh > 5) {
+            combinedHUD.classList.add('speed-glow-low');
         }
     }
 
@@ -228,7 +243,6 @@ export function updateHUD(speed, health) {
                 healthFill.style.background = 'linear-gradient(90deg, #ef5350, #f44336, #d32f2f)';
 
                 if (healthPercentage < 20) {
-                    const combinedHUD = document.getElementById('combined-hud');
                     if (combinedHUD) {
                         combinedHUD.style.animation = 'pulse 1.5s infinite alternate';
                     }
@@ -236,7 +250,6 @@ export function updateHUD(speed, health) {
             }
 
             if (healthPercentage >= 20) {
-                const combinedHUD = document.getElementById('combined-hud');
                 if (combinedHUD) {
                     combinedHUD.style.animation = 'none';
                 }
