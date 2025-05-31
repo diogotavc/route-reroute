@@ -269,6 +269,8 @@ function loadCarModelsAndSetupLevel() {
     updateDayNightCycle(scene, currentTimeOfDay);
 
     Achievements.initDayNightTracking(currentTimeOfDay);
+    
+    Achievements.onLevelReset();
 
     updateLevelIndicatorWithMission();
 

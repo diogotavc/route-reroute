@@ -286,6 +286,19 @@ export function onLevelCompleted(levelData = {}) {
     };
 }
 
+export function onLevelReset() {
+    achievementsState.session.levelProgress = {
+        currentLevel: achievementsState.session.levelProgress.currentLevel,
+        hasCrashed: false,
+        hasGoneOnGrass: false,
+        hasGoneOutOfBounds: false,
+        missionsCompleted: 0,
+        totalMissions: 0
+    };
+
+    achievementsState.session.rewindCount = 0;
+}
+
 export function trackReverseDistance(distance) {
     achievementsState.session.reverseDistance += distance;
     achievementsState.session.continuousReverseDistance += distance;
