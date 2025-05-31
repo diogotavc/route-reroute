@@ -400,7 +400,30 @@
     transform: translateY(10px);
 }
 
+#combined-hud.hidden-during-loading {
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+}
+
 #level-indicator.hidden-during-rewind {
     opacity: 0;
     transform: translateY(-10px);
+}
+
+#level-indicator.hidden-during-loading {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+}
+
+#achievement-notification-container.hidden-during-loading {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#music-ui.hidden-during-loading {
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
 }

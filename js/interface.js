@@ -159,11 +159,47 @@ export function showLoadingOverlay(levelName = "", subtitle = "") {
     }
     
     loadingOverlay.style.display = 'flex';
+
+    hideAllOverlaysDuringLoading();
 }
 
 export function hideLoadingOverlay() {
     const loadingOverlay = document.getElementById('loading-overlay');
     loadingOverlay.style.display = 'none';
+
+    showAllOverlaysAfterLoading();
+}
+
+export function hideAllOverlaysDuringLoading() {
+    const elementsToHide = [
+        'combined-hud',
+        'level-indicator', 
+        'achievement-notification-container',
+        'music-ui'
+    ];
+    
+    elementsToHide.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.add('hidden-during-loading');
+        }
+    });
+}
+
+export function showAllOverlaysAfterLoading() {
+    const elementsToShow = [
+        'combined-hud',
+        'level-indicator',
+        'achievement-notification-container', 
+        'music-ui'
+    ];
+    
+    elementsToShow.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.remove('hidden-during-loading');
+        }
+    });
 }
 
 export function createHUDElements() {

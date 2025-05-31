@@ -29,7 +29,7 @@ import {
 } from './cars.js';
 import { loadMap, getWorldCoordinates } from './mapLoader.js';
 import { mapData as level1MapData } from './maps/level1_map.js';
-import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, createHUDElements, updateHUD } from './interface.js';
+import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, hideAllOverlaysDuringLoading, showAllOverlaysAfterLoading, createHUDElements, updateHUD } from './interface.js';
 import {
     initCamera,
     setCameraPaused,
@@ -92,6 +92,9 @@ loadMap(scene, level1MapData).then((mapGroup) => {
 
     setupLights(scene);
 
+    // Hide overlays during initial loading
+    hideAllOverlaysDuringLoading();
+    
     loadCarModelsAndSetupLevel();
 }).catch(error => {
     console.error("Failed to load map in main.js:", error);
@@ -256,7 +259,7 @@ function loadCarModelsAndSetupLevel() {
 
     const wasAlreadyPaused = isPaused;
     if (!isPaused) {
-        togglePause();
+        pauseGame(false);
     }
 
     currentLevelData = processLevelMissions(levelConfig.missions, levelConfig.map);
@@ -286,7 +289,7 @@ function loadCarModelsAndSetupLevel() {
 
             setTimeout(() => {
                 if (!wasAlreadyPaused && isPaused) {
-                    togglePause();
+                    unpauseGame();
                 }
                 isLoading = false;
             }, 500);
@@ -296,7 +299,7 @@ function loadCarModelsAndSetupLevel() {
         hideLoadingOverlay();
 
         if (!wasAlreadyPaused && isPaused) {
-            togglePause();
+            unpauseGame();
         }
         isLoading = false;
     });
@@ -305,10 +308,15 @@ function loadCarModelsAndSetupLevel() {
 const clock = new THREE.Clock();
 
 let isPaused = false;
+let isManualPause = false;
 
-function togglePause() {
+function togglePause(manual = false) {
     isPaused = !isPaused;
-    pauseOverlay.style.display = isPaused ? 'block' : 'none';
+    isManualPause = manual;
+
+    if (pauseOverlay) {
+        pauseOverlay.style.display = (isPaused && isManualPause) ? 'block' : 'none';
+    }
 
     setCameraPaused(isPaused);
     
@@ -316,6 +324,18 @@ function togglePause() {
         clock.stop();
     } else {
         clock.start();
+    }
+}
+
+function pauseGame(manual = false) {
+    if (!isPaused) {
+        togglePause(manual);
+    }
+}
+
+function unpauseGame() {
+    if (isPaused) {
+        togglePause(false);
     }
 }
 
@@ -427,7 +447,7 @@ window.addEventListener("keydown", (event) => {
         case "ArrowLeft": case "a": setTurningLeft(true); break;
         case "ArrowRight": case "d": setTurningRight(true); break;
         case "r": setRewinding(); break;        case "c": toggleCameraMode(); break;
-        case "p": togglePause(); break;
+        case "p": togglePause(true); break;
     }
 });
 
@@ -442,7 +462,7 @@ window.addEventListener("keyup", (event) => {
 
 window.addEventListener("blur", () => {
     if (AUTO_PAUSE_ON_FOCUS_LOST && !isPaused) {
-        togglePause();
+        pauseGame(false);
     }
 });
 

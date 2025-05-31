@@ -59,7 +59,7 @@ export const COLLISION_SEPARATION_FACTOR = 1.1;
 export const EPSILON = 0.0001;
 export const HITBOX_SCALE_FACTOR = 0.8;
 
-export const AUTO_PAUSE_ON_FOCUS_LOST = false;
+export const AUTO_PAUSE_ON_FOCUS_LOST = true;
 
 export const IDLE_CAMERA_ENABLED = true;
 export const IDLE_CAMERA_TRIGGER_TIME = 5;
