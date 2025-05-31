@@ -76,22 +76,34 @@ initMusicSystem();
 initCars(scene, camera, controls);
 
 let collidableMapElements = []; 
+let gameInitialized = false;
+let menuSystem;
 
-loadMap(scene, level1MapData).then((mapGroup) => {
-    if (mapGroup && mapGroup.userData && mapGroup.userData.collidableTiles) {
-        collidableMapElements = mapGroup.userData.collidableTiles;
-    }
-
-    initCars(scene, camera, controls);
-
-    setOnMissionChangeCallback(updateLevelIndicatorWithMission);
-
-    setupLights(scene);
-
-    loadCarModelsAndSetupLevel();
-}).catch(error => {
-    console.error("Failed to load map in main.js:", error);
+document.addEventListener('DOMContentLoaded', () => {
+    menuSystem = new MenuSystem();
+    menuSystem.setGameStartCallback(initializeGame);
 });
+
+function initializeGame() {
+    if (gameInitialized) return;
+    gameInitialized = true;
+
+    loadMap(scene, level1MapData).then((mapGroup) => {
+        if (mapGroup && mapGroup.userData && mapGroup.userData.collidableTiles) {
+            collidableMapElements = mapGroup.userData.collidableTiles;
+        }
+
+        initCars(scene, camera, controls);
+
+        setOnMissionChangeCallback(updateLevelIndicatorWithMission);
+
+        setupLights(scene);
+
+        loadCarModelsAndSetupLevel();
+    }).catch(error => {
+        console.error("Failed to load map in main.js:", error);
+    });
+}
 
 const exampleLevel1_Missions = [
     ["ambulance", "Dr. Healmore", "Rushing to save a critical patient.", "start1", "finish1"],
@@ -324,6 +336,11 @@ function showAchievementNotification(notification) {
 }
 
 function animate() {
+    if (!gameInitialized || (menuSystem && menuSystem.isMenuActive)) {
+        renderer.render(scene, camera);
+        return;
+    }
+
     if (isPaused) {
         renderer.render(scene, camera);
         return;
@@ -384,6 +401,17 @@ function isMovementKey(key) {
 }
 
 window.addEventListener("keydown", (event) => {
+    if (menuSystem && menuSystem.isMenuActive) {
+        return;
+    }
+
+    if (event.key === "Escape") {
+        if (menuSystem) {
+            menuSystem.showMenu();
+        }
+        return;
+    }
+
     if (isMovementKey(event.key)) {
         Achievements.onInputDetected();
         
@@ -403,6 +431,10 @@ window.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("keyup", (event) => {
+    if (menuSystem && menuSystem.isMenuActive) {
+        return;
+    }
+
     switch (event.key) {
         case "ArrowUp": case "w": setAccelerating(false); break;
         case "ArrowDown": case "s": setBraking(false); break;

@@ -1,0 +1,236 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    font-family: 'Orbitron', monospace;
+    color: white;
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.menu-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.menu-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 600px;
+    width: 90%;
+    padding: 40px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #00ff88;
+    border-radius: 15px;
+    box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.menu-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 20px;
+    background: linear-gradient(45deg, #00ff88, #00ccff, #ff6b6b);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 3s ease-in-out infinite;
+    text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+}
+
+.menu-subtitle {
+    font-size: 1.2rem;
+    color: #aaa;
+    text-align: center;
+    margin-bottom: 40px;
+    font-weight: 400;
+}
+
+.menu-items {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.menu-item {
+    padding: 15px 30px;
+    background: rgba(0, 255, 136, 0.1);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.menu-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.menu-item:hover,
+.menu-item.selected {
+    border-color: #00ff88;
+    background: rgba(0, 255, 136, 0.2);
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+    transform: translateY(-2px);
+}
+
+.menu-item:hover::before,
+.menu-item.selected::before {
+    left: 100%;
+}
+
+.menu-item:active {
+    transform: translateY(0);
+}
+
+.menu-controls {
+    margin-top: 30px;
+    color: #888;
+    font-size: 0.9rem;
+    text-align: center;
+    line-height: 1.6;
+}
+
+.menu-controls .key {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #555;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    margin: 0 2px;
+}
+
+.menu-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23333" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+    opacity: 0.3;
+    animation: gridMove 20s linear infinite;
+}
+
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    font-family: 'Orbitron', monospace;
+    color: white;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loading-title {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #00ff88;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid #333;
+    border-top: 3px solid #00ff88;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+.loading-text {
+    margin-top: 20px;
+    font-size: 1rem;
+    color: #aaa;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+@keyframes gridMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(10px, 10px); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes glow {
+    0%, 100% { box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
+    50% { box-shadow: 0 0 25px rgba(0, 255, 136, 0.8); }
+}
+
+.menu-item.selected {
+    animation: glow 2s ease-in-out infinite;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .menu-title {
+        font-size: 2.5rem;
+    }
+    
+    .menu-container {
+        padding: 30px 20px;
+    }
+    
+    .menu-item {
+        padding: 12px 20px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .menu-title {
+        font-size: 2rem;
+    }
+    
+    .menu-subtitle {
+        font-size: 1rem;
+    }
+    
+    .menu-item {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+}
