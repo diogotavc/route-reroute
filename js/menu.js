@@ -195,25 +195,124 @@ class MenuSystem {
     }
     
     showSettings() {
+        const audioSettings = this.getAudioSettings();
+        const gameSettings = this.getGameSettings();
         this.showSubScreen('settings', 'SETTINGS', `
             <div style="text-align: center;">
                 <div style="margin: 20px 0;">
-                    <h3 style="color: #00ff88;">GRAPHICS QUALITY</h3>
-                    <div class="menu-item" style="margin: 10px 0;">High Quality</div>
-                    <div class="menu-item" style="margin: 10px 0;">Medium Quality</div>
-                    <div class="menu-item" style="margin: 10px 0;">Low Quality</div>
+                    <h3 style="color: #00ff88; margin-bottom: 25px;">AUDIO SETTINGS</h3>
+                    
+                    <div style="margin: 20px 0; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto;">
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; color: #aaa; margin-bottom: 8px; font-size: 1rem;">
+                                Master Volume: <span id="master-volume-value">${Math.round(audioSettings.master * 100)}%</span>
+                            </label>
+                            <input type="range" id="master-volume" class="audio-slider" 
+                                   min="0" max="100" value="${Math.round(audioSettings.master * 100)}"
+                                   style="width: 100%;">
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; color: #aaa; margin-bottom: 8px; font-size: 1rem;">
+                                Music Volume: <span id="music-volume-value">${Math.round(audioSettings.music * 100)}%</span>
+                            </label>
+                            <input type="range" id="music-volume" class="audio-slider" 
+                                   min="0" max="100" value="${Math.round(audioSettings.music * 100)}"
+                                   style="width: 100%;">
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; color: #aaa; margin-bottom: 8px; font-size: 1rem;">
+                                SFX Volume: <span id="sfx-volume-value">${Math.round(audioSettings.sfx * 100)}%</span>
+                            </label>
+                            <input type="range" id="sfx-volume" class="audio-slider" 
+                                   min="0" max="100" value="${Math.round(audioSettings.sfx * 100)}"
+                                   style="width: 100%;">
+                        </div>
+                    </div>
                 </div>
 
-                <div style="margin: 20px 0;">
-                    <h3 style="color: #00ff88;">AUDIO</h3>
-                    <div class="menu-item" style="margin: 10px 0;">Master Volume: 100%</div>
-                    <div class="menu-item" style="margin: 10px 0;">Music Volume: 80%</div>
-                    <div class="menu-item" style="margin: 10px 0;">SFX Volume: 90%</div>
+                <div style="margin: 30px 0;">
+                    <h3 style="color: #00ff88; margin-bottom: 25px;">GAME SETTINGS</h3>
+                    
+                    <div style="margin: 20px 0; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto;">
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: flex; align-items: center; color: #aaa; cursor: pointer;">
+                                <input type="checkbox" id="auto-pause" ${gameSettings.autoPauseOnFocusLost ? 'checked' : ''} 
+                                       style="margin-right: 10px; transform: scale(1.2);">
+                                Auto Pause on Focus Lost
+                            </label>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: flex; align-items: center; color: #aaa; cursor: pointer;">
+                                <input type="checkbox" id="music-enabled" ${gameSettings.musicEnabled ? 'checked' : ''} 
+                                       style="margin-right: 10px; transform: scale(1.2);">
+                                Enable Music
+                            </label>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: flex; align-items: center; color: #aaa; cursor: pointer;">
+                                <input type="checkbox" id="music-shuffle" ${gameSettings.musicShuffle ? 'checked' : ''} 
+                                       style="margin-right: 10px; transform: scale(1.2);">
+                                Shuffle Music Playlist
+                            </label>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: flex; align-items: center; color: #aaa; cursor: pointer;">
+                                <input type="checkbox" id="music-auto-next" ${gameSettings.musicAutoNext ? 'checked' : ''} 
+                                       style="margin-right: 10px; transform: scale(1.2);">
+                                Auto Play Next Track
+                            </label>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: flex; align-items: center; color: #aaa; cursor: pointer;">
+                                <input type="checkbox" id="idle-camera" ${gameSettings.idleCameraEnabled ? 'checked' : ''} 
+                                       style="margin-right: 10px; transform: scale(1.2);">
+                                Enable Idle Camera
+                            </label>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: flex; align-items: center; color: #aaa; cursor: pointer;">
+                                <input type="checkbox" id="idle-firefly" ${gameSettings.idleFireflyEnabled ? 'checked' : ''} 
+                                       style="margin-right: 10px; transform: scale(1.2);">
+                                Enable Idle Firefly
+                            </label>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; color: #aaa; margin-bottom: 8px; font-size: 1rem;">
+                                Gameplay Music Volume: <span id="gameplay-music-value">${Math.round(gameSettings.musicVolumeGameplay * 100)}%</span>
+                            </label>
+                            <input type="range" id="gameplay-music-volume" class="audio-slider" 
+                                   min="0" max="100" value="${Math.round(gameSettings.musicVolumeGameplay * 100)}"
+                                   style="width: 100%;">
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; color: #aaa; margin-bottom: 8px; font-size: 1rem;">
+                                Idle Music Volume: <span id="idle-music-value">${Math.round(gameSettings.musicVolumeIdle * 100)}%</span>
+                            </label>
+                            <input type="range" id="idle-music-volume" class="audio-slider" 
+                                   min="0" max="100" value="${Math.round(gameSettings.musicVolumeIdle * 100)}"
+                                   style="width: 100%;">
+                        </div>
+                    </div>
                 </div>
 
                 <p style="color: #888; margin-top: 30px;">Settings are automatically saved</p>
             </div>
         `);
+        
+        // Bind events after creating the HTML
+        setTimeout(() => {
+            this.bindAudioSliders();
+            this.bindGameSettings();
+        }, 100);
     }
 
     showCredits() {
@@ -329,6 +428,158 @@ class MenuSystem {
 
     setGameStartCallback(callback) {
         this.onGameStart = callback;
+    }
+
+    getAudioSettings() {
+        const defaultSettings = { master: 1.0, music: 0.8, sfx: 0.9 };
+        try {
+            const saved = localStorage.getItem('gameAudioSettings');
+            return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
+        } catch (e) {
+            return defaultSettings;
+        }
+    }
+    
+    saveAudioSettings(settings) {
+        try {
+            localStorage.setItem('gameAudioSettings', JSON.stringify(settings));
+            this.applyAudioSettings(settings);
+        } catch (e) {
+            console.warn('Could not save audio settings:', e);
+        }
+    }
+    
+    applyAudioSettings(settings) {
+        if (window.setMusicVolume) {
+            window.setMusicVolume(settings.music * settings.master);
+        }
+
+        if (window.setSFXVolume) {
+            window.setSFXVolume(settings.sfx * settings.master);
+        }
+
+        window.dispatchEvent(new CustomEvent('audioSettingsChanged', { 
+            detail: settings 
+        }));
+    }
+
+    getGameSettings() {
+        const defaultSettings = {
+            autoPauseOnFocusLost: false,
+            idleCameraEnabled: true,
+            idleFireflyEnabled: true,
+            musicEnabled: true,
+            musicShuffle: true,
+            musicAutoNext: true,
+            musicVolumeGameplay: 0.2,
+            musicVolumeIdle: 1.0
+        };
+        try {
+            const saved = localStorage.getItem('gameSettings');
+            return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
+        } catch (e) {
+            return defaultSettings;
+        }
+    }
+    
+    saveGameSettings(settings) {
+        try {
+            localStorage.setItem('gameSettings', JSON.stringify(settings));
+            this.applyGameSettings(settings);
+        } catch (e) {
+            console.warn('Could not save game settings:', e);
+        }
+    }
+    
+    applyGameSettings(settings) {
+        window.dispatchEvent(new CustomEvent('gameSettingsChanged', { 
+            detail: settings 
+        }));
+
+        if (window.updateGameSettings) {
+            window.updateGameSettings(settings);
+        }
+    }
+    
+    bindGameSettings() {
+        const autoPauseCheckbox = document.getElementById('auto-pause');
+        const musicEnabledCheckbox = document.getElementById('music-enabled');
+        const musicShuffleCheckbox = document.getElementById('music-shuffle');
+        const musicAutoNextCheckbox = document.getElementById('music-auto-next');
+        const idleCameraCheckbox = document.getElementById('idle-camera');
+        const idleFireflyCheckbox = document.getElementById('idle-firefly');
+        const gameplayMusicSlider = document.getElementById('gameplay-music-volume');
+        const idleMusicSlider = document.getElementById('idle-music-volume');
+        
+        const gameplayMusicValue = document.getElementById('gameplay-music-value');
+        const idleMusicValue = document.getElementById('idle-music-value');
+        
+        if (!autoPauseCheckbox || !musicEnabledCheckbox || !gameplayMusicSlider) return;
+        
+        const updateSettings = () => {
+            const newSettings = {
+                autoPauseOnFocusLost: autoPauseCheckbox.checked,
+                idleCameraEnabled: idleCameraCheckbox.checked,
+                idleFireflyEnabled: idleFireflyCheckbox.checked,
+                musicEnabled: musicEnabledCheckbox.checked,
+                musicShuffle: musicShuffleCheckbox.checked,
+                musicAutoNext: musicAutoNextCheckbox.checked,
+                musicVolumeGameplay: gameplayMusicSlider.value / 100,
+                musicVolumeIdle: idleMusicSlider.value / 100
+            };
+            
+            gameplayMusicValue.textContent = `${gameplayMusicSlider.value}%`;
+            idleMusicValue.textContent = `${idleMusicSlider.value}%`;
+            
+            this.saveGameSettings(newSettings);
+        };
+
+        autoPauseCheckbox.addEventListener('change', updateSettings);
+        musicEnabledCheckbox.addEventListener('change', updateSettings);
+        musicShuffleCheckbox.addEventListener('change', updateSettings);
+        musicAutoNextCheckbox.addEventListener('change', updateSettings);
+        idleCameraCheckbox.addEventListener('change', updateSettings);
+        idleFireflyCheckbox.addEventListener('change', updateSettings);
+
+        gameplayMusicSlider.addEventListener('input', updateSettings);
+        idleMusicSlider.addEventListener('input', updateSettings);
+
+        const currentSettings = this.getGameSettings();
+        this.applyGameSettings(currentSettings);
+    }
+    
+    bindAudioSliders() {
+        const settings = this.getAudioSettings();
+        
+        const masterSlider = document.getElementById('master-volume');
+        const musicSlider = document.getElementById('music-volume');
+        const sfxSlider = document.getElementById('sfx-volume');
+        
+        const masterValue = document.getElementById('master-volume-value');
+        const musicValue = document.getElementById('music-volume-value');
+        const sfxValue = document.getElementById('sfx-volume-value');
+        
+        if (!masterSlider || !musicSlider || !sfxSlider) return;
+        
+        const updateSettings = () => {
+            const newSettings = {
+                master: masterSlider.value / 100,
+                music: musicSlider.value / 100,
+                sfx: sfxSlider.value / 100
+            };
+            
+            masterValue.textContent = `${masterSlider.value}%`;
+            musicValue.textContent = `${musicSlider.value}%`;
+            sfxValue.textContent = `${sfxSlider.value}%`;
+            
+            this.saveAudioSettings(newSettings);
+        };
+        
+        masterSlider.addEventListener('input', updateSettings);
+        musicSlider.addEventListener('input', updateSettings);
+        sfxSlider.addEventListener('input', updateSettings);
+
+        this.applyAudioSettings(settings);
     }
 }
 

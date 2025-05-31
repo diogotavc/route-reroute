@@ -248,13 +248,20 @@ function initAudioSystem() {
     try {
         honkAudio = new Audio('assets/audio/honk.mp3');
         honkAudio.preload = 'auto';
-        honkAudio.volume = 0.7;
+        honkAudio.volume = (window.baseSFXVolume || 0.7);
 
         const enableAudio = () => {
             if (!audioInitialized) {
                 audioInitialized = true;
             }
         };
+
+        window.addEventListener('audioSettingsChanged', (event) => {
+            const settings = event.detail;
+            if (honkAudio) {
+                honkAudio.volume = settings.sfx * settings.master;
+            }
+        });
 
         document.addEventListener('click', enableAudio, { once: true });
         document.addEventListener('keydown', enableAudio, { once: true });

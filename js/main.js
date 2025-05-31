@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import {
-    AUTO_PAUSE_ON_FOCUS_LOST, 
     RENDERER_PIXEL_RATIO
 } from './config.js';
 
@@ -79,9 +78,58 @@ let collidableMapElements = [];
 let gameInitialized = false;
 let menuSystem;
 
+let gameSettings = {
+    autoPauseOnFocusLost: false,
+    idleCameraEnabled: true,
+    idleFireflyEnabled: true,
+    musicEnabled: true,
+    musicShuffle: true,
+    musicAutoNext: true,
+    musicVolumeGameplay: 0.2,
+    musicVolumeIdle: 1.0
+};
+
+function loadGameSettings() {
+    try {
+        const saved = localStorage.getItem('gameSettings');
+        if (saved) {
+            gameSettings = { ...gameSettings, ...JSON.parse(saved) };
+        }
+    } catch (e) {
+        console.warn('Could not load game settings:', e);
+    }
+}
+
+window.updateGameSettings = function(newSettings) {
+    gameSettings = { ...gameSettings, ...newSettings };
+
+    if (window.updateMusicSettings) {
+        window.updateMusicSettings({
+            enabled: gameSettings.musicEnabled,
+            shuffle: gameSettings.musicShuffle,
+            autoNext: gameSettings.musicAutoNext,
+            volumeGameplay: gameSettings.musicVolumeGameplay,
+            volumeIdle: gameSettings.musicVolumeIdle
+        });
+    }
+    
+    if (window.updateCameraSettings) {
+        window.updateCameraSettings({
+            idleCameraEnabled: gameSettings.idleCameraEnabled,
+            idleFireflyEnabled: gameSettings.idleFireflyEnabled
+        });
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
+    loadGameSettings();
     menuSystem = new MenuSystem();
     menuSystem.setGameStartCallback(initializeGame);
+});
+
+window.addEventListener('gameSettingsChanged', (event) => {
+    const newSettings = event.detail;
+    window.updateGameSettings(newSettings);
 });
 
 function initializeGame() {
@@ -297,6 +345,7 @@ function loadCarModelsAndSetupLevel() {
                     togglePause();
                 }
                 isLoading = false;
+                Achievements.setGameReady(true);
             }, 500);
         }, 800);
     }).catch(error => {
@@ -307,6 +356,7 @@ function loadCarModelsAndSetupLevel() {
             togglePause();
         }
         isLoading = false;
+        Achievements.setGameReady(true);
     });
 }
 
@@ -444,7 +494,7 @@ window.addEventListener("keyup", (event) => {
 });
 
 window.addEventListener("blur", () => {
-    if (AUTO_PAUSE_ON_FOCUS_LOST && !isPaused) {
+    if (gameSettings.autoPauseOnFocusLost && !isPaused) {
         togglePause();
     }
 });

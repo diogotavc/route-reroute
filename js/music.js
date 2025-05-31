@@ -12,6 +12,40 @@ import {
 
 import { onManualTrackSkip } from './achievements.js';
 
+let musicSettings = {
+    enabled: MUSIC_ENABLED,
+    shuffle: MUSIC_SHUFFLE,
+    autoNext: MUSIC_AUTO_NEXT,
+    volumeGameplay: MUSIC_VOLUME_GAMEPLAY,
+    volumeIdle: MUSIC_VOLUME_IDLE
+};
+
+window.updateMusicSettings = function(newSettings) {
+    musicSettings = { ...musicSettings, ...newSettings };
+
+    if (newSettings.enabled !== undefined) {
+        if (newSettings.enabled && !audioContext) {
+            initMusicSystem();
+        } else if (!newSettings.enabled && audioContext) {
+            if (currentAudio) {
+                currentAudio.pause();
+                isPlaying = false;
+            }
+        }
+    }
+
+    if (gainNode && (newSettings.volumeGameplay !== undefined || newSettings.volumeIdle !== undefined)) {
+        const targetVolume = isIdleMode ? musicSettings.volumeIdle : musicSettings.volumeGameplay;
+        gainNode.gain.value = targetVolume;
+    }
+
+    if (newSettings.shuffle !== undefined && newSettings.shuffle !== musicSettings.shuffle) {
+        if (newSettings.shuffle) {
+            shuffleArray(PLAYLIST);
+        }
+    }
+};
+
 let audioContext = null;
 let gainNode = null;
 let currentAudio = null;
@@ -28,14 +62,14 @@ const PLAYLIST = [
 ];
 
 export function initMusicSystem() {
-    if (!MUSIC_ENABLED) return;
+    if (!musicSettings.enabled) return;
 
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     gainNode = audioContext.createGain();
-    gainNode.gain.value = MUSIC_VOLUME_GAMEPLAY;
+    gainNode.gain.value = musicSettings.volumeGameplay;
     gainNode.connect(audioContext.destination);
 
-    if (MUSIC_SHUFFLE) shuffleArray(PLAYLIST);
+    if (musicSettings.shuffle) shuffleArray(PLAYLIST);
     
     musicUI = document.getElementById('music-ui');
     if (musicUI) {
@@ -129,11 +163,11 @@ function playCurrentTrack() {
     }
 
     currentAudio.addEventListener('ended', () => {
-        if (MUSIC_AUTO_NEXT) nextTrack();
+        if (musicSettings.autoNext) nextTrack();
     });
 
     currentAudio.addEventListener('error', () => {
-        if (MUSIC_AUTO_NEXT) nextTrack();
+        if (musicSettings.autoNext) nextTrack();
     });
 
     currentAudio.addEventListener('play', () => {
@@ -154,7 +188,7 @@ function playCurrentTrack() {
 }
 
 export function startMusic() {
-    if (!MUSIC_ENABLED || !PLAYLIST.length) return;
+    if (!musicSettings.enabled || !PLAYLIST.length) return;
     playCurrentTrack();
 }
 
@@ -162,7 +196,7 @@ export function nextTrack() {
     onManualTrackSkip();
     currentTrackIndex = (currentTrackIndex + 1) % PLAYLIST.length;
 
-    if (currentTrackIndex === 0 && MUSIC_SHUFFLE) {
+    if (currentTrackIndex === 0 && musicSettings.shuffle) {
         shuffleArray(PLAYLIST);
     }
 
@@ -194,7 +228,7 @@ export function togglePlayPause() {
 }
 
 export function setVolume(volume) {
-    const targetVolume = isIdleMode ? MUSIC_VOLUME_IDLE : MUSIC_VOLUME_GAMEPLAY;
+    const targetVolume = isIdleMode ? musicSettings.volumeIdle : musicSettings.volumeGameplay;
     if (gainNode) {
         gainNode.gain.value = targetVolume;
     }
@@ -206,7 +240,7 @@ export function setIdleMode(enabled) {
     if (!gainNode) return;
     if (!musicUI) return;
 
-    const targetVolume = enabled ? MUSIC_VOLUME_IDLE : MUSIC_VOLUME_GAMEPLAY;
+    const targetVolume = enabled ? musicSettings.volumeIdle : musicSettings.volumeGameplay;
 
     const startVolume = gainNode.gain.value;
     const startTime = audioContext.currentTime;
@@ -244,7 +278,7 @@ export function getMusicInfo() {
         duration: currentAudio ? currentAudio.duration : 0,
         trackIndex: currentTrackIndex,
         playlistLength: PLAYLIST.length,
-        volume: isIdleMode ? MUSIC_VOLUME_IDLE : MUSIC_VOLUME_GAMEPLAY,
+        volume: isIdleMode ? musicSettings.volumeIdle : musicSettings.volumeGameplay,
         isIdleMode
     };
 }
@@ -288,7 +322,7 @@ document.addEventListener('keydown', (event) => {
 
 let hasUserInteracted = false;
 function handleFirstInteraction() {
-    if (!hasUserInteracted && MUSIC_ENABLED) {
+    if (!hasUserInteracted && musicSettings.enabled) {
         hasUserInteracted = true;
         document.removeEventListener('click', handleFirstInteraction);
         document.removeEventListener('keydown', handleFirstInteraction);
@@ -297,3 +331,26 @@ function handleFirstInteraction() {
 
 document.addEventListener('click', handleFirstInteraction);
 document.addEventListener('keydown', handleFirstInteraction);
+
+window.setMusicVolume = function(volume) {
+    if (gainNode) {
+        window.baseMusicVolume = Math.max(0, Math.min(1, volume));
+        const targetVolume = isIdleMode ? 
+            window.baseMusicVolume * (musicSettings.volumeIdle / musicSettings.volumeGameplay) : 
+            window.baseMusicVolume;
+        gainNode.gain.value = targetVolume;
+    }
+};
+
+window.setSFXVolume = function(volume) {
+    window.baseSFXVolume = Math.max(0, Math.min(1, volume));
+};
+
+window.baseMusicVolume = musicSettings.volumeGameplay;
+window.baseSFXVolume = 0.7;
+
+window.addEventListener('audioSettingsChanged', (event) => {
+    const settings = event.detail;
+    window.setMusicVolume(settings.music * settings.master);
+    window.setSFXVolume(settings.sfx * settings.master);
+});

@@ -28,6 +28,15 @@ import {
     IDLE_LIGHT_DIM_SCALE
 } from './config.js';
 
+let cameraSettings = {
+    idleCameraEnabled: IDLE_CAMERA_ENABLED,
+    idleFireflyEnabled: IDLE_FIREFLY_ENABLED
+};
+
+window.updateCameraSettings = function(newSettings) {
+    cameraSettings = { ...cameraSettings, ...newSettings };
+};
+
 let camera = null;
 let scene = null;
 let controls = null;
@@ -65,7 +74,7 @@ function createIdleFirefly() {
         scene.remove(idleFirefly.group);
     }
 
-    if (!IDLE_FIREFLY_ENABLED) return null;
+    if (!cameraSettings.idleFireflyEnabled) return null;
 
     const fireflyGroup = new THREE.Group();
 
@@ -125,7 +134,7 @@ function createIdleFirefly() {
 }
 
 export function startIdleCameraAnimation() {
-    if (!IDLE_CAMERA_ENABLED || isIdleCameraActive) return;
+    if (!cameraSettings.idleCameraEnabled || isIdleCameraActive) return;
 
     const activeCar = getActiveCar();
     if (activeCar) {
@@ -184,7 +193,7 @@ export function stopIdleCameraAnimation() {
 }
 
 export function updateIdleCameraAnimation(deltaTime) {
-    if (!isIdleCameraActive || !IDLE_CAMERA_ENABLED) return;
+    if (!isIdleCameraActive || !cameraSettings.idleCameraEnabled) return;
 
     if (idleCameraState.phase === 'active') {
         updateActiveIdleCamera(deltaTime);
@@ -395,7 +404,9 @@ function easeInOut(t) {
 }
 
 export function checkIdleTimeout() {
-    if (!IDLE_CAMERA_ENABLED || isPaused || isRewinding || isIdleCameraActive) return;
+    if (!cameraSettings.idleCameraEnabled || isPaused || isRewinding || isIdleCameraActive) return;
+
+    if (!Achievements.isGameReady()) return;
     
     const now = Date.now();
     const lastInputTime = Achievements.getLastInputTime();
@@ -415,7 +426,7 @@ export function checkIdleTimeout() {
 }
 
 export function updateFireflyPosition(carPosition, deltaTime) {
-    if (!idleFirefly || !IDLE_FIREFLY_ENABLED) return;
+    if (!idleFirefly || !cameraSettings.idleFireflyEnabled) return;
 
     fireflyOrbitTime += deltaTime;
 
