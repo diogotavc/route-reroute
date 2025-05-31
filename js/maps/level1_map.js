@@ -47,9 +47,9 @@ export const mapData = {
     tileSize: TILE_SIZE,
     buildingScale: 0.7,
     startPoints: {
-        'start1': { x: 1.84, z: 0, carRotationY: 0 },
-        'finish1': { x: 2.15, z: 7, carRotationY: 90 },
-        'start_fireStation': { x: 0, z: 2, carRotationY: 90, yOffset: 0 },
-        'finish_apartment': { x: 2, z: 0, carRotationY: 0, yOffset: 0 }
+        'start1': { x: 7.16, z: 1.2, carRotationY: 0 },
+        'finish1': { x: 7.16, z: 8, carRotationY: 90 },
+        'start_fireStation': { x: 6.64, z: 8, carRotationY: 180 },
+        'finish_apartment': { x: 2, z: 0, carRotationY: 0 }
     }
 };

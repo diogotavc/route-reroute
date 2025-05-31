@@ -114,12 +114,12 @@ function processLevelMissions(missions, mapDefinition) {
         }
 
         const startWorldPos = getWorldCoordinates(startPointInfo.x, startPointInfo.z, mapDefinition);
-        startWorldPos.y = startPointInfo.yOffset || 0;
+        startWorldPos.y = 0;
 
         let finishWorldPosArray = null;
         if (finishPointInfo) {
             const finishWPos = getWorldCoordinates(finishPointInfo.x, finishPointInfo.z, mapDefinition);
-            finishWPos.y = finishPointInfo.yOffset || 0;
+            finishWPos.y = 0;
             finishWorldPosArray = [finishWPos.x, finishWPos.y, finishWPos.z];
         }
 
