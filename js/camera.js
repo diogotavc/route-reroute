@@ -172,6 +172,11 @@ export function stopIdleCameraAnimation() {
     restoreOriginalLightIntensities();
     setMusicIdleMode(false);
 
+    const levelIndicator = document.getElementById('level-indicator');
+    if (levelIndicator) {
+        levelIndicator.classList.remove('hidden-during-idle');
+    }
+
     if (idleFirefly) {
         scene.remove(idleFirefly.group);
         idleFirefly = null;
@@ -201,6 +206,11 @@ function updateActiveIdleCamera(deltaTime) {
 
     } else if (idleCameraState.timer < fadeInDuration + blackDuration) {
         idleCameraState.fadeOpacity = 1;
+
+        const levelIndicator = document.getElementById('level-indicator');
+        if (levelIndicator && !levelIndicator.classList.contains('hidden-during-idle')) {
+            levelIndicator.classList.add('hidden-during-idle');
+        }
 
         if (!idleCameraState.lightsAreDimmed) {
             setLightIntensities(IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE, IDLE_LIGHT_DIM_SCALE);

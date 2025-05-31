@@ -875,6 +875,10 @@ Distance to destination: ${distanceToDestination.toFixed(2)} units`;
 
                     const levelIndex = typeof window.getCurrentLevelIndex === 'function' ? window.getCurrentLevelIndex() : 0;
                     Achievements.onLevelCompleted({ level: levelIndex });
+
+                    if (typeof window.advanceToNextLevel === 'function') {
+                        window.advanceToNextLevel();
+                    }
                 }
                 return;
             }

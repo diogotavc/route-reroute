@@ -26,7 +26,7 @@ import {
 } from './cars.js';
 import { loadMap, getWorldCoordinates } from './mapLoader.js';
 import { mapData as level1MapData } from './maps/level1_map.js';
-import { createOverlayElements, createAchievementNotification, animateAchievementNotification } from './interface.js';
+import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator } from './interface.js';
 import {
     initCamera,
     setCameraPaused,
@@ -60,7 +60,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
 const overlayElements = createOverlayElements();
-const { rewindOverlay, pauseOverlay, idleFadeOverlay, achievementNotificationContainer } = overlayElements;
+const { rewindOverlay, pauseOverlay, idleFadeOverlay, achievementNotificationContainer, levelIndicator } = overlayElements;
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
@@ -144,6 +144,23 @@ let currentMapDefinition = null;
 
 window.getCurrentLevelIndex = () => currentLevelIndex;
 
+function advanceToNextLevel() {
+    if (currentLevelIndex < levels.length - 1) {
+        currentLevelIndex++;
+        console.log(`Advancing to level ${currentLevelIndex + 1}`);
+        // MISSION COMPLETION / STARTING NEXT ONE LOGIC HERE
+        updateLevelIndicator(currentLevelIndex + 1);
+        loadCarModelsAndSetupLevel();
+        return true;
+    } else {
+        console.log("All levels completed! Congratulations!");
+        // LEVEL COMPLETION LOGIC WILL GO HERE
+        return false;
+    }
+}
+
+window.advanceToNextLevel = advanceToNextLevel;
+
 function loadCarModelsAndSetupLevel() {
     const levelConfig = levels[currentLevelIndex];
     currentLevelData = processLevelMissions(levelConfig.missions, levelConfig.map);
@@ -153,6 +170,8 @@ function loadCarModelsAndSetupLevel() {
     updateDayNightCycle(scene, currentTimeOfDay);
 
     Achievements.initDayNightTracking(currentTimeOfDay);
+
+    updateLevelIndicator(currentLevelIndex + 1);
 
     if (levelConfig.cameraStart) {
         camera.position.set(...levelConfig.cameraStart);

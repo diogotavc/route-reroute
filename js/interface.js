@@ -13,17 +13,30 @@ export function createOverlayElements() {
     const achievementNotificationContainer = document.createElement('div');
     achievementNotificationContainer.id = 'achievement-notification-container';
 
+    const levelIndicator = document.createElement('div');
+    levelIndicator.id = 'level-indicator';
+    levelIndicator.textContent = 'Level 1';
+
     document.body.appendChild(rewindOverlay);
     document.body.appendChild(pauseOverlay);
     document.body.appendChild(idleFadeOverlay);
     document.body.appendChild(achievementNotificationContainer);
+    document.body.appendChild(levelIndicator);
     
     return {
         rewindOverlay,
         pauseOverlay,
         idleFadeOverlay,
-        achievementNotificationContainer
+        achievementNotificationContainer,
+        levelIndicator
     };
+}
+
+export function updateLevelIndicator(levelNumber) {
+    const levelIndicator = document.getElementById('level-indicator');
+    if (levelIndicator) {
+        levelIndicator.textContent = `Level ${levelNumber}`;
+    }
 }
 
 export function createAchievementNotification(notification, notificationId) {
