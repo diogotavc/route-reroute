@@ -39,6 +39,7 @@ export const mapData = {
         [null, null, ['streetlight_square', 270, -0.4, -0.4], null],
     ],
     tileSize: TILE_SIZE,
+    buildingScale: 0.8,
     startPoints: {
         'start1': { x: 1.84, z: 0, carRotationY: 0 },
         'finish1': { x: 2.15, z: 7, carRotationY: 90 },

@@ -82,7 +82,12 @@ function createMapLayout(scene, mapDefinition) {
                     const originalModel = loadedTileModels[modelPath];
                     const tileInstance = originalModel.clone();
 
-                    tileInstance.scale.copy(tileScaleVec);
+                    let scaleVector = tileScaleVec.clone();
+                    if (tileAssetName.startsWith('building_') && mapDefinition.buildingScale !== undefined) {
+                        scaleVector.multiplyScalar(mapDefinition.buildingScale);
+                    }
+
+                    tileInstance.scale.copy(scaleVector);
                     tileInstance.position.set(x * tileSize, 0, z * tileSize);
                     tileInstance.rotation.y = THREE.MathUtils.degToRad(rotationYDegrees);
                     
@@ -103,7 +108,7 @@ function createMapLayout(scene, mapDefinition) {
                     });
 
                     if (originalModel.userData.originalHalfExtents) {
-                        tileInstance.userData.halfExtents = originalModel.userData.originalHalfExtents.clone().multiply(tileScaleVec);
+                        tileInstance.userData.halfExtents = originalModel.userData.originalHalfExtents.clone().multiply(scaleVector);
                     } else {
                         const box = new THREE.Box3().setFromObject(tileInstance);
                         tileInstance.userData.halfExtents = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);
