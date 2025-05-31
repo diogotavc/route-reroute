@@ -160,3 +160,63 @@ export function hideLoadingOverlay() {
     const loadingOverlay = document.getElementById('loading-overlay');
     loadingOverlay.style.display = 'none';
 }
+
+export function createHUDElements() {
+    const speedometer = document.createElement('div');
+    speedometer.id = 'speedometer';
+    speedometer.innerHTML = `
+        <div class="hud-label">SPEED</div>
+        <div class="speed-value">0</div>
+        <div class="speed-unit">KM/H</div>
+    `;
+
+    const healthBar = document.createElement('div');
+    healthBar.id = 'health-bar';
+    healthBar.innerHTML = `
+        <div class="hud-label">HEALTH</div>
+        <div class="health-bar-container">
+            <div class="health-bar-fill"></div>
+            <div class="health-bar-text">100%</div>
+        </div>
+    `;
+
+    document.body.appendChild(speedometer);
+    document.body.appendChild(healthBar);
+
+    return {
+        speedometer,
+        healthBar
+    };
+}
+
+export function updateHUD(speed, health) {
+    const speedometer = document.getElementById('speedometer');
+    const healthBar = document.getElementById('health-bar');
+    
+    if (speedometer) {
+        const speedValue = speedometer.querySelector('.speed-value');
+        if (speedValue) {
+            const kmh = Math.abs(speed * 3.5).toFixed(0);
+            speedValue.textContent = kmh;
+        }
+    }
+
+    if (healthBar) {
+        const healthFill = healthBar.querySelector('.health-bar-fill');
+        const healthText = healthBar.querySelector('.health-bar-text');
+
+        if (healthFill && healthText) {
+            const healthPercentage = Math.max(0, Math.min(100, health));
+            healthFill.style.width = `${healthPercentage}%`;
+            healthText.textContent = `${Math.round(healthPercentage)}%`;
+
+            if (healthPercentage > 60) {
+                healthFill.style.backgroundColor = '#4caf50'; // Green
+            } else if (healthPercentage > 30) {
+                healthFill.style.backgroundColor = '#ff9800'; // Orange
+            } else {
+                healthFill.style.backgroundColor = '#f44336'; // Red
+            }
+        }
+    }
+}

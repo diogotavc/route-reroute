@@ -23,12 +23,13 @@ import {
     toggleCameraMode,
     getActiveCar,
     getCarSpeed,
+    getCarHealth,
     getCurrentMissionInfo,
     setOnMissionChangeCallback
 } from './cars.js';
 import { loadMap, getWorldCoordinates } from './mapLoader.js';
 import { mapData as level1MapData } from './maps/level1_map.js';
-import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay } from './interface.js';
+import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, createHUDElements, updateHUD } from './interface.js';
 import {
     initCamera,
     setCameraPaused,
@@ -63,6 +64,9 @@ document.body.appendChild(renderer.domElement);
 
 const overlayElements = createOverlayElements();
 const { rewindOverlay, pauseOverlay, loadingOverlay, idleFadeOverlay, achievementNotificationContainer, levelIndicator } = overlayElements;
+
+const hudElements = createHUDElements();
+const { speedometer, healthBar } = hudElements;
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
@@ -350,6 +354,10 @@ function animate() {
 
     if (currentLevelData && !isLoading) {
         updateCarPhysics(scaledDeltaTime, collidableMapElements, currentMapDefinition);
+
+        const currentSpeed = getCarSpeed();
+        const healthData = getCarHealth();
+        updateHUD(currentSpeed, healthData.percentage);
     }
 
     if (isIdleCameraSystemActive()) {
