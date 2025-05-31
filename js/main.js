@@ -63,7 +63,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
 const overlayElements = createOverlayElements();
-const { rewindOverlay, pauseOverlay, loadingOverlay, idleFadeOverlay, achievementNotificationContainer, levelIndicator } = overlayElements;
+const { rewindOverlay, pauseOverlay, loadingOverlay, idleFadeOverlay, rewindDimOverlay, achievementNotificationContainer, levelIndicator } = overlayElements;
 
 const hudElements = createHUDElements();
 const { combinedHUD, speedometer, healthBar } = hudElements;
@@ -367,7 +367,28 @@ function animate() {
         }
     }
 
-    rewindOverlay.style.display = isRewinding ? 'block' : 'none';
+    const isCurrentlyRewinding = isRewinding;
+    rewindOverlay.style.display = isCurrentlyRewinding ? 'block' : 'none';
+    rewindDimOverlay.style.display = isCurrentlyRewinding ? 'block' : 'none';
+
+    const combinedHUD = document.getElementById('combined-hud');
+    const levelIndicatorElement = document.getElementById('level-indicator');
+
+    if (isCurrentlyRewinding) {
+        if (combinedHUD && !combinedHUD.classList.contains('hidden-during-rewind')) {
+            combinedHUD.classList.add('hidden-during-rewind');
+        }
+        if (levelIndicatorElement && !levelIndicatorElement.classList.contains('hidden-during-rewind')) {
+            levelIndicatorElement.classList.add('hidden-during-rewind');
+        }
+    } else {
+        if (combinedHUD) {
+            combinedHUD.classList.remove('hidden-during-rewind');
+        }
+        if (levelIndicatorElement) {
+            levelIndicatorElement.classList.remove('hidden-during-rewind');
+        }
+    }
 
     const notification = Achievements.getNextNotification();
     if (notification) {

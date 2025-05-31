@@ -22,6 +22,9 @@ export function createOverlayElements() {
     const idleFadeOverlay = document.createElement('div');
     idleFadeOverlay.id = 'idle-fade-overlay';
 
+    const rewindDimOverlay = document.createElement('div');
+    rewindDimOverlay.id = 'rewind-dim-overlay';
+
     const achievementNotificationContainer = document.createElement('div');
     achievementNotificationContainer.id = 'achievement-notification-container';
 
@@ -33,6 +36,7 @@ export function createOverlayElements() {
     document.body.appendChild(pauseOverlay);
     document.body.appendChild(loadingOverlay);
     document.body.appendChild(idleFadeOverlay);
+    document.body.appendChild(rewindDimOverlay);
     document.body.appendChild(achievementNotificationContainer);
     document.body.appendChild(levelIndicator);
     
@@ -41,6 +45,7 @@ export function createOverlayElements() {
         pauseOverlay,
         loadingOverlay,
         idleFadeOverlay,
+        rewindDimOverlay,
         achievementNotificationContainer,
         levelIndicator
     };
