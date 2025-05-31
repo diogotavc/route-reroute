@@ -20,7 +20,7 @@ export const mapData = {
         'streetlight_curved': 'assets/kenney_city-kit-roads/Models/light-curved.glb',
         'streetlight_square': 'assets/kenney_city-kit-roads/Models/light-square.glb',
     },
-    layout: [
+    layout: [ // [ name, rotation]
         [null, null, null, null, null, null, null, null, null],
         [null, null, ['road_end_round', 270], null, null, null, null, ['road_end_round', 270], null],
         [null, null, ['road_straight', 90], null, null, null, null, ['road_straight', 90], null],
@@ -32,16 +32,16 @@ export const mapData = {
         [null, ['road_straight', 90], null, null, ['road_end', 90], null, null, ['road_straight', 90], null],
         [null, ['building_a', 0], null, null, null, null, null, ['building_a', 0], null]
     ],
-    streetLightLayout: [
+    streetLightLayout: [ // [ name, rotation, offsetX, offsetZ]
         [null, null, null, null, null, null, null, null, null],
         [null, null, null, null, null, null, null, null, null],
+        [null, null, ['streetlight_square', 90, 0.45, 0], null, null, null, null, ['streetlight_square', 270, -0.45, 0], null],
+        [null, null, null, null, null, null, ['streetlight_curved', 180, -0.45, -0.45], null, null],
+        [null, null, ['streetlight_square', 270, -0.45, 0], null, ['streetlight_square', 270, -0.45, 0.45], null, null, ['streetlight_square', 90, 0.45, 0], null],
         [null, null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null, null],
+        [null, ['streetlight_square', 90, 0.45, 0], null, null, null, null, ['streetlight_curved', 0, -0.45, 0.45], null, null],
+        [null, null, ['streetlight_curved', 0, 0.45, 0.45], null, null, null, null, null, null],
+        [null, ['streetlight_curved', 270, -0.45, -0.45], null, null, ['streetlight_curved', 0, 0, 0.45], null, null, ['streetlight_square', 270, -0.45, 0], null],
         [null, null, null, null, null, null, null, null, null]
     ],
     tileSize: TILE_SIZE,
