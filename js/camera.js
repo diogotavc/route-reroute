@@ -452,3 +452,9 @@ export function getIdleCameraTimeScale() {
     }
     return 1.0;
 }
+
+export function updateIdleCameraOriginalVisibility(visibility) {
+    if (isIdleCameraActive) {
+        idleCameraState.originalCarVisibility = visibility;
+    }
+}

@@ -10,6 +10,6 @@
 - [x] start counting idle time only when car is stationary
 - [x] check if banner background image exists. if it exists, wait for it to load before showing banner
 - [ ] fix first person headlight issue
-- [ ] fix first person idle camera issue (hidden car model)
+- [x] fix first person idle camera issue (hidden car model)
 - [ ] firefly should flicker more often, not just at the beginning
 - [ ] avoid playing the same song (if playlist > 1) next
