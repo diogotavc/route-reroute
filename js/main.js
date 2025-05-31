@@ -135,7 +135,7 @@ function processLevelMissions(missions, mapDefinition) {
 }
 
 const levels = [
-    { missions: exampleLevel1_Missions, map: level1MapData, cameraStart: [0, 20, 30], initialTimeOfDay: 0.9, timeIncrementPerMission: 0.05 },
+    { missions: exampleLevel1_Missions, map: level1MapData, cameraStart: [0, 20, 30], initialTimeOfDay: 0.3, timeIncrementPerMission: 0.05 },
 ];
 
 let currentLevelIndex = 0;

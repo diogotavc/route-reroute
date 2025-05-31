@@ -30,6 +30,9 @@
     - [ ] etc etc etc
 - [ ] Add dialogs for each mission
 
+- [ ] add support for physics based objects (construction barrier, cone and light)
+- [ ] add support for non-physics based objects (trees and signs)
+
 - [ ] check what getCarSpeed is doing there
 
 - [?] Mouse interactions _(sort of quick time event, or steering control by clicking the map)_

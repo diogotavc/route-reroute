@@ -18,7 +18,7 @@ export const DAY_CYCLE = {
     DUSK_START: 0.70,
     DUSK_END: 0.85,
     NOON: 0.5,
-    SPEED: 0.1
+    SPEED: 0.01
 };
 
 export const TILE_SIZE = 6;
