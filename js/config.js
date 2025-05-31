@@ -30,7 +30,7 @@ export const TARGET_REWIND_DURATION = 2.0;
 export const REWIND_INTERPOLATION = 'ease-in-out';     // 'linear', 'ease', 'ease-in', 'ease-out', 'ease-in-out'
 
 export const CAR_REACTION_DISTANCE = 8.0;
-export const CAR_REACTION_ANGLE_THRESHOLD = Math.PI / 2;
+export const CAR_REACTION_ANGLE_THRESHOLD = Math.PI / 6;
 export const CAR_HONK_TIMES = 2;
 export const CAR_FLASH_DURATION = 1.0;
 export const CAR_FLASH_INTERVALS = 2;
@@ -166,7 +166,7 @@ export const FIRST_PERSON_FORWARD_OFFSET = 0.3;
 export const SHADOW_MAP_SIZE = 2048;
 export const HEADLIGHT_SHADOW_MAP_SIZE = 1024;
 export const STREETLIGHT_SHADOW_MAP_SIZE = 512;
-export const ENABLE_STREETLIGHT_SHADOWS = false;
+export const ENABLE_STREETLIGHT_SHADOWS = true;
 export const SHADOW_CAMERA_NEAR = 150;
 export const SHADOW_CAMERA_FAR = 300;
 export const SHADOW_BIAS = -0.0005;
