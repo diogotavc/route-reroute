@@ -9,23 +9,23 @@
     - [ ] gamepad support
         - [ ] add steering and pedal gauges specific to the gamepad (analog support)
 - [ ] turn config.js constants into variables that can be changed through the UI
-- [ ] fix camera fricking out sometimes when switching between the browser and the IDE
+- [x] fix camera fricking out sometimes when switching between the browser and the IDE
 - [-] streetlight and road/building layout are literally not built the same (matrixes are interpreted backwards)
-- [ ] idle time counts if the user is paused
+- [-] idle time counts if the user is paused
 
 - [ ] SFX (UI, crashes, car engines, other fx)
 - [ ] Selectable OST (lists files in the designated folder, and let's you toggle it)
 - [ ] add more music
 - [ ] avoid playing the same song (if playlist > 1) next
 - [ ] pause music in the pause menu
-- [ ] if the user exits idle while the music is transitioning gain (entering idle), the gain at the end is wrong
+- [x] if the user exits idle while the music is transitioning gain (entering idle), the gain at the end is wrong
 
 - [ ] add vehicle specific lights and sounds (i.e. ambulance)
 - [ ] add vehicle specific stats (acceleration, braking, lateral grip)
 - [ ] balance out achievements (wrecked and ruined can be 10 crashes, instead of 1; lawn enforcement can be for a few meters; terminal velocity can be for enough time)
-- [ ] reset certain achievements on level reset
+- [x] reset certain achievements on level reset
 - [ ] save system
-- [ ] make sure rewind resets health
+- [x] make sure rewind resets health
 
 - [ ] add power-ups and special effects (same implementation, but one shows up at a certain mission index (place and index configurable), and can be picked up - and the other is applied instantly after the mission begins)
     - [ ] Sleepiness
