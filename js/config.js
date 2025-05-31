@@ -241,7 +241,27 @@ export const GRAPHICS_PRESETS = {
     }
 };
 
-export let CURRENT_GRAPHICS_PRESET = 'MEDIUM';
+function loadGraphicsPresetFromStorage() {
+    try {
+        const savedPreset = localStorage.getItem('graphicsPreset');
+        if (savedPreset && GRAPHICS_PRESETS[savedPreset]) {
+            return savedPreset;
+        }
+    } catch (error) {
+        console.warn('Failed to load graphics preset from localStorage:', error);
+    }
+    return 'MEDIUM';
+}
+
+function saveGraphicsPresetToStorage(preset) {
+    try {
+        localStorage.setItem('graphicsPreset', preset);
+    } catch (error) {
+        console.warn('Failed to save graphics preset to localStorage:', error);
+    }
+}
+
+export let CURRENT_GRAPHICS_PRESET = loadGraphicsPresetFromStorage();
 
 export function getCurrentPresetValues() {
     return GRAPHICS_PRESETS[CURRENT_GRAPHICS_PRESET];
@@ -250,6 +270,7 @@ export function getCurrentPresetValues() {
 export function setCurrentGraphicsPreset(preset) {
     if (GRAPHICS_PRESETS[preset]) {
         CURRENT_GRAPHICS_PRESET = preset;
+        saveGraphicsPresetToStorage(preset);
         return true;
     }
     return false;
