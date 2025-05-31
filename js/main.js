@@ -90,7 +90,7 @@ loadMap(scene, level1MapData).then((mapGroup) => {
 
 const exampleLevel1_Missions = [
     ["ambulance", "Dr. Healmore", "Rushing to save a critical patient.", "start1", "finish1"],
-    ["firetruck", "Chief Blaze", "A fire broke out.", "start_fireStation", "finish_apartment"],
+    ["firetruck", "Chief Blaze", "A fire broke out.", "start2", "finish2"],
 ];
 
 let currentLevelData;
