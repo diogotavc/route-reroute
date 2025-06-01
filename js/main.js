@@ -152,7 +152,12 @@ loadMap(scene, MapData).then((mapGroup) => {
 
     setOnMissionChangeCallback(updateLevelIndicatorWithMission);
 
+    const levelConfig = levels[currentLevelIndex];
+    currentTimeOfDay = levelConfig.initialTimeOfDay !== undefined ? levelConfig.initialTimeOfDay : 0.25;
+
     setupLights(scene);
+
+    updateDayNightCycle(scene, currentTimeOfDay);
 
     hideAllOverlaysDuringLoading();
     
