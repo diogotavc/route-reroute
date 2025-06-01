@@ -182,6 +182,11 @@ export function stopIdleCameraAnimation() {
         combinedHUD.classList.remove('hidden-during-idle');
     }
 
+    const timerOverlay = document.getElementById('timer-overlay');
+    if (timerOverlay) {
+        timerOverlay.classList.remove('hidden-during-idle');
+    }
+
     if (idleFirefly) {
         scene.remove(idleFirefly.group);
         idleFirefly = null;
@@ -220,6 +225,11 @@ function updateActiveIdleCamera(deltaTime) {
         const combinedHUD = document.getElementById('combined-hud');
         if (combinedHUD && !combinedHUD.classList.contains('hidden-during-idle')) {
             combinedHUD.classList.add('hidden-during-idle');
+        }
+
+        const timerOverlay = document.getElementById('timer-overlay');
+        if (timerOverlay && !timerOverlay.classList.contains('hidden-during-idle')) {
+            timerOverlay.classList.add('hidden-during-idle');
         }
 
         if (!idleCameraState.lightsAreDimmed) {

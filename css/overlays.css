@@ -430,3 +430,82 @@
     transform: translateY(10px);
     pointer-events: none;
 }
+
+#timer-overlay {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    z-index: 1000;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.75), rgba(20, 20, 20, 0.75));
+    padding: 16px 24px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+    text-align: center;
+}
+
+#timer-overlay.hidden-during-idle {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+}
+
+#timer-overlay.hidden-during-loading {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+    pointer-events: none;
+}
+
+#timer-overlay.hidden-during-rewind {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+}
+
+.timer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.timer-display {
+    font-size: 24px;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    transition: color 0.3s ease;
+}
+
+.timer-display.timer-normal {
+    color: #4fc3f7;
+}
+
+.timer-display.timer-warning {
+    color: #ff5722;
+    animation: timerWarningPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes timerWarningPulse {
+    0% { 
+        opacity: 1;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    100% { 
+        opacity: 0.7;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 8px rgba(255, 87, 34, 0.4);
+    }
+}
+
+.timer-hint {
+    font-size: 12px;
+    color: #ffc107;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    max-width: 200px;
+    line-height: 1.3;
+}

@@ -62,6 +62,39 @@ export const HITBOX_SCALE_FACTOR = 0.8;
 
 export const AUTO_PAUSE_ON_FOCUS_LOST = true;
 
+export const TIMER_REWIND_PENALTY = 5;
+export const TIMER_GRASS_SPEED_MULTIPLIER = 3;
+export const TIMER_HINTS_ENABLED = true;
+export const TIMER_HINT_DURATION = 5000;
+export const TIMER_WARNING_THRESHOLD = 30;
+export const TIMER_GRACE_PERIOD = 1000;
+
+export const TIMER_RANDOM_HINTS = [
+    "Remember: gravity still applies!",
+    "Pro tip: cars work better with wheels on the ground",
+    "Did you know? Brakes aren't just decoration!",
+    "Fun fact: walls are surprisingly solid",
+    "Physics: it's not just a suggestion",
+    "Spoiler alert: you're driving a car",
+    "Plot twist: the road is your friend",
+    "Breaking news: steering wheel controls direction",
+    "Life hack: green means go, red means... don't",
+    "Friendly reminder: time moves forward",
+    "PSA: momentum is a real thing",
+    "Hot tip: crashing reduces speed dramatically",
+    "Science fact: friction exists",
+    "Daily wisdom: speed limits aren't minimums",
+    "Reality check: you can't park everywhere",
+    "Weather update: it's always driving weather",
+    "Traffic report: you are the traffic",
+    "Navigation tip: GPS stands for 'Go Pretty Safely'",
+    "Safety first: unless you're racing",
+    "Driver's ed: experience is the best teacher"
+];
+
+export const TIMER_HINT_MIN_INTERVAL = 5000;
+export const TIMER_HINT_MAX_INTERVAL = 15000;
+
 export const IDLE_CAMERA_ENABLED = true;
 export const IDLE_CAMERA_TRIGGER_TIME = 5;
 export const IDLE_CAMERA_FADE_DURATION = 1.0;

@@ -1,4 +1,5 @@
 import { isIdleCameraSystemActive } from './camera.js';
+import { TIMER_WARNING_THRESHOLD } from './config.js';
 
 export function createOverlayElements() {
     const rewindOverlay = document.createElement('div');
@@ -32,6 +33,15 @@ export function createOverlayElements() {
     levelIndicator.id = 'level-indicator';
     levelIndicator.textContent = 'Level 1';
 
+    const timerOverlay = document.createElement('div');
+    timerOverlay.id = 'timer-overlay';
+    timerOverlay.innerHTML = `
+        <div class="timer-content">
+            <div class="timer-display">2:00</div>
+            <div class="timer-hint" style="display: none;"></div>
+        </div>
+    `;
+
     document.body.appendChild(rewindOverlay);
     document.body.appendChild(pauseOverlay);
     document.body.appendChild(loadingOverlay);
@@ -39,6 +49,7 @@ export function createOverlayElements() {
     document.body.appendChild(rewindDimOverlay);
     document.body.appendChild(achievementNotificationContainer);
     document.body.appendChild(levelIndicator);
+    document.body.appendChild(timerOverlay);
     
     return {
         rewindOverlay,
@@ -47,7 +58,8 @@ export function createOverlayElements() {
         idleFadeOverlay,
         rewindDimOverlay,
         achievementNotificationContainer,
-        levelIndicator
+        levelIndicator,
+        timerOverlay
     };
 }
 
@@ -175,7 +187,8 @@ export function hideAllOverlaysDuringLoading() {
         'combined-hud',
         'level-indicator', 
         'achievement-notification-container',
-        'music-ui'
+        'music-ui',
+        'timer-overlay'
     ];
     
     elementsToHide.forEach(id => {
@@ -191,7 +204,8 @@ export function showAllOverlaysAfterLoading() {
         'combined-hud',
         'level-indicator',
         'achievement-notification-container', 
-        'music-ui'
+        'music-ui',
+        'timer-overlay'
     ];
     
     elementsToShow.forEach(id => {
@@ -290,6 +304,35 @@ export function updateHUD(speed, health) {
                     combinedHUD.style.animation = 'none';
                 }
             }
+        }
+    }
+}
+
+export function updateTimerDisplay(timeRemaining, hint = null) {
+    const timerOverlay = document.getElementById('timer-overlay');
+    const timerDisplay = timerOverlay?.querySelector('.timer-display');
+    const timerHint = timerOverlay?.querySelector('.timer-hint');
+
+    if (timerDisplay) {
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = Math.floor(timeRemaining % 60);
+        timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+        if (timeRemaining <= TIMER_WARNING_THRESHOLD) {
+            timerDisplay.classList.add('timer-warning');
+            timerDisplay.classList.remove('timer-normal');
+        } else {
+            timerDisplay.classList.add('timer-normal');
+            timerDisplay.classList.remove('timer-warning');
+        }
+    }
+
+    if (timerHint) {
+        if (hint) {
+            timerHint.textContent = hint;
+            timerHint.style.display = 'block';
+        } else {
+            timerHint.style.display = 'none';
         }
     }
 }

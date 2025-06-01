@@ -782,6 +782,10 @@ export function setRewinding() {
 
     rewindSpeedFactor = totalRecordedTime > 0 ? totalRecordedTime / TARGET_REWIND_DURATION : 1.0;
 
+    if (window.applyTimerRewindPenalty) {
+        window.applyTimerRewindPenalty();
+    }
+
     resetCarHealth();
 }
 
@@ -928,6 +932,10 @@ Distance to destination: ${distanceToDestination.toFixed(2)} units`;
         if (elapsedTime <= 0 && currentRecording.length > 0) {
             isRewinding = false;
 
+            if (window.restoreTimerAfterRewind) {
+                window.restoreTimerAfterRewind();
+            }
+
             activeCar.position.copy(currentRecording[0].position);
             activeCar.quaternion.copy(currentRecording[0].rotation);
             if (currentRecording[0].timeOfDay !== undefined) {
@@ -950,6 +958,10 @@ Distance to destination: ${distanceToDestination.toFixed(2)} units`;
             const completionThreshold = 2.0;
 
             if (distanceToDestination < completionThreshold) {
+
+                if (window.applyTimerMissionBonus) {
+                    window.applyTimerMissionBonus();
+                }
 
                 if (currentFinishPointMarker) {
                     scene.remove(currentFinishPointMarker);

@@ -2,7 +2,15 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import {
     AUTO_PAUSE_ON_FOCUS_LOST, 
-    RENDERER_PIXEL_RATIO
+    RENDERER_PIXEL_RATIO,
+    TIMER_REWIND_PENALTY,
+    TIMER_GRASS_SPEED_MULTIPLIER,
+    TIMER_HINTS_ENABLED,
+    TIMER_HINT_DURATION,
+    TIMER_RANDOM_HINTS,
+    TIMER_HINT_MIN_INTERVAL,
+    TIMER_HINT_MAX_INTERVAL,
+    TIMER_GRACE_PERIOD
 } from './config.js';
 
 import { setupLights, updateDayNightCycle } from './lights.js';
@@ -27,9 +35,9 @@ import {
     getCurrentMissionInfo,
     setOnMissionChangeCallback
 } from './cars.js';
-import { loadMap, getWorldCoordinates } from './mapLoader.js';
+import { loadMap, getWorldCoordinates, isOnGrass } from './mapLoader.js';
 import { mapData as level1MapData } from './maps/level1_map.js';
-import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, hideAllOverlaysDuringLoading, showAllOverlaysAfterLoading, createHUDElements, updateHUD } from './interface.js';
+import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, hideAllOverlaysDuringLoading, showAllOverlaysAfterLoading, createHUDElements, updateHUD, updateTimerDisplay } from './interface.js';
 import {
     initCamera,
     setCameraPaused,
@@ -63,7 +71,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
 const overlayElements = createOverlayElements();
-const { rewindOverlay, pauseOverlay, loadingOverlay, idleFadeOverlay, rewindDimOverlay, achievementNotificationContainer, levelIndicator } = overlayElements;
+const { rewindOverlay, pauseOverlay, loadingOverlay, idleFadeOverlay, rewindDimOverlay, achievementNotificationContainer, levelIndicator, timerOverlay } = overlayElements;
 
 const hudElements = createHUDElements();
 const { combinedHUD, speedometer, healthBar } = hudElements;
@@ -305,7 +313,11 @@ const levels = [
         cameraStart: [0, 20, 30], 
         initialTimeOfDay: 0.3, 
         timeIncrementPerMission: 0.05,
-        timeSpeed: 0.005
+        timeSpeed: 0.005,
+        timer: {
+            totalTime: 120,
+            missionTimeBonus: 30
+        }
     },
     { 
         name: "Rush Hour",
@@ -314,7 +326,11 @@ const levels = [
         cameraStart: [0, 20, 30], 
         initialTimeOfDay: 0.45, 
         timeIncrementPerMission: 0.04,
-        timeSpeed: 0.008
+        timeSpeed: 0.008,
+        timer: {
+            totalTime: 180,
+            missionTimeBonus: 25
+        }
     },
     { 
         name: "Traffic Chaos",
@@ -323,7 +339,11 @@ const levels = [
         cameraStart: [0, 20, 30], 
         initialTimeOfDay: 0.6, 
         timeIncrementPerMission: 0.03,
-        timeSpeed: 0.012
+        timeSpeed: 0.012,
+        timer: {
+            totalTime: 240,
+            missionTimeBonus: 20
+        }
     },
     { 
         name: "Night Shift",
@@ -332,7 +352,11 @@ const levels = [
         cameraStart: [0, 20, 30], 
         initialTimeOfDay: 0.85, 
         timeIncrementPerMission: 0.02,
-        timeSpeed: 0
+        timeSpeed: 0,
+        timer: {
+            totalTime: 300,
+            missionTimeBonus: 15
+        }
     }
 ];
 
@@ -340,6 +364,56 @@ let currentLevelIndex = 0;
 let currentTimeOfDay = 0.25;
 let currentMapDefinition = null;
 let isLoading = false;
+
+let currentLevelTimer = 0;
+let isOnGrassPrevFrame = false;
+let nextHintTime = 0;
+let savedTimerState = null;
+let currentHint = null;
+let hintEndTime = 0;
+let rewindGracePeriodEnd = 0;
+
+function applyTimerRewindPenalty() {
+    if (savedTimerState === null) {
+        savedTimerState = currentLevelTimer;
+    }
+}
+
+function restoreTimerAfterRewind() {
+    if (savedTimerState !== null) {
+        currentLevelTimer = savedTimerState - TIMER_REWIND_PENALTY;
+        currentLevelTimer = Math.max(0, currentLevelTimer);
+        savedTimerState = null;
+
+        rewindGracePeriodEnd = Date.now() + TIMER_GRACE_PERIOD;
+
+        updateTimerDisplay(currentLevelTimer);
+        console.log(`Timer restored after rewind. New time: ${currentLevelTimer.toFixed(1)}s (penalty: ${TIMER_REWIND_PENALTY}s)`);
+    }
+}
+
+function getRandomHint() {
+    const randomIndex = Math.floor(Math.random() * TIMER_RANDOM_HINTS.length);
+    return TIMER_RANDOM_HINTS[randomIndex];
+}
+
+function scheduleNextHint() {
+    const interval = TIMER_HINT_MIN_INTERVAL + Math.random() * (TIMER_HINT_MAX_INTERVAL - TIMER_HINT_MIN_INTERVAL);
+    nextHintTime = Date.now() + interval;
+}
+
+function applyTimerMissionBonus() {
+    const currentLevelConfig = levels[currentLevelIndex];
+    if (currentLevelConfig && currentLevelConfig.timer && currentLevelConfig.timer.missionTimeBonus > 0) {
+        currentLevelTimer += currentLevelConfig.timer.missionTimeBonus;
+
+        updateTimerDisplay(currentLevelTimer);
+    }
+}
+
+window.applyTimerRewindPenalty = applyTimerRewindPenalty;
+window.restoreTimerAfterRewind = restoreTimerAfterRewind;
+window.applyTimerMissionBonus = applyTimerMissionBonus;
 
 window.getCurrentLevelIndex = () => currentLevelIndex;
 
@@ -398,6 +472,16 @@ function loadCarModelsAndSetupLevel() {
     Achievements.initDayNightTracking(currentTimeOfDay);
     
     Achievements.onLevelReset();
+
+    if (levelConfig && levelConfig.timer) {
+        currentLevelTimer = levelConfig.timer.totalTime;
+        nextHintTime = 0;
+        savedTimerState = null;
+        currentHint = null;
+        hintEndTime = 0;
+        rewindGracePeriodEnd = 0;
+        scheduleNextHint();
+    }
 
     updateLevelIndicatorWithMission();
 
@@ -518,6 +602,54 @@ function animate() {
         updateHUD(currentSpeed, healthData.percentage);
     }
 
+    if (currentLevelTimer > 0 && !isLoading) {
+        if (!isRewinding) {
+            const isInGracePeriod = Date.now() < rewindGracePeriodEnd;
+
+            if (!isInGracePeriod) {
+                let timerDecrement = scaledDeltaTime;
+
+                const activeCar = getActiveCar();
+                if (activeCar && currentMapDefinition) {
+                    const isCurrentlyOnGrass = isOnGrass(activeCar.position.x, activeCar.position.z, currentMapDefinition);
+
+                    if (isCurrentlyOnGrass) {
+                        timerDecrement *= TIMER_GRASS_SPEED_MULTIPLIER;
+                    }
+
+                    isOnGrassPrevFrame = isCurrentlyOnGrass;
+                }
+
+                currentLevelTimer -= timerDecrement;
+
+                if (currentLevelTimer <= 0) {
+                    currentLevelTimer = 0;
+                    loadCarModelsAndSetupLevel();
+                }
+            }
+
+            if (TIMER_HINTS_ENABLED) {
+                if (nextHintTime === 0) {
+                    scheduleNextHint();
+                }
+
+                if (Date.now() >= nextHintTime && Date.now() >= hintEndTime) {
+                    currentHint = getRandomHint();
+                    hintEndTime = Date.now() + TIMER_HINT_DURATION;
+                    scheduleNextHint();
+                }
+
+                if (Date.now() >= hintEndTime) {
+                    currentHint = null;
+                }
+            }
+
+            updateTimerDisplay(currentLevelTimer, currentHint);
+        } else {
+            updateTimerDisplay(currentLevelTimer);
+        }
+    }
+
     if (isIdleCameraSystemActive()) {
         const activeCar = getActiveCar();
         if (activeCar) {
@@ -531,6 +663,7 @@ function animate() {
 
     const combinedHUD = document.getElementById('combined-hud');
     const levelIndicatorElement = document.getElementById('level-indicator');
+    const timerOverlayElement = document.getElementById('timer-overlay');
 
     if (isCurrentlyRewinding) {
         if (combinedHUD && !combinedHUD.classList.contains('hidden-during-rewind')) {
@@ -539,12 +672,18 @@ function animate() {
         if (levelIndicatorElement && !levelIndicatorElement.classList.contains('hidden-during-rewind')) {
             levelIndicatorElement.classList.add('hidden-during-rewind');
         }
+        if (timerOverlayElement && !timerOverlayElement.classList.contains('hidden-during-rewind')) {
+            timerOverlayElement.classList.add('hidden-during-rewind');
+        }
     } else {
         if (combinedHUD) {
             combinedHUD.classList.remove('hidden-during-rewind');
         }
         if (levelIndicatorElement) {
             levelIndicatorElement.classList.remove('hidden-during-rewind');
+        }
+        if (timerOverlayElement) {
+            timerOverlayElement.classList.remove('hidden-during-rewind');
         }
     }
 
