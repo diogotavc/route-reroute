@@ -3,12 +3,6 @@ import * as Achievements from "./achievements.js";
 import {
     GRASS_SPEED_SCALE,
     GRASS_HEIGHT,
-    GRASS_WOBBLE_ENABLED,
-    GRASS_WOBBLE_INTENSITY,
-    GRASS_WOBBLE_SPEED,
-    VOID_FALL_ENABLED,
-    VOID_FALL_SPEED,
-    VOID_FALL_DEPTH,
     MAX_SPEED,
     ACCELERATION_RATE,
     BRAKING_RATE,
@@ -24,11 +18,6 @@ import { isOnGrass, getGridCoordinates } from './mapLoader.js';
 
 let collisionNormal = new THREE.Vector3();
 let separationVector = new THREE.Vector3();
-
-let grassWobbleTime = 0;
-let currentWobbleIntensity = 0;
-let isCarFalling = false;
-let baseRotation = new THREE.Quaternion();
 
 const satBoxA = { center: new THREE.Vector3(), halfExtents: new THREE.Vector3(), axes: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()] };
 const satBoxB = { center: new THREE.Vector3(), halfExtents: new THREE.Vector3(), axes: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()] };
@@ -134,18 +123,9 @@ function checkOBBCollisionSAT(carA, carB, positionAOverride = null, isCarBStatic
     return { collision: true, mtvAxis: mtvAxis, mtvDepth: minOverlap };
 }
 
-export function resetCarPhysicsEffects() {
-    grassWobbleTime = 0;
-    currentWobbleIntensity = 0;
-    isCarFalling = false;
-    baseRotation.identity();
-}
-
 export function updatePhysics(activeCar, physicsState, inputState, deltaTime, otherCars, collidableMapTiles = [], mapDefinition = null, missionPhysics = null) {
     let { speed, acceleration, steeringAngle } = physicsState;
     const { isAccelerating, isBraking, isTurningLeft, isTurningRight } = inputState;
-
-    activeCar.quaternion.copy(baseRotation);
 
     const physics = missionPhysics || {
         maxSpeed: MAX_SPEED,
@@ -200,8 +180,7 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
     if (Math.abs(speed) > 0.01) {
         const rotationAmount = steeringAngle * deltaTime * Math.sign(speed);
         const deltaRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAmount);
-        baseRotation.multiplyQuaternions(deltaRotation, baseRotation);
-        activeCar.quaternion.copy(baseRotation);
+        activeCar.quaternion.multiplyQuaternions(deltaRotation, activeCar.quaternion);
         activeCar.updateMatrixWorld();
 
         if (speed < 0) {
@@ -313,58 +292,23 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
 
     if (mapDefinition) {
         const isCarOnGrass = isOnGrass(activeCar.position.x, activeCar.position.z, mapDefinition);
-        const layout = mapDefinition.layout;
-        const gridCoords = getGridCoordinates(activeCar.position.x, activeCar.position.z, mapDefinition);
-        const isOutOfBounds = gridCoords.z < 0 || gridCoords.z >= layout.length || gridCoords.x < 0 || gridCoords.x >= layout[0].length;
+        const targetHeight = isCarOnGrass ? GRASS_HEIGHT : 0;
+        activeCar.position.y = targetHeight;
 
-        if (VOID_FALL_ENABLED && isOutOfBounds) {
-            if (!isCarFalling) {
-                isCarFalling = true;
-            }
+        if (isCarOnGrass) {
+            const layout = mapDefinition.layout;
+            const gridCoords = getGridCoordinates(activeCar.position.x, activeCar.position.z, mapDefinition);
+            const isOutOfBounds = gridCoords.z < 0 || gridCoords.z >= layout.length || gridCoords.x < 0 || gridCoords.x >= layout[0].length;
 
-            activeCar.position.y -= VOID_FALL_SPEED * deltaTime;
-
-            if (activeCar.position.y <= VOID_FALL_DEPTH) {
-                if (typeof window.setRewinding === 'function') {
-                    window.setRewinding();
-                } else {
-                    isCarFalling = false;
-                    activeCar.position.y = 0;
-                }
-            }
-            
-            Achievements.onOutOfBounds({
-                position: { x: activeCar.position.x, y: activeCar.position.y, z: activeCar.position.z },
-                gridCoords: gridCoords
-            });
-        } else {
-            if (isCarFalling) {
-                isCarFalling = false;
-            }
-
-            const targetHeight = isCarOnGrass ? GRASS_HEIGHT : 0;
-            activeCar.position.y = targetHeight;
-
-            if (GRASS_WOBBLE_ENABLED && isCarOnGrass) {
-                grassWobbleTime += deltaTime;
-                currentWobbleIntensity = Math.min(currentWobbleIntensity + deltaTime * 2, 1.0);
-
-                const wobbleAmount = Math.sin(grassWobbleTime * GRASS_WOBBLE_SPEED) * 
-                                   GRASS_WOBBLE_INTENSITY * currentWobbleIntensity * 
-                                   Math.min(Math.abs(speed) / physics.maxSpeed, 1.0);
-
-                const wobbleRotation = new THREE.Quaternion().setFromAxisAngle(
-                    new THREE.Vector3(0, 0, 1), wobbleAmount
-                );
-
-                activeCar.quaternion.multiplyQuaternions(activeCar.quaternion, wobbleRotation);
-                
+            if (isOutOfBounds) {
+                Achievements.onOutOfBounds({
+                    position: { x: activeCar.position.x, y: activeCar.position.y, z: activeCar.position.z },
+                    gridCoords: gridCoords
+                });
+            } else {
                 Achievements.onGrassDetected({
                     position: { x: activeCar.position.x, y: activeCar.position.y, z: activeCar.position.z }
                 });
-            } else {
-                currentWobbleIntensity = 0;
-                grassWobbleTime = 0;
             }
         }
     }

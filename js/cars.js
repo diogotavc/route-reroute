@@ -709,7 +709,6 @@ function setActiveCar(index) {
     isTurningRight = false;
 
     resetCarHealth();
-    CarPhysics.resetCarPhysicsEffects();
 
     if (onMissionChangeCallback) {
         onMissionChangeCallback();
@@ -789,8 +788,6 @@ export function setRewinding() {
 
     resetCarHealth();
 }
-
-window.setRewinding = setRewinding;
 
 export function updateHeadlights(timeOfDay) {
     currentTimeOfDay = timeOfDay;
@@ -949,8 +946,6 @@ Distance to destination: ${distanceToDestination.toFixed(2)} units`;
             carAcceleration = 0;
             steeringAngle = 0;
             lastDamageTime = 0;
-
-            CarPhysics.resetCarPhysicsEffects();
 
             currentRecording = [currentRecording[0]];
         }
