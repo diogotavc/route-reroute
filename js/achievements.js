@@ -169,6 +169,16 @@ function unlockAchievement(achievementId, context = {}) {
             return false;
         }
         
+        if (achievementId === 'REWIND_MASTER') {
+            if (achievementsState.session.rewindCount >= achievement.target) {
+                achievementsState.unlocked.add(achievementId);
+                queueNotification(achievement, context);
+                saveAchievementsToStorage();
+                return true;
+            }
+            return false;
+        }
+        
         achievementsState.counters[achievementId] = (achievementsState.counters[achievementId] || 0) + 1;
         saveAchievementsToStorage();
         
@@ -314,6 +324,10 @@ export function resetContinuousReverseDistance() {
 
 export function onInputDetected() {
     achievementsState.session.lastInputTime = Date.now();
+}
+
+export function onMissionReset() {
+    achievementsState.session.rewindCount = 0;
 }
 
 export function onIdleCameraTriggered() {

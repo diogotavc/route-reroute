@@ -650,6 +650,10 @@ function setActiveCar(index) {
     const previousMissionIndex = missionIndex;
     missionIndex = index;
 
+    if (previousMissionIndex !== index) {
+        Achievements.onMissionReset();
+    }
+
     if (previousMissionIndex !== index && loadedCarModels[previousMissionIndex]) {
         loadedCarModels[previousMissionIndex].visible = true;
     }
