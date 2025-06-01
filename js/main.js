@@ -904,7 +904,7 @@ function animate() {
 
                 if (currentLevelTimer <= 0) {
                     currentLevelTimer = 0;
-                    loadCarModelsAndSetupLevel();
+                    showTimerTimeoutScreen();
                 }
             }
 
@@ -1107,6 +1107,114 @@ window.stopIdleCameraAnimation = stopIdleCameraAnimation;
 
 if (!showInitialLevelSelection()) {
     loadCarModelsAndSetupLevel();
+}
+
+function showTimerTimeoutScreen() {
+    pauseGame(false, "Time's Up");
+
+    const levelConfig = levels[currentLevelIndex];
+    const levelName = levelConfig ? levelConfig.name : `Level ${currentLevelIndex + 1}`;
+
+    const timeoutOverlay = document.createElement('div');
+    timeoutOverlay.id = 'timer-timeout-overlay';
+    timeoutOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(10px);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+
+    const timeoutContent = document.createElement('div');
+    timeoutContent.style.cssText = `
+        background: linear-gradient(135deg, rgba(244, 67, 54, 0.95), rgba(183, 28, 28, 0.95));
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 50px;
+        color: white;
+        font-family: 'Orbitron', 'Courier New', monospace;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        max-width: 500px;
+        min-width: 400px;
+        transform: scale(0.8);
+        opacity: 0;
+        transition: all 0.5s ease-out;
+    `;
+
+    timeoutContent.innerHTML = `
+        <div style="font-size: 3em; margin-bottom: 20px;">⏰</div>
+        <h2 style="margin: 0 0 20px 0; font-size: 28px; background: linear-gradient(45deg, #FF5722, #FF8A65); 
+           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+           Time's Up!
+        </h2>
+        <p style="margin-bottom: 30px; color: #FFEBEE; line-height: 1.6; font-size: 18px;">
+            You ran out of time while playing<br>
+            <strong>${levelName}</strong>
+        </p>
+        <div style="display: flex; gap: 15px; justify-content: center;">
+            <button id="restart-level-timeout" style="
+                padding: 15px 25px;
+                background: linear-gradient(45deg, #FF5722, #FF8A65);
+                border: none;
+                border-radius: 10px;
+                color: white;
+                font-family: inherit;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(255, 87, 34, 0.3);
+            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                Try Again
+            </button>
+            <button id="select-level-timeout" style="
+                padding: 15px 25px;
+                background: linear-gradient(45deg, rgba(96, 125, 139, 0.8), rgba(69, 90, 100, 0.8));
+                border: none;
+                border-radius: 10px;
+                color: white;
+                font-family: inherit;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(96, 125, 139, 0.3);
+            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                Select Level
+            </button>
+        </div>
+    `;
+
+    timeoutOverlay.appendChild(timeoutContent);
+    document.body.appendChild(timeoutOverlay);
+
+    setTimeout(() => {
+        timeoutContent.style.transform = 'scale(1)';
+        timeoutContent.style.opacity = '1';
+    }, 10);
+
+    document.getElementById('restart-level-timeout').addEventListener('click', () => {
+        document.body.removeChild(timeoutOverlay);
+        unpauseGame();
+        setTimeout(() => {
+            loadCarModelsAndSetupLevel();
+        }, 100);
+    });
+
+    document.getElementById('select-level-timeout').addEventListener('click', () => {
+        document.body.removeChild(timeoutOverlay);
+        unpauseGame();
+        setTimeout(() => {
+            showLevelSelectMenu(false);
+        }, 100);
+    });
 }
 
 function showLevelCompletionScreen() {
