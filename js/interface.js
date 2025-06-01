@@ -841,6 +841,32 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
             `;
         }
 
+        const allLevelsCompleted = window.levels && totalLevels > 0 && highestCompleted >= totalLevels - 1;
+        if (allLevelsCompleted) {
+            levelSelectContent += `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                    <button onclick="enterSandboxMode()" style="
+                        display: block;
+                        width: 100%;
+                        margin: 15px 0;
+                        padding: 15px;
+                        background: linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.3));
+                        border: 2px solid rgba(76, 175, 80, 0.6);
+                        border-radius: 10px;
+                        color: white;
+                        cursor: pointer;
+                        font-family: inherit;
+                        font-size: 16px;
+                        font-weight: bold;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.4), rgba(129, 199, 132, 0.4))'"
+                       onmouseout="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.3))'">
+                        🎮 Enter Sandbox Mode
+                    </button>
+                </div>
+            `;
+        }
+
         levelSelectContent += `
             </div>
             <p style="color: #666; font-size: 14px; margin-top: 20px;">
@@ -890,7 +916,8 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
             `;
         }
 
-        if (highestCompleted >= 0) {
+        const allLevelsCompleted = window.levels && totalLevels > 0 && highestCompleted >= totalLevels - 1;
+        if (allLevelsCompleted) {
             levelSelectContent += `
                 <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
                     <button onclick="enterSandboxMode()" style="
@@ -990,9 +1017,11 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
     };
 
     const keyHandler = (event) => {
-        if (event.key === 'Escape' && !isInitialSelection) {
+        if (event.key === 'Escape') {
             event.preventDefault();
-            if (fromTimeout) {
+            if (isInitialSelection) {
+                removeOverlay();
+            } else if (fromTimeout) {
                 removeOverlay();
                 setTimeout(() => {
                     if (window.pauseMenuActions && window.pauseMenuActions.restartLevel) {
@@ -1278,9 +1307,9 @@ export function isConfirmationVisible() {
     return pauseMenuState.isConfirmationVisible;
 }
 
-// Function to enter sandbox mode from level selection menus
 window.enterSandboxMode = function() {
-    // Remove any level selection overlays
+    isShowingLevelSelect = false;
+
     const levelSelectOverlay = document.querySelector('[style*="translate(-50%, -50%)"]');
     if (levelSelectOverlay && document.body.contains(levelSelectOverlay)) {
         document.body.removeChild(levelSelectOverlay);
@@ -1295,17 +1324,190 @@ window.enterSandboxMode = function() {
     if (timeoutDim && document.body.contains(timeoutDim)) {
         document.body.removeChild(timeoutDim);
     }
-    
-    // Clean up any global functions
+
     delete window.selectLevel;
-    
-    // Clear initial level selection state if active
+
     if (window.clearInitialLevelSelection) {
         window.clearInitialLevelSelection();
     }
-    
-    // Show sandbox car selection
-    if (window.showSandboxCarSelection) {
-        window.showSandboxCarSelection();
-    }
+
+    showSandboxConfigurationMenu();
 };
+
+function showSandboxConfigurationMenu() {
+    const sandboxConfigOverlay = document.createElement('div');
+    sandboxConfigOverlay.id = 'sandbox-config-overlay';
+    sandboxConfigOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(10px);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+
+    const sandboxConfigContent = document.createElement('div');
+    sandboxConfigContent.style.cssText = `
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.95), rgba(56, 142, 60, 0.95));
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 40px;
+        color: white;
+        font-family: 'Orbitron', 'Courier New', monospace;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        max-width: 600px;
+        min-width: 500px;
+        max-height: 80vh;
+        overflow-y: auto;
+        transform: scale(0.8);
+        opacity: 0;
+        transition: all 0.5s ease-out;
+    `;
+
+    sandboxConfigContent.innerHTML = `
+        <div style="font-size: 3em; margin-bottom: 20px;">⚙️</div>
+        <h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #4CAF50, #81C784); 
+           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+           Sandbox Configuration
+        </h2>
+        <p style="margin-bottom: 30px; color: #E8F5E8; line-height: 1.6; font-size: 16px;">
+            Configure your sandbox environment settings
+        </p>
+        
+        <div style="text-align: left; margin-bottom: 30px;">
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; color: #E8F5E8; font-size: 14px; margin-bottom: 10px; font-weight: bold;">
+                    Time of Day:
+                </label>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <input type="range" id="time-of-day-slider" min="0" max="100" value="25" 
+                           style="flex: 1; height: 8px; background: rgba(255,255,255,0.2); border-radius: 5px; outline: none;">
+                    <span id="time-of-day-display" style="color: #4CAF50; font-weight: bold; min-width: 80px;">Dawn</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #B0BEC5; margin-top: 5px;">
+                    <span>Midnight</span>
+                    <span>Noon</span>
+                    <span>Midnight</span>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; color: #E8F5E8; font-size: 14px; margin-bottom: 10px; font-weight: bold;">
+                    Time Speed:
+                </label>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <input type="range" id="time-speed-slider" min="0" max="100" value="20" 
+                           style="flex: 1; height: 8px; background: rgba(255,255,255,0.2); border-radius: 5px; outline: none;">
+                    <span id="time-speed-display" style="color: #4CAF50; font-weight: bold; min-width: 80px;">Slow</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #B0BEC5; margin-top: 5px;">
+                    <span>Frozen</span>
+                    <span>Normal</span>
+                    <span>Fast</span>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
+            <button id="sandbox-config-continue" style="
+                padding: 15px 30px;
+                background: linear-gradient(45deg, #4CAF50, #81C784);
+                border: none;
+                border-radius: 10px;
+                color: white;
+                font-family: inherit;
+                font-size: 18px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                Continue to Car Selection
+            </button>
+            <button id="sandbox-config-back" style="
+                padding: 15px 25px;
+                background: linear-gradient(45deg, #757575, #9E9E9E);
+                border: none;
+                border-radius: 10px;
+                color: white;
+                font-family: inherit;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                Back
+            </button>
+        </div>
+    `;
+
+    sandboxConfigOverlay.appendChild(sandboxConfigContent);
+    document.body.appendChild(sandboxConfigOverlay);
+
+    setTimeout(() => {
+        sandboxConfigContent.style.transform = 'scale(1)';
+        sandboxConfigContent.style.opacity = '1';
+    }, 100);
+
+    const timeOfDaySlider = document.getElementById('time-of-day-slider');
+    const timeOfDayDisplay = document.getElementById('time-of-day-display');
+    const timeSpeedSlider = document.getElementById('time-speed-slider');
+    const timeSpeedDisplay = document.getElementById('time-speed-display');
+
+    function updateTimeOfDayDisplay(value) {
+        const timeValue = value / 100;
+        let timeLabel;
+        if (timeValue < 0.125) timeLabel = 'Late Night';
+        else if (timeValue < 0.25) timeLabel = 'Dawn';
+        else if (timeValue < 0.375) timeLabel = 'Morning';
+        else if (timeValue < 0.625) timeLabel = 'Noon';
+        else if (timeValue < 0.75) timeLabel = 'Afternoon';
+        else if (timeValue < 0.875) timeLabel = 'Dusk';
+        else timeLabel = 'Night';
+        timeOfDayDisplay.textContent = timeLabel;
+    }
+
+    function updateTimeSpeedDisplay(value) {
+        const speedValue = value / 100;
+        let speedLabel;
+        if (speedValue === 0) speedLabel = 'Frozen';
+        else if (speedValue < 0.25) speedLabel = 'Very Slow';
+        else if (speedValue < 0.5) speedLabel = 'Slow';
+        else if (speedValue < 0.75) speedLabel = 'Normal';
+        else speedLabel = 'Fast';
+        timeSpeedDisplay.textContent = speedLabel;
+    }
+
+    timeOfDaySlider.addEventListener('input', (e) => updateTimeOfDayDisplay(e.target.value));
+    timeSpeedSlider.addEventListener('input', (e) => updateTimeSpeedDisplay(e.target.value));
+
+    updateTimeOfDayDisplay(timeOfDaySlider.value);
+    updateTimeSpeedDisplay(timeSpeedSlider.value);
+
+    document.getElementById('sandbox-config-continue').addEventListener('click', () => {
+        const timeOfDay = timeOfDaySlider.value / 100;
+        const timeSpeed = (timeSpeedSlider.value / 100) * 0.02; // Scale to reasonable time speed
+
+        document.body.removeChild(sandboxConfigOverlay);
+
+        window.sandboxConfig = {
+            timeOfDay: timeOfDay,
+            timeSpeed: timeSpeed
+        };
+
+        if (window.showSandboxCarSelection) {
+            window.showSandboxCarSelection();
+        }
+    });
+
+    document.getElementById('sandbox-config-back').addEventListener('click', () => {
+        document.body.removeChild(sandboxConfigOverlay);
+        showLevelSelectMenu(false, false);
+    });
+}

@@ -442,10 +442,20 @@ let hintEndTime = 0;
 let rewindGracePeriodEnd = 0;
 
 function applyTimerRewindPenalty() {
+    // Skip timer penalties in sandbox mode
+    if (isSandboxMode) {
+        return;
+    }
+    
     cumulativeRewindPenalty += TIMER_REWIND_PENALTY;
 }
 
 function restoreTimerAfterRewind() {
+    // Skip timer restoration in sandbox mode
+    if (isSandboxMode) {
+        return;
+    }
+
     const newTimer = missionStartTimer - cumulativeRewindPenalty;
     currentLevelTimer = Math.max(0, newTimer);
 
@@ -894,7 +904,7 @@ function animate() {
         updateHUD(currentSpeed, healthData.percentage);
     }
 
-    if (currentLevelTimer > 0 && !isLoading) {
+    if (currentLevelTimer > 0 && !isLoading && !isSandboxMode) {
         if (!isRewinding) {
             const isInGracePeriod = Date.now() < rewindGracePeriodEnd;
 
@@ -1565,6 +1575,11 @@ function startSandboxMode(selectedCarModel) {
     isSandboxMode = true;
     window.isSandboxMode = true;
 
+    const sandboxConfig = window.sandboxConfig || {
+        timeOfDay: 0.25,
+        timeSpeed: 0.002
+    };
+
     const sandboxLevel = {
         name: "Sandbox Mode",
         missions: [
@@ -1579,9 +1594,9 @@ function startSandboxMode(selectedCarModel) {
         ],
         map: MapData,
         cameraStart: [0, 20, 30],
-        initialTimeOfDay: 0.25,
+        initialTimeOfDay: sandboxConfig.timeOfDay,
         timeIncrementPerMission: 0,
-        timeSpeed: 0.002,
+        timeSpeed: sandboxConfig.timeSpeed,
         timer: null
     };
 
