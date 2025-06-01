@@ -443,7 +443,8 @@ function applyTimerRewindPenalty() {
 }
 
 function restoreTimerAfterRewind() {
-    currentLevelTimer = Math.max(0, missionStartTimer - cumulativeRewindPenalty);
+    const newTimer = missionStartTimer - cumulativeRewindPenalty;
+    currentLevelTimer = Math.max(0, newTimer);
 
     rewindGracePeriodEnd = Date.now() + TIMER_GRACE_PERIOD;
 
@@ -453,6 +454,12 @@ function restoreTimerAfterRewind() {
         setTimeout(() => {
             animateTimerPenalty();
         }, 50);
+    }
+
+    if (newTimer <= 0) {
+        setTimeout(() => {
+            showTimerTimeoutScreen();
+        }, 100);
     }
 }
 
