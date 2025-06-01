@@ -211,7 +211,7 @@ export const ENABLE_FRUSTUM_CULLING = true;
 export const LOD_DISTANCE_THRESHOLD = 50;
 
 export const RESOLUTION_SCALE = 1.0; // 0.5 = half resolution, 1.0 = full resolution
-export const ADAPTIVE_RESOLUTION = true;
+export const ADAPTIVE_RESOLUTION = false;
 export const MIN_RESOLUTION_SCALE = 0.5;
 export const MAX_RESOLUTION_SCALE = 1.0;
 export const TARGET_FPS = 60;

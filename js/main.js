@@ -1356,21 +1356,38 @@ function showGameCompletionScreen() {
             Thank you for playing! You've mastered the art of<br>
             urban navigation and emergency driving.
         </p>
-        <button id="start-over-button" style="
-            padding: 15px 30px;
-            background: linear-gradient(45deg, #9C27B0, #673AB7);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-family: inherit;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
-        " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-            Start Over
-        </button>
+        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <button id="sandbox-mode-button" style="
+                padding: 15px 30px;
+                background: linear-gradient(45deg, #4CAF50, #81C784);
+                border: none;
+                border-radius: 10px;
+                color: white;
+                font-family: inherit;
+                font-size: 18px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                🎮 Sandbox Mode
+            </button>
+            <button id="start-over-button" style="
+                padding: 15px 30px;
+                background: linear-gradient(45deg, #9C27B0, #673AB7);
+                border: none;
+                border-radius: 10px;
+                color: white;
+                font-family: inherit;
+                font-size: 18px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                Start Over
+            </button>
+        </div>
     `;
 
     completionOverlay.appendChild(completionContent);
@@ -1381,11 +1398,227 @@ function showGameCompletionScreen() {
         completionContent.style.opacity = '1';
     }, 100);
 
+    document.getElementById('sandbox-mode-button').addEventListener('click', () => {
+        document.body.removeChild(completionOverlay);
+        unpauseGame();
+        showSandboxCarSelection();
+    });
+
     document.getElementById('start-over-button').addEventListener('click', () => {
         document.body.removeChild(completionOverlay);
         unpauseGame();
         currentLevelIndex = 0;
         loadCarModelsAndSetupLevel();
+    });
+}
+
+function showSandboxCarSelection() {
+    pauseGame(false, "Sandbox Mode");
+
+    const sandboxOverlay = document.createElement('div');
+    sandboxOverlay.id = 'sandbox-car-selection-overlay';
+    sandboxOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(10px);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+
+    const sandboxContent = document.createElement('div');
+    sandboxContent.style.cssText = `
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.95), rgba(56, 142, 60, 0.95));
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 40px;
+        color: white;
+        font-family: 'Orbitron', 'Courier New', monospace;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        max-width: 800px;
+        min-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+        transform: scale(0.8);
+        opacity: 0;
+        transition: all 0.5s ease-out;
+    `;
+
+    const availableCarModels = {
+        'ambulance': 'Ambulance',
+        'firetruck': 'Fire Truck',
+        'police': 'Police Car',
+        'sedan': 'Sedan',
+        'suv-luxury': 'Luxury SUV',
+        'tractor-police': 'Police Tractor',
+        'truck-flat': 'Flatbed Truck',
+        'delivery': 'Delivery Van',
+        'garbage-truck': 'Garbage Truck',
+        'race': 'Race Car',
+        'sedan-sports': 'Sports Sedan',
+        'taxi': 'Taxi',
+        'tractor-shovel': 'Shovel Tractor',
+        'van': 'Van',
+        'delivery-flat': 'Flat Delivery',
+        'hatchback-sports': 'Sports Hatchback',
+        'race-future': 'Future Racer',
+        'suv': 'SUV',
+        'tractor': 'Tractor',
+        'truck': 'Truck'
+    };
+
+    let carSelectionHTML = `
+        <div style="font-size: 3em; margin-bottom: 20px;">🎮</div>
+        <h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #4CAF50, #81C784); 
+           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+           Sandbox Mode
+        </h2>
+        <p style="margin-bottom: 30px; color: #E8F5E8; line-height: 1.6; font-size: 18px;">
+            Choose any car and drive freely without time limits!<br>
+            <em style="font-size: 14px; opacity: 0.8;">You'll start from the main spawn point</em>
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; max-height: 400px; overflow-y: auto; padding: 10px;">
+    `;
+
+    Object.entries(availableCarModels).forEach(([modelId, displayName]) => {
+        carSelectionHTML += `
+            <button class="sandbox-car-option" data-car="${modelId}" style="
+                padding: 15px;
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 12px;
+                color: white;
+                font-family: inherit;
+                font-size: 14px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                text-align: center;
+                min-height: 60px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            " onmouseover="this.style.background='linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1))'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))'; this.style.transform='scale(1)'">
+                ${displayName}
+            </button>
+        `;
+    });
+
+    carSelectionHTML += `
+        </div>
+        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+            <button id="sandbox-back-button" style="
+                padding: 15px 25px;
+                background: linear-gradient(45deg, #757575, #9E9E9E);
+                border: none;
+                border-radius: 10px;
+                color: white;
+                font-family: inherit;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                Back
+            </button>
+        </div>
+    `;
+
+    sandboxContent.innerHTML = carSelectionHTML;
+    sandboxOverlay.appendChild(sandboxContent);
+    document.body.appendChild(sandboxOverlay);
+
+    setTimeout(() => {
+        sandboxContent.style.transform = 'scale(1)';
+        sandboxContent.style.opacity = '1';
+    }, 100);
+
+    // Add event listeners for car selection
+    document.querySelectorAll('.sandbox-car-option').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const selectedCar = e.target.getAttribute('data-car');
+            document.body.removeChild(sandboxOverlay);
+            startSandboxMode(selectedCar);
+        });
+    });
+
+    document.getElementById('sandbox-back-button').addEventListener('click', () => {
+        document.body.removeChild(sandboxOverlay);
+        showGameCompletionScreen();
+    });
+}
+
+function startSandboxMode(selectedCarModel) {
+    // Create a special sandbox level configuration
+    const sandboxLevel = {
+        name: "Sandbox Mode",
+        missions: [
+            [selectedCarModel, "Free Driver", "Explore the city at your own pace!", "start1", null, {
+                maxSpeed: 20,
+                accelerationRate: 6,
+                brakingRate: 8,
+                steeringRate: 2.0,
+                friction: 0.8,
+                steeringFriction: 1.5
+            }]
+        ],
+        map: MapData,
+        cameraStart: [0, 20, 30],
+        initialTimeOfDay: 0.25,
+        timeIncrementPerMission: 0,
+        timeSpeed: 0.002,
+        timer: null // No timer in sandbox mode
+    };
+
+    // Set up sandbox mode
+    currentLevelIndex = levels.length; // Use index beyond normal levels
+    currentLevelData = processLevelMissions(sandboxLevel.missions, sandboxLevel.map);
+    currentMapDefinition = sandboxLevel.map;
+    
+    // Set time of day
+    currentTimeOfDay = sandboxLevel.initialTimeOfDay;
+    updateDayNightCycle(scene, currentTimeOfDay);
+    
+    // Reset timer variables
+    currentLevelTimer = 0;
+    missionStartTimer = 0;
+    cumulativeRewindPenalty = 0;
+    nextHintTime = 0;
+    currentHint = null;
+    
+    // Show loading and start sandbox
+    showLoadingOverlay("Sandbox Mode", `Loading ${selectedCarModel}...`);
+    
+    // Load the single car for sandbox mode
+    loadCarModels(currentLevelData).then(() => {
+        setTimeout(() => {
+            hideLoadingOverlay();
+            setTimeout(() => {
+                unpauseGame();
+                
+                // Update level indicator for sandbox mode
+                updateLevelIndicator("SANDBOX", {
+                    missionIndex: 1,
+                    totalMissions: 1,
+                    modelName: selectedCarModel,
+                    character: "Free Driver",
+                    backstory: "Explore the city at your own pace!",
+                    hasDestination: false
+                }, "Sandbox Mode");
+                
+                startMusic();
+            }, 500);
+        }, 800);
+    }).catch(error => {
+        console.error("Failed to load sandbox mode:", error);
+        hideLoadingOverlay();
+        unpauseGame();
     });
 }
 
