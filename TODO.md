@@ -1,29 +1,37 @@
-- [ ] SFX (UI, crashes, car engines, other fx)
-- [ ] Selectable OST (lists files in the designated folder, and let's you toggle it)
-- [ ] add more music
-- [ ] add vehicle specific lights and sounds (i.e. ambulance)
-- [ ] Add dialogs for each mission
-- [ ] check for unused variables and bad imports
+### Fixes
+
 - [ ] make sure reset level exits idle camera first things first (else some things might look weird)
 - [ ] hide UI during pause menu as well
+
+### Features still yet to be added
+
+- [ ] SFX (UI, crashes, car engines, other fx)
+- [ ] add vehicle specific lights and sounds (i.e. ambulance)
 - [ ] play a different level (track which levels the user has completed and let him play those on demand), add a credits option, as well as manual (and/or only controls)
 - [ ] if the user has played more than a level, ask before first loading, if they want to play level 1, or whatever level they're on
-- [ ] separate achievements by type
-- [ ] add look back camera
+
+### Right before delivery
+
+- [ ] check for unused variables and bad imports
 - [ ] look over the configs before prod
 - [ ] remove debug / check for console.*
+- [ ] add more music
 
 ### maybe?
 
-- [?] Mouse interactions _(sort of quick time event, or steering control by clicking the map)_
+- [?] add look back camera
+- [?] separate achievements by type
 - [?] fix t-bone achievement
-- [?] add support for physics based objects (construction barrier, cone and light)
-- [?] add support for non-physics based objects (trees and signs)
 - [?] balance out achievements (wrecked and ruined can be 10 crashes, instead of 1; lawn enforcement can be for a few meters; terminal velocity can be for enough time)
+
+---
 
 ### not planned anymore
 
 - [-] ~~save system~~ (in favour of the "play a different level" system)
+- [-] ~~Add dialogs for each mission~~ (too late)
+- [-] ~~Selectable OST (lists files in the designated folder, and let's you toggle it)~~ (no time)
+- [-] ~~add support for physics based objects (construction barrier, cone and light)~~ (too complex, too late)
 - [-] ~~fix first person headlight issue~~
 - [-] ~~firefly should flicker more often, not just at the beginning~~
 - [-] ~~streetlight and road/building layout are literally not built the same (matrixes are interpreted backwards)~~
@@ -35,13 +43,14 @@
         - [-] ~~add steering and pedal gauges specific to the gamepad (analog support)~~
 - [-] ~~turn config.js constants into variables that can be changed through the UI~~
 - [-] ~~add power-ups and special effects (same implementation, but one shows up at a certain mission index (place and index configurable), and can be picked up - and the other is applied instantly after the mission begins)~~
-    - [ ] Sleepiness
-    - [-] ~~DUI~~ (maybe we'll keep just sleepiness)
-    - [ ] Turbo
-    - [ ] Stuck Gas Pedal
-    - [ ] Become a ghost (street lights and cars)
-    - [ ] Grass doesn't cause slow downs
-    - [ ] Very sharp steering
-    - [ ] Slow down time for everyone else
-    - [ ] No brake pedal
-    - [ ] etc etc etc
+    - [ ] ~~Sleepiness~~
+    - [-] ~~DUI~~
+    - [ ] ~~Turbo~~
+    - [ ] ~~Stuck Gas Pedal~~
+    - [ ] ~~Become a ghost (street lights and cars)~~
+    - [ ] ~~Grass doesn't cause slow downs~~
+    - [ ] ~~Very sharp steering~~
+    - [ ] ~~Slow down time for everyone else~~
+    - [ ] ~~No brake pedal~~
+    - [ ] ~~etc etc etc~~
+- [-] ~~Mouse interactions~~ (there's mouse interaction in the pause menu idc)
