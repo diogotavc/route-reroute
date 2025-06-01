@@ -42,7 +42,7 @@ import {
 } from './cars.js';
 import { loadMap, getWorldCoordinates, isOnGrass } from './mapLoader.js';
 import { mapData as MapData } from './maps/map_1.js';
-import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, hideAllOverlaysDuringLoading, showAllOverlaysAfterLoading, createHUDElements, updateHUD, updateTimerDisplay, animateTimerBonus, animateTimerPenalty, animateTimerGrass, initializePauseMenu, updatePauseMenuSelection, navigatePauseMenu, activatePauseMenuItem, resetPauseMenuSelection, isInAnySubmenu, clearActiveConfirmation, showLevelSelectMenu } from './interface.js';
+import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, hideAllOverlaysDuringLoading, showAllOverlaysAfterLoading, createHUDElements, updateHUD, updateTimerDisplay, animateTimerBonus, animateTimerPenalty, animateTimerGrass, initializePauseMenu, updatePauseMenuSelection, navigatePauseMenu, activatePauseMenuItem, resetPauseMenuSelection, isInAnySubmenu, clearActiveConfirmation, isConfirmationVisible, showLevelSelectMenu } from './interface.js';
 import {
     initCamera,
     setCameraPaused,
@@ -427,6 +427,7 @@ let isLoading = false;
 
 let completedLevels = JSON.parse(localStorage.getItem('completedLevels') || '[]');
 let hasAskedForLevelSelection = false;
+let isInInitialLevelSelection = false;
 
 let currentLevelTimer = 0;
 let isOnGrassPrevFrame = false;
@@ -544,6 +545,7 @@ function showInitialLevelSelection() {
     if (highestCompleted < 0) return false;
 
     hasAskedForLevelSelection = true;
+    isInInitialLevelSelection = true;
 
     if (!isPaused) {
         pauseGame(false);
@@ -583,6 +585,32 @@ function showInitialLevelSelection() {
     return true;
 }
 
+function clearInitialLevelSelection() {
+    isInInitialLevelSelection = false;
+    
+    const dimOverlay = document.getElementById('initial-level-selection-dim');
+    if (dimOverlay) {
+        document.body.removeChild(dimOverlay);
+    }
+
+    const elementsToShow = [
+        'combined-hud',
+        'level-indicator', 
+        'achievement-notification-container',
+        'music-ui',
+        'timer-overlay'
+    ];
+
+    elementsToShow.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.remove('hidden-during-initial-selection');
+        }
+    });
+}
+
+window.clearInitialLevelSelection = clearInitialLevelSelection;
+
 function advanceToNextLevel() {
     if (isLoading) {
         return false;
@@ -591,15 +619,10 @@ function advanceToNextLevel() {
     markLevelCompleted(currentLevelIndex);
 
     if (currentLevelIndex < levels.length - 1) {
-        currentLevelIndex++;
-        resetMissionTimer();
-
-        // MISSION COMPLETION / STARTING NEXT ONE LOGIC HERE
-        updateLevelIndicatorWithMission();
-        loadCarModelsAndSetupLevel();
+        showLevelCompletionScreen();
         return true;
     } else {
-        // LEVEL COMPLETION LOGIC WILL GO HERE
+        showGameCompletionScreen();
         return false;
     }
 }
@@ -971,6 +994,11 @@ window.addEventListener("keydown", (event) => {
         return;
     }
 
+    if (isInInitialLevelSelection && event.key === "Escape") {
+        event.preventDefault();
+        return;
+    }
+
     if (isPaused && isManualPause) {
         switch (event.key) {
             case "ArrowUp":
@@ -990,7 +1018,7 @@ window.addEventListener("keydown", (event) => {
                 return;
             case "Escape":
                 event.preventDefault();
-                if (pauseMenuState.isConfirmationVisible) {
+                if (isConfirmationVisible()) {
                     clearActiveConfirmation();
                 } else {
                     unpauseGame();
@@ -1077,5 +1105,176 @@ window.getCurrentTimeOfDay = () => {
 window.stopIdleCameraAnimation = stopIdleCameraAnimation;
 
 if (!showInitialLevelSelection()) {
+    loadCarModelsAndSetupLevel();
+}
+
+function showLevelCompletionScreen() {
+    pauseGame("Level Complete");
+
+    const levelConfig = levels[currentLevelIndex];
+    const levelName = levelConfig ? levelConfig.name : `Level ${currentLevelIndex + 1}`;
+
+    const completionOverlay = document.createElement('div');
+    completionOverlay.id = 'level-completion-overlay';
+    completionOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(10px);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+
+    const completionContent = document.createElement('div');
+    completionContent.style.cssText = `
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.95), rgba(56, 142, 60, 0.95));
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 50px;
+        color: white;
+        font-family: 'Orbitron', 'Courier New', monospace;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        max-width: 500px;
+        min-width: 400px;
+        transform: scale(0.8);
+        opacity: 0;
+        transition: all 0.5s ease-out;
+    `;
+
+    completionContent.innerHTML = `
+        <div style="font-size: 3em; margin-bottom: 20px;">🏆</div>
+        <h2 style="margin: 0 0 20px 0; font-size: 28px; background: linear-gradient(45deg, #FFD700, #FFA000); 
+           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+           Level Complete!
+        </h2>
+        <p style="margin-bottom: 30px; color: #E8F5E8; line-height: 1.6; font-size: 18px;">
+            Congratulations! You've successfully completed<br>
+            <strong>${levelName}</strong>
+        </p>
+        <button id="continue-to-next-level" style="
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #4CAF50, #81C784);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: inherit;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            Continue to Next Level
+        </button>
+    `;
+
+    completionOverlay.appendChild(completionContent);
+    document.body.appendChild(completionOverlay);
+
+    setTimeout(() => {
+        completionContent.style.transform = 'scale(1)';
+        completionContent.style.opacity = '1';
+    }, 100);
+
+    document.getElementById('continue-to-next-level').addEventListener('click', () => {
+        document.body.removeChild(completionOverlay);
+        unpauseGame();
+        proceedToNextLevel();
+    });
+}
+
+function showGameCompletionScreen() {
+    pauseGame("Game Complete");
+
+    const completionOverlay = document.createElement('div');
+    completionOverlay.id = 'game-completion-overlay';
+    completionOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(10px);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+
+    const completionContent = document.createElement('div');
+    completionContent.style.cssText = `
+        background: linear-gradient(135deg, rgba(156, 39, 176, 0.95), rgba(103, 58, 183, 0.95));
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 50px;
+        color: white;
+        font-family: 'Orbitron', 'Courier New', monospace;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        max-width: 600px;
+        min-width: 500px;
+        transform: scale(0.8);
+        opacity: 0;
+        transition: all 0.5s ease-out;
+    `;
+
+    completionContent.innerHTML = `
+        <div style="font-size: 4em; margin-bottom: 20px;">🎉</div>
+        <h2 style="margin: 0 0 20px 0; font-size: 32px; background: linear-gradient(45deg, #FFD700, #FF6F00); 
+           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+           Congratulations!
+        </h2>
+        <p style="margin-bottom: 30px; color: #F3E5F5; line-height: 1.6; font-size: 20px;">
+            You've completed all levels in<br>
+            <strong>Route Reroute</strong>!
+        </p>
+        <p style="margin-bottom: 40px; color: #E1BEE7; line-height: 1.5; font-size: 16px;">
+            Thank you for playing! You've mastered the art of<br>
+            urban navigation and emergency driving.
+        </p>
+        <button id="start-over-button" style="
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #9C27B0, #673AB7);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: inherit;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+        " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            Start Over
+        </button>
+    `;
+
+    completionOverlay.appendChild(completionContent);
+    document.body.appendChild(completionOverlay);
+
+    setTimeout(() => {
+        completionContent.style.transform = 'scale(1)';
+        completionContent.style.opacity = '1';
+    }, 100);
+
+    document.getElementById('start-over-button').addEventListener('click', () => {
+        document.body.removeChild(completionOverlay);
+        unpauseGame();
+        currentLevelIndex = 0;
+        loadCarModelsAndSetupLevel();
+    });
+}
+
+function proceedToNextLevel() {
+    currentLevelIndex++;
+    resetMissionTimer();
+    updateLevelIndicatorWithMission();
     loadCarModelsAndSetupLevel();
 }

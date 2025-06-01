@@ -864,7 +864,7 @@ export function showLevelSelectMenu(isInitialSelection = false) {
         levelSelectContent += `
             </div>
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center;">
-                <em style="color: #888; font-size: 14px;">Press ESC to return to pause menu</em>
+                <em style="color: #888; font-size: 14px;">${isInitialSelection ? 'Select a level to continue' : 'Press ESC to return to pause menu'}</em>
             </div>
         `;
     }
@@ -882,24 +882,12 @@ export function showLevelSelectMenu(isInitialSelection = false) {
         removeOverlay();
         
         if (isInitialSelection) {
+            if (window.clearInitialLevelSelection) {
+                window.clearInitialLevelSelection();
+            }
             if (window.unpauseGame) {
                 window.unpauseGame();
             }
-            
-            const elementsToShow = [
-                'combined-hud',
-                'level-indicator', 
-                'achievement-notification-container',
-                'music-ui',
-                'timer-overlay'
-            ];
-
-            elementsToShow.forEach(id => {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.classList.remove('hidden-during-initial-selection');
-                }
-            });
         } else {
             if (window.pauseMenuActions && window.pauseMenuActions.continueGame) {
                 window.pauseMenuActions.continueGame();
@@ -932,7 +920,7 @@ export function showLevelSelectMenu(isInitialSelection = false) {
     };
 
     const keyHandler = (event) => {
-        if (event.key === 'Escape') {
+        if (event.key === 'Escape' && !isInitialSelection) {
             event.preventDefault();
             removeOverlay();
         }
@@ -1205,4 +1193,8 @@ export function clearActiveConfirmation() {
         hidePauseConfirmation();
         hideResetAllDataConfirmation();
     }
+}
+
+export function isConfirmationVisible() {
+    return pauseMenuState.isConfirmationVisible;
 }
