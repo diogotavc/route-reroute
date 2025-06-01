@@ -11,6 +11,7 @@
 - [ ] separate achievements by type
 - [ ] add look back camera
 - [ ] look over the configs before prod
+- [ ] remove debug / check for console.*
 
 ### maybe?
 

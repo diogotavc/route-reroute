@@ -1,5 +1,3 @@
-import { TILE_SIZE } from "../config.js";
-
 export const mapData = {
     tileAssets: {
         // Roads
@@ -91,7 +89,7 @@ export const mapData = {
         // ['debris_tire', -30, 45, 0, 1.5, 2.3, 0.9],
         // ['debris_tire', 60, 270, 45, 6.2, 7.8, 1.1]
     ],
-    tileSize: TILE_SIZE,
+    tileSize: 6,
     buildingScale: 0.7,
     startPoints: {
         // Level 1 - Basic Tutorial (2 cars)
