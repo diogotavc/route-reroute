@@ -37,7 +37,7 @@ import {
 } from './cars.js';
 import { loadMap, getWorldCoordinates, isOnGrass } from './mapLoader.js';
 import { mapData as level1MapData } from './maps/level1_map.js';
-import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, hideAllOverlaysDuringLoading, showAllOverlaysAfterLoading, createHUDElements, updateHUD, updateTimerDisplay, animateTimerBonus, animateTimerPenalty, animateTimerGrass } from './interface.js';
+import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, hideAllOverlaysDuringLoading, showAllOverlaysAfterLoading, createHUDElements, updateHUD, updateTimerDisplay, animateTimerBonus, animateTimerPenalty, animateTimerGrass, initializePauseMenu, updatePauseMenuSelection, navigatePauseMenu, activatePauseMenuItem, resetPauseMenuSelection } from './interface.js';
 import {
     initCamera,
     setCameraPaused,
@@ -71,7 +71,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
 const overlayElements = createOverlayElements();
-const { rewindOverlay, pauseOverlay, loadingOverlay, idleFadeOverlay, rewindDimOverlay, achievementNotificationContainer, levelIndicator, timerOverlay } = overlayElements;
+const { rewindOverlay, pauseOverlay, pauseDimOverlay, loadingOverlay, idleFadeOverlay, rewindDimOverlay, achievementNotificationContainer, levelIndicator, timerOverlay } = overlayElements;
 
 const hudElements = createHUDElements();
 const { combinedHUD, speedometer, healthBar } = hudElements;
@@ -544,10 +544,17 @@ function togglePause(manual = false) {
 
     if (!isPaused) {
         wasPausedByFocusLoss = false;
+        Achievements.onInputDetected();
     }
 
-    if (pauseOverlay) {
-        pauseOverlay.style.display = (isPaused && isManualPause) ? 'block' : 'none';
+    if (pauseOverlay && pauseDimOverlay) {
+        const shouldShowMenu = isPaused && isManualPause;
+        pauseOverlay.style.display = shouldShowMenu ? 'block' : 'none';
+        pauseDimOverlay.style.display = shouldShowMenu ? 'block' : 'none';
+        
+        if (shouldShowMenu) {
+            resetPauseMenuSelection();
+        }
     }
 
     setCameraPaused(isPaused);
@@ -582,6 +589,63 @@ function showAchievementNotification(notification) {
     const notificationElement = createAchievementNotification(notification, ++notificationIdCounter);
     animateAchievementNotification(notificationElement, container);
 }
+
+initializePauseMenu();
+
+window.pauseMenuActions = {
+    continueGame: () => {
+        unpauseGame();
+    },
+    rewindMission: () => {
+        if (!isLoading && !isRewinding) {
+            unpauseGame();
+            setTimeout(() => {
+                setRewinding();
+            }, 100);
+        }
+    },
+    restartLevel: () => {
+        unpauseGame();
+        setTimeout(() => {
+            loadCarModelsAndSetupLevel();
+        }, 100);
+    },
+    resetAchievements: () => {
+        if (Achievements.resetAchievements) {
+            Achievements.resetAchievements();
+
+            const feedbackOverlay = document.createElement('div');
+            feedbackOverlay.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(56, 142, 60, 0.9));
+                color: white;
+                padding: 20px 40px;
+                border-radius: 12px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                font-size: 18px;
+                font-weight: 500;
+                z-index: 3500;
+                text-align: center;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+                backdrop-filter: blur(10px);
+            `;
+            feedbackOverlay.textContent = 'All achievements have been reset!';
+            document.body.appendChild(feedbackOverlay);
+
+            setTimeout(() => {
+                if (document.body.contains(feedbackOverlay)) {
+                    document.body.removeChild(feedbackOverlay);
+                }
+            }, 2000);
+        }
+    }
+};
+
+window.getAchievementStats = Achievements.getAchievementStats;
+window.getAchievementDefinition = Achievements.getAchievementDefinition;
 
 function animate() {
     if (isPaused) {
@@ -728,6 +792,31 @@ function isMovementKey(key) {
 }
 
 window.addEventListener("keydown", (event) => {
+    if (isPaused && isManualPause) {
+        switch (event.key) {
+            case "ArrowUp":
+            case "w":
+                event.preventDefault();
+                navigatePauseMenu('up');
+                return;
+            case "ArrowDown":
+            case "s":
+                event.preventDefault();
+                navigatePauseMenu('down');
+                return;
+            case "Enter":
+            case " ":
+                event.preventDefault();
+                activatePauseMenuItem();
+                return;
+            case "Escape":
+                event.preventDefault();
+                unpauseGame();
+                return;
+        }
+        return;
+    }
+    
     if (isMovementKey(event.key)) {
         Achievements.onInputDetected();
         
@@ -747,7 +836,10 @@ window.addEventListener("keydown", (event) => {
             }
             break;
         case "c": toggleCameraMode(); break;
-        case "p": togglePause(true); break;
+        case "p": 
+        case "Escape":
+            togglePause(true); 
+            break;
         case "n": 
             const nextCarResult = nextCar();
             if (nextCarResult === -1) {
@@ -758,6 +850,10 @@ window.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("keyup", (event) => {
+    if (isPaused && isManualPause) {
+        return;
+    }
+
     switch (event.key) {
         case "ArrowUp": case "w": setAccelerating(false); break;
         case "ArrowDown": case "s": setBraking(false); break;

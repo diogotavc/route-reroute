@@ -60,6 +60,19 @@
     backdrop-filter: blur(2px);
 }
 
+#pause-dim-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 2000;
+    display: none;
+    pointer-events: none;
+    backdrop-filter: blur(2px);
+}
+
 #pause-overlay {
     position: fixed;
     top: 50%;
@@ -67,19 +80,150 @@
     transform: translate(-50%, -50%);
     color: white;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 32px;
-    font-weight: 600;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
     z-index: 2500;
     display: none;
-    pointer-events: none;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(20, 20, 20, 0.8));
-    padding: 25px 40px;
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
+    pointer-events: all;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 20, 0.9));
+    padding: 40px 50px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    min-width: 350px;
+}
+
+.pause-menu-title {
+    font-size: 32px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 30px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    background: linear-gradient(135deg, #ffffff, #e0e0e0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.pause-menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pause-menu-item {
+    padding: 12px 20px;
+    margin: 8px 0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 18px;
+    font-weight: 500;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.05);
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.pause-menu-item:hover,
+.pause-menu-item.selected {
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.3), rgba(80, 200, 120, 0.3));
+    border: 1px solid rgba(74, 144, 226, 0.5);
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.pause-menu-item:active {
+    transform: translateX(5px) scale(0.96);
+    transition: all 0.1s ease;
+}
+
+.pause-menu-item.danger {
+    color: #ff6b6b;
+}
+
+.pause-menu-item.danger:hover,
+.pause-menu-item.danger.selected {
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.3), rgba(255, 69, 69, 0.3));
+    border: 1px solid rgba(255, 107, 107, 0.5);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.confirmation-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+}
+
+.confirmation-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-align: center;
+    color: #ff6b6b;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.confirmation-message {
+    font-size: 16px;
+    margin-bottom: 25px;
+    text-align: center;
+    color: #cccccc;
+    line-height: 1.4;
+}
+
+.confirmation-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.confirmation-button {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.confirmation-button.confirm {
+    background: linear-gradient(135deg, #ff6b6b, #ff5252);
+    color: white;
+    border: 1px solid rgba(255, 107, 107, 0.5);
+}
+
+.confirmation-button.confirm:hover {
+    background: linear-gradient(135deg, #ff5252, #f44336);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.confirmation-button.cancel {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.confirmation-button.cancel:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
 
 #level-indicator {

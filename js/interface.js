@@ -8,7 +8,27 @@ export function createOverlayElements() {
 
     const pauseOverlay = document.createElement('div');
     pauseOverlay.id = 'pause-overlay';
-    pauseOverlay.textContent = 'PAUSED';
+    pauseOverlay.innerHTML = `
+        <div class="pause-menu-title">PAUSED</div>
+        <ul class="pause-menu-list">
+            <li class="pause-menu-item" data-action="continue">Continue Playing</li>
+            <li class="pause-menu-item" data-action="achievements">Achievements</li>
+            <li class="pause-menu-item" data-action="rewind-mission">Rewind Mission</li>
+            <li class="pause-menu-item" data-action="restart-level">Restart Level</li>
+            <li class="pause-menu-item danger" data-action="reset-achievements">Reset Achievements</li>
+        </ul>
+        <div class="confirmation-overlay" style="display: none;">
+            <div class="confirmation-title">Reset All Achievements?</div>
+            <div class="confirmation-message">This action cannot be undone.<br>All your achievement progress will be permanently lost.</div>
+            <div class="confirmation-buttons">
+                <button class="confirmation-button cancel">Cancel</button>
+                <button class="confirmation-button confirm">Reset Everything</button>
+            </div>
+        </div>
+    `;
+
+    const pauseDimOverlay = document.createElement('div');
+    pauseDimOverlay.id = 'pause-dim-overlay';
 
     const loadingOverlay = document.createElement('div');
     loadingOverlay.id = 'loading-overlay';
@@ -44,6 +64,7 @@ export function createOverlayElements() {
 
     document.body.appendChild(rewindOverlay);
     document.body.appendChild(pauseOverlay);
+    document.body.appendChild(pauseDimOverlay);
     document.body.appendChild(loadingOverlay);
     document.body.appendChild(idleFadeOverlay);
     document.body.appendChild(rewindDimOverlay);
@@ -54,6 +75,7 @@ export function createOverlayElements() {
     return {
         rewindOverlay,
         pauseOverlay,
+        pauseDimOverlay,
         loadingOverlay,
         idleFadeOverlay,
         rewindDimOverlay,
@@ -386,4 +408,235 @@ export function animateTimerGrass() {
             timerDisplay.classList.remove('timer-grass');
         }, 500);
     }
+}
+
+let pauseMenuState = {
+    selectedIndex: 0,
+    menuItems: [],
+    isConfirmationVisible: false
+};
+
+export function initializePauseMenu() {
+    const pauseOverlay = document.getElementById('pause-overlay');
+    if (!pauseOverlay) return;
+
+    pauseMenuState.menuItems = Array.from(pauseOverlay.querySelectorAll('.pause-menu-item'));
+
+    pauseMenuState.menuItems.forEach((item, index) => {
+        item.addEventListener('mouseenter', () => {
+            if (!pauseMenuState.isConfirmationVisible) {
+                pauseMenuState.selectedIndex = index;
+                updatePauseMenuSelection();
+            }
+        });
+
+        item.addEventListener('click', (event) => {
+            event.preventDefault();
+            if (!pauseMenuState.isConfirmationVisible) {
+                pauseMenuState.selectedIndex = index;
+                updatePauseMenuSelection();
+                activatePauseMenuItem();
+            }
+        });
+
+        item.addEventListener('selectstart', (event) => {
+            event.preventDefault();
+        });
+    });
+
+    const confirmationOverlay = pauseOverlay.querySelector('.confirmation-overlay');
+    const cancelButton = confirmationOverlay.querySelector('.confirmation-button.cancel');
+    const confirmButton = confirmationOverlay.querySelector('.confirmation-button.confirm');
+    
+    cancelButton.addEventListener('click', hidePauseConfirmation);
+    confirmButton.addEventListener('click', confirmResetAchievements);
+
+    updatePauseMenuSelection();
+}
+
+export function updatePauseMenuSelection() {
+    pauseMenuState.menuItems.forEach((item, index) => {
+        item.classList.toggle('selected', index === pauseMenuState.selectedIndex);
+    });
+}
+
+export function navigatePauseMenu(direction) {
+    if (pauseMenuState.isConfirmationVisible) return;
+    
+    if (direction === 'up') {
+        pauseMenuState.selectedIndex = (pauseMenuState.selectedIndex - 1 + pauseMenuState.menuItems.length) % pauseMenuState.menuItems.length;
+    } else if (direction === 'down') {
+        pauseMenuState.selectedIndex = (pauseMenuState.selectedIndex + 1) % pauseMenuState.menuItems.length;
+    }
+    
+    updatePauseMenuSelection();
+}
+
+export function activatePauseMenuItem() {
+    if (pauseMenuState.isConfirmationVisible) return;
+    
+    const selectedItem = pauseMenuState.menuItems[pauseMenuState.selectedIndex];
+    const action = selectedItem.getAttribute('data-action');
+    
+    switch (action) {
+        case 'continue':
+            if (window.pauseMenuActions && window.pauseMenuActions.continueGame) {
+                window.pauseMenuActions.continueGame();
+            }
+            break;
+        case 'achievements':
+            showAchievementsPlaceholder();
+            break;
+        case 'rewind-mission':
+            if (window.pauseMenuActions && window.pauseMenuActions.rewindMission) {
+                window.pauseMenuActions.rewindMission();
+            }
+            break;
+        case 'restart-level':
+            if (window.pauseMenuActions && window.pauseMenuActions.restartLevel) {
+                window.pauseMenuActions.restartLevel();
+            }
+            break;
+        case 'reset-achievements':
+            showPauseConfirmation();
+            break;
+    }
+}
+
+export function showPauseConfirmation() {
+    const pauseOverlay = document.getElementById('pause-overlay');
+    const confirmationOverlay = pauseOverlay.querySelector('.confirmation-overlay');
+    
+    confirmationOverlay.style.display = 'flex';
+    pauseMenuState.isConfirmationVisible = true;
+}
+
+export function hidePauseConfirmation() {
+    const pauseOverlay = document.getElementById('pause-overlay');
+    const confirmationOverlay = pauseOverlay.querySelector('.confirmation-overlay');
+    
+    confirmationOverlay.style.display = 'none';
+    pauseMenuState.isConfirmationVisible = false;
+}
+
+export function confirmResetAchievements() {
+    if (window.pauseMenuActions && window.pauseMenuActions.resetAchievements) {
+        window.pauseMenuActions.resetAchievements();
+    }
+    hidePauseConfirmation();
+}
+
+export function showAchievementsPlaceholder() {
+    const achievementOverlay = document.createElement('div');
+    achievementOverlay.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 20, 0.95));
+        color: white;
+        padding: 40px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(15px);
+        z-index: 3000;
+        max-width: 500px;
+        max-height: 70vh;
+        overflow-y: auto;
+        text-align: center;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    `;
+
+    let achievementContent = '<h2 style="margin-top: 0; color: #4A90E2;">🏆 Achievements</h2>';
+
+    if (window.getAchievementStats) {
+        const stats = window.getAchievementStats();
+        achievementContent += `
+            <div style="margin: 20px 0; font-size: 18px;">
+                <div style="margin-bottom: 10px; font-weight: 600;">Progress: ${stats.unlocked}/${stats.total} (${stats.percentage}%)</div>
+                <div style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden; margin: 15px 0;">
+                    <div style="background: linear-gradient(90deg, #4A90E2, #50C878); height: 100%; width: ${stats.percentage}%; transition: width 0.3s ease; border-radius: 4px;"></div>
+                </div>
+            </div>
+        `;
+
+        if (stats.unlockedList.length > 0) {
+            achievementContent += '<div style="text-align: left; margin-top: 25px; max-height: 300px; overflow-y: auto; padding-right: 10px;">';
+            achievementContent += '<h3 style="color: #50C878; margin-bottom: 15px; text-align: center;">🎉 Unlocked Achievements</h3>';
+            stats.unlockedList.forEach(id => {
+                if (window.getAchievementDefinition) {
+                    const def = window.getAchievementDefinition(id);
+                    if (def) {
+                        achievementContent += `
+                            <div style="margin: 12px 0; padding: 15px; background: rgba(74, 144, 226, 0.15); border-radius: 12px; border-left: 4px solid #4A90E2; transition: all 0.2s ease;">
+                                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                                    <div style="font-size: 20px;">🏅</div>
+                                    <div style="flex: 1;">
+                                        <strong style="color: #4A90E2; font-size: 16px;">${def.name}</strong><br>
+                                        <small style="color: #ccc; line-height: 1.4;">${def.description}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            });
+            achievementContent += '</div>';
+        } else {
+            achievementContent += '<div style="margin: 20px 0; padding: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 12px; color: #ccc;">';
+            achievementContent += '<div style="font-size: 48px; margin-bottom: 10px;">🎯</div>';
+            achievementContent += '<p>No achievements unlocked yet.<br>Start playing to earn your first achievement!</p>';
+            achievementContent += '</div>';
+        }
+    } else {
+        achievementContent += '<div style="margin: 20px 0; padding: 20px; background: rgba(255, 87, 34, 0.1); border-radius: 12px; border-left: 4px solid #ff5722;">';
+        achievementContent += '<div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>';
+        achievementContent += '<p style="color: #ffab91; margin: 0;">Achievement system not available.</p>';
+        achievementContent += '</div>';
+    }
+
+    achievementContent += '<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);"><em style="color: #888; font-size: 14px;">Press ESC or ENTER to close</em></div>';
+
+    achievementOverlay.innerHTML = achievementContent;
+    document.body.appendChild(achievementOverlay);
+
+    const removeOverlay = () => {
+        if (document.body.contains(achievementOverlay)) {
+            achievementOverlay.style.opacity = '0';
+            achievementOverlay.style.transform = 'translate(-50%, -50%) scale(0.9)';
+            setTimeout(() => {
+                if (document.body.contains(achievementOverlay)) {
+                    document.body.removeChild(achievementOverlay);
+                }
+            }, 300);
+            document.removeEventListener('keydown', keyHandler);
+        }
+    };
+
+    const keyHandler = (event) => {
+        if (event.key === 'Escape' || event.key === 'Enter') {
+            event.preventDefault();
+            removeOverlay();
+        }
+    };
+
+    achievementOverlay.style.opacity = '0';
+    achievementOverlay.style.transform = 'translate(-50%, -50%) scale(0.9)';
+    achievementOverlay.style.transition = 'all 0.3s ease';
+
+    setTimeout(() => {
+        achievementOverlay.style.opacity = '1';
+        achievementOverlay.style.transform = 'translate(-50%, -50%) scale(1)';
+    }, 10);
+    
+    document.addEventListener('keydown', keyHandler);
+
+    setTimeout(removeOverlay, 15000);
+}
+
+export function resetPauseMenuSelection() {
+    pauseMenuState.selectedIndex = 0;
+    pauseMenuState.isConfirmationVisible = false;
+    updatePauseMenuSelection();
 }
