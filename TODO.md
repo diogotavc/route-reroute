@@ -5,6 +5,8 @@
 - [ ] save system
 - [ ] Add dialogs for each mission
 - [ ] check for unused variables and bad imports
+- [ ] make sure reset level exits idle camera first things first (else some things might look weird)
+- [ ] add a credits option, as well as manual (and/or only controls)
 
 ### maybe?
 

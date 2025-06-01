@@ -37,7 +37,7 @@ import {
 } from './cars.js';
 import { loadMap, getWorldCoordinates, isOnGrass } from './mapLoader.js';
 import { mapData as level1MapData } from './maps/level1_map.js';
-import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, hideAllOverlaysDuringLoading, showAllOverlaysAfterLoading, createHUDElements, updateHUD, updateTimerDisplay, animateTimerBonus, animateTimerPenalty, animateTimerGrass, initializePauseMenu, updatePauseMenuSelection, navigatePauseMenu, activatePauseMenuItem, resetPauseMenuSelection } from './interface.js';
+import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, hideAllOverlaysDuringLoading, showAllOverlaysAfterLoading, createHUDElements, updateHUD, updateTimerDisplay, animateTimerBonus, animateTimerPenalty, animateTimerGrass, initializePauseMenu, updatePauseMenuSelection, navigatePauseMenu, activatePauseMenuItem, resetPauseMenuSelection, isInAchievementsSubmenu } from './interface.js';
 import {
     initCamera,
     setCameraPaused,
@@ -792,6 +792,10 @@ function isMovementKey(key) {
 }
 
 window.addEventListener("keydown", (event) => {
+    if (isInAchievementsSubmenu()) {
+        return;
+    }
+
     if (isPaused && isManualPause) {
         switch (event.key) {
             case "ArrowUp":
@@ -850,6 +854,10 @@ window.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("keyup", (event) => {
+    if (isInAchievementsSubmenu()) {
+        return;
+    }
+
     if (isPaused && isManualPause) {
         return;
     }

@@ -526,7 +526,11 @@ export function confirmResetAchievements() {
     hidePauseConfirmation();
 }
 
+let isShowingAchievements = false;
+
 export function showAchievementsPlaceholder() {
+    isShowingAchievements = true;
+
     const achievementOverlay = document.createElement('div');
     achievementOverlay.style.cssText = `
         position: fixed;
@@ -540,66 +544,126 @@ export function showAchievementsPlaceholder() {
         border: 1px solid rgba(255, 255, 255, 0.2);
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
         backdrop-filter: blur(15px);
-        z-index: 3000;
-        max-width: 500px;
-        max-height: 70vh;
+        z-index: 3500;
+        min-width: 650px;
+        max-height: 80vh;
         overflow-y: auto;
         text-align: center;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     `;
 
-    let achievementContent = '<h2 style="margin-top: 0; color: #4A90E2;">🏆 Achievements</h2>';
+    let achievementContent = '<h2 style="margin-top: 0; color: #4A90E2; text-align: center;">🏆 Achievements</h2>';
 
     if (window.getAchievementStats) {
         const stats = window.getAchievementStats();
         achievementContent += `
-            <div style="margin: 20px 0; font-size: 18px;">
+            <div style="margin: 20px 0; font-size: 18px; text-align: center;">
                 <div style="margin-bottom: 10px; font-weight: 600;">Progress: ${stats.unlocked}/${stats.total} (${stats.percentage}%)</div>
-                <div style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden; margin: 15px 0;">
+                <div style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden; margin: 15px auto; max-width: 400px;">
                     <div style="background: linear-gradient(90deg, #4A90E2, #50C878); height: 100%; width: ${stats.percentage}%; transition: width 0.3s ease; border-radius: 4px;"></div>
                 </div>
             </div>
         `;
 
+        const allAchievements = [];
+        
         if (stats.unlockedList.length > 0) {
-            achievementContent += '<div style="text-align: left; margin-top: 25px; max-height: 300px; overflow-y: auto; padding-right: 10px;">';
-            achievementContent += '<h3 style="color: #50C878; margin-bottom: 15px; text-align: center;">🎉 Unlocked Achievements</h3>';
             stats.unlockedList.forEach(id => {
                 if (window.getAchievementDefinition) {
                     const def = window.getAchievementDefinition(id);
                     if (def) {
-                        achievementContent += `
-                            <div style="margin: 12px 0; padding: 15px; background: rgba(74, 144, 226, 0.15); border-radius: 12px; border-left: 4px solid #4A90E2; transition: all 0.2s ease;">
-                                <div style="display: flex; align-items: flex-start; gap: 10px;">
-                                    <div style="font-size: 20px;">🏅</div>
-                                    <div style="flex: 1;">
-                                        <strong style="color: #4A90E2; font-size: 16px;">${def.name}</strong><br>
-                                        <small style="color: #ccc; line-height: 1.4;">${def.description}</small>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                        allAchievements.push({ ...def, id, unlocked: true });
                     }
                 }
             });
+        }
+
+        if (allAchievements.length > 0) {
+            achievementContent += '<div style="text-align: left; margin-top: 25px; display: grid; grid-template-columns: 1fr; gap: 15px; max-height: 400px; overflow-y: auto; padding-right: 10px;">';
+            
+            allAchievements.forEach(achievement => {
+                const bannerPath = `assets/achievement-banners/${achievement.id.toLowerCase()}.jpg`;
+                achievementContent += `
+                    <div class="achievement-item-detailed" data-banner="${bannerPath}" style="
+                        position: relative;
+                        height: 120px;
+                        border-radius: 12px;
+                        overflow: hidden;
+                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                        transition: all 0.3s ease;
+                        cursor: default;
+                        background: linear-gradient(135deg, #4CAF50, #45a049);
+                    ">
+                        <div style="
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5));
+                            z-index: 1;
+                        "></div>
+                        <div style="
+                            position: absolute;
+                            bottom: 0;
+                            left: 0;
+                            right: 0;
+                            padding: 20px;
+                            z-index: 2;
+                            color: white;
+                        ">
+                            <div style="
+                                font-size: 18px;
+                                font-weight: bold;
+                                margin-bottom: 8px;
+                                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+                                line-height: 1.2;
+                            ">${achievement.name}</div>
+                            <div style="
+                                font-size: 14px;
+                                opacity: 0.9;
+                                line-height: 1.3;
+                                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+                            ">${achievement.description}</div>
+                        </div>
+                    </div>
+                `;
+            });
             achievementContent += '</div>';
         } else {
-            achievementContent += '<div style="margin: 20px 0; padding: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 12px; color: #ccc;">';
+            achievementContent += '<div style="margin: 20px 0; padding: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 12px; color: #ccc; text-align: center;">';
             achievementContent += '<div style="font-size: 48px; margin-bottom: 10px;">🎯</div>';
             achievementContent += '<p>No achievements unlocked yet.<br>Start playing to earn your first achievement!</p>';
             achievementContent += '</div>';
         }
     } else {
-        achievementContent += '<div style="margin: 20px 0; padding: 20px; background: rgba(255, 87, 34, 0.1); border-radius: 12px; border-left: 4px solid #ff5722;">';
+        achievementContent += '<div style="margin: 20px 0; padding: 20px; background: rgba(255, 87, 34, 0.1); border-radius: 12px; border-left: 4px solid #ff5722; text-align: center;">';
         achievementContent += '<div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>';
         achievementContent += '<p style="color: #ffab91; margin: 0;">Achievement system not available.</p>';
         achievementContent += '</div>';
     }
 
-    achievementContent += '<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);"><em style="color: #888; font-size: 14px;">Press ESC or ENTER to close</em></div>';
+    achievementContent += '<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center;"><em style="color: #888; font-size: 14px;">Press ESC or ENTER to return to pause menu</em></div>';
 
     achievementOverlay.innerHTML = achievementContent;
     document.body.appendChild(achievementOverlay);
+
+    const achievementItems = achievementOverlay.querySelectorAll('.achievement-item-detailed');
+    achievementItems.forEach(item => {
+        const bannerPath = item.getAttribute('data-banner');
+        if (bannerPath) {
+            const testImage = new Image();
+            testImage.onload = function() {
+                item.style.background = `linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), url('${bannerPath}')`;
+                item.style.backgroundSize = 'cover';
+                item.style.backgroundPosition = 'center';
+            };
+            testImage.onerror = function() {
+                // Keep the default gradient background if image fails to load
+            };
+            testImage.src = bannerPath;
+        }
+    });
 
     const removeOverlay = () => {
         if (document.body.contains(achievementOverlay)) {
@@ -609,6 +673,7 @@ export function showAchievementsPlaceholder() {
                 if (document.body.contains(achievementOverlay)) {
                     document.body.removeChild(achievementOverlay);
                 }
+                isShowingAchievements = false;
             }, 300);
             document.removeEventListener('keydown', keyHandler);
         }
@@ -631,12 +696,14 @@ export function showAchievementsPlaceholder() {
     }, 10);
     
     document.addEventListener('keydown', keyHandler);
-
-    setTimeout(removeOverlay, 15000);
 }
 
 export function resetPauseMenuSelection() {
     pauseMenuState.selectedIndex = 0;
     pauseMenuState.isConfirmationVisible = false;
     updatePauseMenuSelection();
+}
+
+export function isInAchievementsSubmenu() {
+    return isShowingAchievements;
 }
