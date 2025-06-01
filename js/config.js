@@ -89,7 +89,8 @@ export const TIMER_RANDOM_HINTS = [
     "Traffic report: you are the traffic",
     "Navigation tip: GPS stands for 'Go Pretty Safely'",
     "Safety first: unless you're racing",
-    "Driver's ed: experience is the best teacher"
+    "Driver's ed: experience is the best teacher",
+    "Grade report: definitely worth top marks"
 ];
 
 export const TIMER_HINT_MIN_INTERVAL = 5000;
