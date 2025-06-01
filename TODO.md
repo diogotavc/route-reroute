@@ -2,11 +2,15 @@
 - [ ] Selectable OST (lists files in the designated folder, and let's you toggle it)
 - [ ] add more music
 - [ ] add vehicle specific lights and sounds (i.e. ambulance)
-- [ ] save system
 - [ ] Add dialogs for each mission
 - [ ] check for unused variables and bad imports
 - [ ] make sure reset level exits idle camera first things first (else some things might look weird)
-- [ ] add a credits option, as well as manual (and/or only controls)
+- [ ] hide UI during pause menu as well
+- [ ] play a different level (track which levels the user has completed and let him play those on demand), add a credits option, as well as manual (and/or only controls)
+- [ ] if the user has played more than a level, ask before first loading, if they want to play level 1, or whatever level they're on
+- [ ] separate achievements by type
+- [ ] add look back camera
+- [ ] look over the configs before prod
 
 ### maybe?
 
@@ -18,6 +22,7 @@
 
 ### not planned anymore
 
+- [-] ~~save system~~ (in favour of the "play a different level" system)
 - [-] ~~fix first person headlight issue~~
 - [-] ~~firefly should flicker more often, not just at the beginning~~
 - [-] ~~streetlight and road/building layout are literally not built the same (matrixes are interpreted backwards)~~

@@ -485,7 +485,7 @@ export function activatePauseMenuItem() {
             }
             break;
         case 'achievements':
-            showAchievementsPlaceholder();
+            showAchievementsMenu();
             break;
         case 'rewind-mission':
             if (window.pauseMenuActions && window.pauseMenuActions.rewindMission) {
@@ -528,7 +528,7 @@ export function confirmResetAchievements() {
 
 let isShowingAchievements = false;
 
-export function showAchievementsPlaceholder() {
+export function showAchievementsMenu() {
     isShowingAchievements = true;
 
     const achievementOverlay = document.createElement('div');
