@@ -12,14 +12,26 @@ export function createOverlayElements() {
         <div class="pause-menu-title">PAUSED</div>
         <ul class="pause-menu-list">
             <li class="pause-menu-item" data-action="continue">Continue Playing</li>
+            <li class="pause-menu-item" data-action="level-select">Select Level</li>
             <li class="pause-menu-item" data-action="achievements">Achievements</li>
+            <li class="pause-menu-item" data-action="manual">Manual & Controls</li>
+            <li class="pause-menu-item" data-action="about">About & Credits</li>
             <li class="pause-menu-item" data-action="rewind-mission">Rewind Mission</li>
             <li class="pause-menu-item" data-action="restart-level">Restart Level</li>
             <li class="pause-menu-item danger" data-action="reset-achievements">Reset Achievements</li>
+            <li class="pause-menu-item danger" data-action="reset-all-data">Reset All Data</li>
         </ul>
         <div class="confirmation-overlay" style="display: none;">
             <div class="confirmation-title">Reset All Achievements?</div>
             <div class="confirmation-message">This action cannot be undone.<br>All your achievement progress will be permanently lost.</div>
+            <div class="confirmation-buttons">
+                <button class="confirmation-button cancel">Cancel</button>
+                <button class="confirmation-button confirm">Reset Everything</button>
+            </div>
+        </div>
+        <div class="reset-all-confirmation-overlay" style="display: none;">
+            <div class="confirmation-title">Reset All Data?</div>
+            <div class="confirmation-message">This will reset ALL progress including:<br>• Level completion progress<br>• Achievement data<br>• All game settings<br><br>This action cannot be undone!</div>
             <div class="confirmation-buttons">
                 <button class="confirmation-button cancel">Cancel</button>
                 <button class="confirmation-button confirm">Reset Everything</button>
@@ -451,6 +463,13 @@ export function initializePauseMenu() {
     cancelButton.addEventListener('click', hidePauseConfirmation);
     confirmButton.addEventListener('click', confirmResetAchievements);
 
+    const resetAllConfirmationOverlay = pauseOverlay.querySelector('.reset-all-confirmation-overlay');
+    const resetAllCancelButton = resetAllConfirmationOverlay.querySelector('.confirmation-button.cancel');
+    const resetAllConfirmButton = resetAllConfirmationOverlay.querySelector('.confirmation-button.confirm');
+
+    resetAllCancelButton.addEventListener('click', hideResetAllDataConfirmation);
+    resetAllConfirmButton.addEventListener('click', confirmResetAllData);
+
     updatePauseMenuSelection();
 }
 
@@ -484,8 +503,17 @@ export function activatePauseMenuItem() {
                 window.pauseMenuActions.continueGame();
             }
             break;
+        case 'level-select':
+            showLevelSelectMenu();
+            break;
         case 'achievements':
             showAchievementsMenu();
+            break;
+        case 'manual':
+            showManualMenu();
+            break;
+        case 'about':
+            showAboutMenu();
             break;
         case 'rewind-mission':
             if (window.pauseMenuActions && window.pauseMenuActions.rewindMission) {
@@ -499,6 +527,9 @@ export function activatePauseMenuItem() {
             break;
         case 'reset-achievements':
             showPauseConfirmation();
+            break;
+        case 'reset-all-data':
+            showResetAllDataConfirmation();
             break;
     }
 }
@@ -706,4 +737,374 @@ export function resetPauseMenuSelection() {
 
 export function isInAchievementsSubmenu() {
     return isShowingAchievements;
+}
+
+export function showLevelSelectMenu() {
+    const levelSelectOverlay = document.createElement('div');
+    levelSelectOverlay.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, rgba(20, 20, 40, 0.95), rgba(40, 40, 80, 0.95));
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 40px;
+        color: white;
+        font-family: 'Orbitron', 'Courier New', monospace;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        max-width: 600px;
+        min-width: 400px;
+        z-index: 10000;
+    `;
+
+    const totalLevels = window.getCurrentLevelIndex !== undefined ? 
+        (typeof window.levels !== 'undefined' ? window.levels.length : 3) : 3;
+    const currentLevel = window.getCurrentLevelIndex ? window.getCurrentLevelIndex() : 0;
+    const highestCompleted = window.getHighestCompletedLevel ? window.getHighestCompletedLevel() : -1;
+
+    let levelSelectContent = `
+        <h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #4CAF50, #81C784); 
+           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+           Select Level
+        </h2>
+        <div style="margin-bottom: 30px;">
+    `;
+
+    for (let i = 0; i < totalLevels; i++) {
+        const isCompleted = window.isLevelCompleted ? window.isLevelCompleted(i) : false;
+        const isUnlocked = i === 0 || isCompleted || i <= highestCompleted + 1;
+        const isCurrent = i === currentLevel;
+        
+        const statusIcon = isCompleted ? '✓' : (isCurrent ? '▶' : (isUnlocked ? '○' : '🔒'));
+        const statusText = isCompleted ? 'Completed' : (isCurrent ? 'Current' : (isUnlocked ? 'Available' : 'Locked'));
+        
+        const buttonStyle = `
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 15px;
+            background: ${isUnlocked ? 'rgba(76, 175, 80, 0.2)' : 'rgba(100, 100, 100, 0.2)'};
+            border: 2px solid ${isUnlocked ? 'rgba(76, 175, 80, 0.5)' : 'rgba(100, 100, 100, 0.3)'};
+            border-radius: 10px;
+            color: ${isUnlocked ? 'white' : '#888'};
+            cursor: ${isUnlocked ? 'pointer' : 'not-allowed'};
+            font-family: inherit;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            ${isUnlocked ? 'background: rgba(76, 175, 80, 0.3); border-color: rgba(76, 175, 80, 0.7);' : ''}
+        `;
+
+        levelSelectContent += `
+            <button style="${buttonStyle}" 
+                    ${isUnlocked ? `onclick="selectLevel(${i})"` : ''} 
+                    ${isUnlocked ? 'onmouseover="this.style.background=\'rgba(76, 175, 80, 0.4)\'"' : ''}
+                    ${isUnlocked ? 'onmouseout="this.style.background=\'rgba(76, 175, 80, 0.2)\'"' : ''}>
+                ${statusIcon} Level ${i + 1} - ${statusText}
+            </button>
+        `;
+    }
+
+    levelSelectContent += `
+        </div>
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center;">
+            <em style="color: #888; font-size: 14px;">Press ESC to return to pause menu</em>
+        </div>
+    `;
+
+    levelSelectOverlay.innerHTML = levelSelectContent;
+    document.body.appendChild(levelSelectOverlay);
+
+    window.selectLevel = (levelIndex) => {
+        if (window.setCurrentLevel) {
+            window.setCurrentLevel(levelIndex);
+        }
+        removeOverlay();
+        if (window.pauseMenuActions && window.pauseMenuActions.continueGame) {
+            window.pauseMenuActions.continueGame();
+        }
+    };
+
+    const removeOverlay = () => {
+        if (document.body.contains(levelSelectOverlay)) {
+            levelSelectOverlay.style.opacity = '0';
+            levelSelectOverlay.style.transform = 'translate(-50%, -50%) scale(0.9)';
+            setTimeout(() => {
+                if (document.body.contains(levelSelectOverlay)) {
+                    document.body.removeChild(levelSelectOverlay);
+                }
+                delete window.selectLevel;
+            }, 300);
+            document.removeEventListener('keydown', keyHandler);
+        }
+    };
+
+    const keyHandler = (event) => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            removeOverlay();
+        }
+    };
+
+    levelSelectOverlay.style.opacity = '0';
+    levelSelectOverlay.style.transform = 'translate(-50%, -50%) scale(0.9)';
+    levelSelectOverlay.style.transition = 'all 0.3s ease';
+
+    setTimeout(() => {
+        levelSelectOverlay.style.opacity = '1';
+        levelSelectOverlay.style.transform = 'translate(-50%, -50%) scale(1)';
+    }, 10);
+    
+    document.addEventListener('keydown', keyHandler);
+}
+
+export function showManualMenu() {
+    const manualOverlay = document.createElement('div');
+    manualOverlay.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, rgba(20, 20, 40, 0.95), rgba(40, 40, 80, 0.95));
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 40px;
+        color: white;
+        font-family: 'Orbitron', 'Courier New', monospace;
+        text-align: left;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        max-width: 700px;
+        max-height: 80vh;
+        overflow-y: auto;
+        z-index: 10000;
+    `;
+
+    const manualContent = `
+        <h2 style="margin: 0 0 30px 0; font-size: 28px; text-align: center; background: linear-gradient(45deg, #2196F3, #64B5F6); 
+           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+           Manual & Controls
+        </h2>
+        
+        <div style="margin-bottom: 25px;">
+            <h3 style="color: #4CAF50; margin-bottom: 10px; font-size: 20px;">🎮 Movement Controls</h3>
+            <div style="margin-left: 20px; line-height: 1.6;">
+                <p><strong>W / ↑</strong> - Accelerate forward</p>
+                <p><strong>S / ↓</strong> - Brake / Reverse</p>
+                <p><strong>A / ←</strong> - Turn left</p>
+                <p><strong>D / →</strong> - Turn right</p>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 25px;">
+            <h3 style="color: #FF9800; margin-bottom: 10px; font-size: 20px;">⏰ Game Controls</h3>
+            <div style="margin-left: 20px; line-height: 1.6;">
+                <p><strong>R</strong> - Rewind time (when available)</p>
+                <p><strong>C</strong> - Switch camera view</p>
+                <p><strong>ESC</strong> - Pause menu</p>
+                <p><strong>Space</strong> - Next car/mission</p>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 25px;">
+            <h3 style="color: #9C27B0; margin-bottom: 10px; font-size: 20px;">🎯 Game Objectives</h3>
+            <div style="margin-left: 20px; line-height: 1.6;">
+                <p>• Drive each character to their destination</p>
+                <p>• Complete all missions to advance to the next level</p>
+                <p>• Avoid crashes, grass, and going out of bounds for perfect runs</p>
+                <p>• Use time rewind strategically - it comes with penalties</p>
+                <p>• Watch the timer - complete missions before time runs out</p>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 25px;">
+            <h3 style="color: #F44336; margin-bottom: 10px; font-size: 20px;">⚡ Tips & Strategies</h3>
+            <div style="margin-left: 20px; line-height: 1.6;">
+                <p>• Plan your route before starting each mission</p>
+                <p>• Use different camera angles to better navigate</p>
+                <p>• Stay on roads to avoid grass speed penalties</p>
+                <p>• Some missions have time bonuses upon completion</p>
+                <p>• Unlock achievements by trying different play styles</p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center;">
+            <em style="color: #888; font-size: 14px;">Press ESC to return to pause menu</em>
+        </div>
+    `;
+
+    manualOverlay.innerHTML = manualContent;
+    document.body.appendChild(manualOverlay);
+
+    const removeOverlay = () => {
+        if (document.body.contains(manualOverlay)) {
+            manualOverlay.style.opacity = '0';
+            manualOverlay.style.transform = 'translate(-50%, -50%) scale(0.9)';
+            setTimeout(() => {
+                if (document.body.contains(manualOverlay)) {
+                    document.body.removeChild(manualOverlay);
+                }
+            }, 300);
+            document.removeEventListener('keydown', keyHandler);
+        }
+    };
+
+    const keyHandler = (event) => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            removeOverlay();
+        }
+    };
+
+    manualOverlay.style.opacity = '0';
+    manualOverlay.style.transform = 'translate(-50%, -50%) scale(0.9)';
+    manualOverlay.style.transition = 'all 0.3s ease';
+
+    setTimeout(() => {
+        manualOverlay.style.opacity = '1';
+        manualOverlay.style.transform = 'translate(-50%, -50%) scale(1)';
+    }, 10);
+    
+    document.addEventListener('keydown', keyHandler);
+}
+
+export function showAboutMenu() {
+    const aboutOverlay = document.createElement('div');
+    aboutOverlay.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, rgba(20, 20, 40, 0.95), rgba(40, 40, 80, 0.95));
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 40px;
+        color: white;
+        font-family: 'Orbitron', 'Courier New', monospace;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+        z-index: 10000;
+    `;
+
+    const aboutContent = `
+        <h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #E91E63, #F8BBD9); 
+           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+           About Route Reroute
+        </h2>
+        
+        <div style="margin-bottom: 30px; text-align: left;">
+            <h3 style="color: #4CAF50; margin-bottom: 15px; font-size: 20px; text-align: center;">🚗 The Game</h3>
+            <p style="line-height: 1.6; margin-bottom: 15px;">
+                Route Reroute is an innovative 3D driving game where you help different characters 
+                reach their destinations. Each mission presents unique challenges and time constraints, 
+                testing your driving skills and strategic thinking.
+            </p>
+            <p style="line-height: 1.6; margin-bottom: 15px;">
+                Master the art of time management, perfect your driving technique, and unlock 
+                achievements as you progress through increasingly challenging levels.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 30px; text-align: left;">
+            <h3 style="color: #2196F3; margin-bottom: 15px; font-size: 20px; text-align: center;">🛠️ Technical Features</h3>
+            <div style="margin-left: 20px; line-height: 1.6;">
+                <p>• Built with Three.js for stunning 3D graphics</p>
+                <p>• Advanced physics simulation for realistic driving</p>
+                <p>• Dynamic day/night cycle system</p>
+                <p>• Comprehensive achievement system</p>
+                <p>• Time rewind mechanics</p>
+                <p>• Multiple camera perspectives</p>
+                <p>• Responsive UI design</p>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 30px; text-align: left;">
+            <h3 style="color: #FF9800; margin-bottom: 15px; font-size: 20px; text-align: center;">👨‍💻 Development Team</h3>
+            <div style="text-align: center; line-height: 1.8;">
+                <p style="font-size: 18px; margin-bottom: 10px;"><strong>Game Design & Programming</strong></p>
+                <p style="color: #81C784; margin-bottom: 20px;">Route Reroute Development Team</p>
+                
+                <p style="font-size: 16px; margin-bottom: 10px;"><strong>Special Thanks</strong></p>
+                <p style="color: #FFB74D; margin-bottom: 10px;">Three.js Community</p>
+                <p style="color: #FFB74D; margin-bottom: 10px;">Open Source Contributors</p>
+                <p style="color: #FFB74D;">Web Gaming Community</p>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <h3 style="color: #9C27B0; margin-bottom: 15px; font-size: 20px;">🌟 Version Info</h3>
+            <p style="color: #B39DDB; font-size: 16px;">Version 1.0.0</p>
+            <p style="color: #888; font-size: 14px;">Built with passion for gaming and innovation</p>
+        </div>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <em style="color: #888; font-size: 14px;">Press ESC to return to pause menu</em>
+        </div>
+    `;
+
+    aboutOverlay.innerHTML = aboutContent;
+    document.body.appendChild(aboutOverlay);
+
+    const removeOverlay = () => {
+        if (document.body.contains(aboutOverlay)) {
+            aboutOverlay.style.opacity = '0';
+            aboutOverlay.style.transform = 'translate(-50%, -50%) scale(0.9)';
+            setTimeout(() => {
+                if (document.body.contains(aboutOverlay)) {
+                    document.body.removeChild(aboutOverlay);
+                }
+            }, 300);
+            document.removeEventListener('keydown', keyHandler);
+        }
+    };
+
+    const keyHandler = (event) => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            removeOverlay();
+        }
+    };
+
+    aboutOverlay.style.opacity = '0';
+    aboutOverlay.style.transform = 'translate(-50%, -50%) scale(0.9)';
+    aboutOverlay.style.transition = 'all 0.3s ease';
+
+    setTimeout(() => {
+        aboutOverlay.style.opacity = '1';
+        aboutOverlay.style.transform = 'translate(-50%, -50%) scale(1)';
+    }, 10);
+    
+    document.addEventListener('keydown', keyHandler);
+}
+
+export function showResetAllDataConfirmation() {
+    const pauseOverlay = document.getElementById('pause-overlay');
+    const resetAllConfirmationOverlay = pauseOverlay.querySelector('.reset-all-confirmation-overlay');
+    
+    resetAllConfirmationOverlay.style.display = 'flex';
+    pauseMenuState.isConfirmationVisible = true;
+}
+
+export function hideResetAllDataConfirmation() {
+    const pauseOverlay = document.getElementById('pause-overlay');
+    const resetAllConfirmationOverlay = pauseOverlay.querySelector('.reset-all-confirmation-overlay');
+    
+    resetAllConfirmationOverlay.style.display = 'none';
+    pauseMenuState.isConfirmationVisible = false;
+}
+
+export function confirmResetAllData() {
+    if (window.resetAllData) {
+        window.resetAllData();
+    }
+    hideResetAllDataConfirmation();
+    if (window.pauseMenuActions && window.pauseMenuActions.continueGame) {
+        window.pauseMenuActions.continueGame();
+    }
 }

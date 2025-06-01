@@ -102,7 +102,9 @@ loadMap(scene, MapData).then((mapGroup) => {
 
     hideAllOverlaysDuringLoading();
     
-    loadCarModelsAndSetupLevel();
+    if (!showInitialLevelSelection()) {
+        loadCarModelsAndSetupLevel();
+    }
 }).catch(error => {
     console.error("Failed to load map in main.js:", error);
 });
@@ -359,10 +361,15 @@ const levels = [
     }
 ];
 
+window.levels = levels;
+
 let currentLevelIndex = 0;
 let currentTimeOfDay = 0.25;
 let currentMapDefinition = null;
 let isLoading = false;
+
+let completedLevels = JSON.parse(localStorage.getItem('completedLevels') || '[]');
+let hasAskedForLevelSelection = false;
 
 let currentLevelTimer = 0;
 let isOnGrassPrevFrame = false;
@@ -428,10 +435,163 @@ window.resetMissionTimer = resetMissionTimer;
 
 window.getCurrentLevelIndex = () => currentLevelIndex;
 
+function markLevelCompleted(levelIndex) {
+    if (!completedLevels.includes(levelIndex)) {
+        completedLevels.push(levelIndex);
+        localStorage.setItem('completedLevels', JSON.stringify(completedLevels));
+    }
+}
+
+function isLevelCompleted(levelIndex) {
+    return completedLevels.includes(levelIndex);
+}
+
+function getHighestCompletedLevel() {
+    return completedLevels.length > 0 ? Math.max(...completedLevels) : -1;
+}
+
+function setCurrentLevel(levelIndex) {
+    if (levelIndex >= 0 && levelIndex < levels.length) {
+        currentLevelIndex = levelIndex;
+        loadCarModelsAndSetupLevel();
+    }
+}
+
+window.markLevelCompleted = markLevelCompleted;
+window.isLevelCompleted = isLevelCompleted;
+window.getHighestCompletedLevel = getHighestCompletedLevel;
+window.setCurrentLevel = setCurrentLevel;
+
+function resetAllData() {
+    completedLevels = [];
+    localStorage.removeItem('completedLevels');
+
+    currentLevelIndex = 0;
+    hasAskedForLevelSelection = false;
+
+    if (Achievements.resetAchievements) {
+        Achievements.resetAchievements();
+    }
+
+    loadCarModelsAndSetupLevel();
+}
+
+window.resetAllData = resetAllData;
+
+function showInitialLevelSelection() {
+    if (hasAskedForLevelSelection) return false;
+
+    const highestCompleted = getHighestCompletedLevel();
+    if (highestCompleted < 0) return false;
+
+    hasAskedForLevelSelection = true;
+
+    const levelSelectOverlay = document.createElement('div');
+    levelSelectOverlay.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, rgba(20, 20, 40, 0.95), rgba(40, 40, 80, 0.95));
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 40px;
+        color: white;
+        font-family: 'Orbitron', 'Courier New', monospace;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        max-width: 500px;
+        z-index: 10001;
+    `;
+
+    const availableLevels = Math.min(highestCompleted + 2, levels.length); // Can play completed + 1 next level
+    
+    let levelSelectContent = `
+        <h2 style="margin: 0 0 20px 0; font-size: 24px; background: linear-gradient(45deg, #4CAF50, #81C784); 
+           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+           Welcome Back!
+        </h2>
+        <p style="margin-bottom: 30px; color: #B0BEC5; line-height: 1.5;">
+            You've completed level ${highestCompleted + 1}. Which level would you like to play?
+        </p>
+        <div style="margin-bottom: 30px;">
+    `;
+
+    levelSelectContent += `
+        <button style="display: block; width: 100%; margin: 10px 0; padding: 15px; 
+                background: rgba(76, 175, 80, 0.2); border: 2px solid rgba(76, 175, 80, 0.5); 
+                border-radius: 10px; color: white; cursor: pointer; font-family: inherit; 
+                font-size: 16px; transition: all 0.3s ease;"
+                onclick="selectInitialLevel(0)"
+                onmouseover="this.style.background='rgba(76, 175, 80, 0.4)'"
+                onmouseout="this.style.background='rgba(76, 175, 80, 0.2)'">
+            🏁 Start from Level 1
+        </button>
+    `;
+
+    if (availableLevels > 1) {
+        const nextLevel = Math.min(highestCompleted + 1, levels.length - 1);
+        levelSelectContent += `
+            <button style="display: block; width: 100%; margin: 10px 0; padding: 15px; 
+                    background: rgba(255, 152, 0, 0.2); border: 2px solid rgba(255, 152, 0, 0.5); 
+                    border-radius: 10px; color: white; cursor: pointer; font-family: inherit; 
+                    font-size: 16px; transition: all 0.3s ease;"
+                    onclick="selectInitialLevel(${nextLevel})"
+                    onmouseover="this.style.background='rgba(255, 152, 0, 0.4)'"
+                    onmouseout="this.style.background='rgba(255, 152, 0, 0.2)'">
+                ▶️ Continue to Level ${nextLevel + 1}
+            </button>
+        `;
+    }
+
+    levelSelectContent += `
+        </div>
+        <p style="color: #666; font-size: 14px; margin-top: 20px;">
+            You can also change levels anytime from the pause menu
+        </p>
+    `;
+
+    levelSelectOverlay.innerHTML = levelSelectContent;
+    document.body.appendChild(levelSelectOverlay);
+
+    window.selectInitialLevel = (levelIndex) => {
+        currentLevelIndex = levelIndex;
+        removeOverlay();
+        loadCarModelsAndSetupLevel();
+    };
+
+    const removeOverlay = () => {
+        if (document.body.contains(levelSelectOverlay)) {
+            levelSelectOverlay.style.opacity = '0';
+            levelSelectOverlay.style.transform = 'translate(-50%, -50%) scale(0.9)';
+            setTimeout(() => {
+                if (document.body.contains(levelSelectOverlay)) {
+                    document.body.removeChild(levelSelectOverlay);
+                }
+                delete window.selectInitialLevel;
+            }, 300);
+        }
+    };
+
+    levelSelectOverlay.style.opacity = '0';
+    levelSelectOverlay.style.transform = 'translate(-50%, -50%) scale(0.9)';
+    levelSelectOverlay.style.transition = 'all 0.3s ease';
+
+    setTimeout(() => {
+        levelSelectOverlay.style.opacity = '1';
+        levelSelectOverlay.style.transform = 'translate(-50%, -50%) scale(1)';
+    }, 10);
+    
+    return true;
+}
+
 function advanceToNextLevel() {
     if (isLoading) {
         return false;
     }
+
+    markLevelCompleted(currentLevelIndex);
 
     if (currentLevelIndex < levels.length - 1) {
         currentLevelIndex++;
@@ -913,3 +1073,5 @@ window.getCurrentTimeOfDay = () => {
 };
 
 window.stopIdleCameraAnimation = stopIdleCameraAnimation;
+
+showInitialLevelSelection();
