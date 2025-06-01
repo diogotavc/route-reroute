@@ -1425,7 +1425,7 @@ function showSandboxConfigurationMenu() {
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <input type="range" id="max-speed-slider" min="10" max="50" value="20" 
                                style="flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; outline: none;">
-                        <span id="max-speed-display" style="color: #4CAF50; font-weight: bold; min-width: 35px; font-size: 12px;">20</span>
+                        <span id="max-speed-display" style="color: #4CAF50; font-weight: bold; min-width: 60px; font-size: 12px;">70 km/h</span>
                     </div>
                 </div>
                 
@@ -1588,7 +1588,8 @@ function showSandboxConfigurationMenu() {
     }
 
     function updateMaxSpeedDisplay(value) {
-        maxSpeedDisplay.textContent = value;
+        const kmh = Math.round(value * 3.5);
+        maxSpeedDisplay.textContent = `${kmh} km/h`;
     }
 
     function updateAccelerationDisplay(value) {
