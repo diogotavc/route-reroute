@@ -318,12 +318,18 @@ export function updateTimerDisplay(timeRemaining, hint = null) {
         const seconds = Math.floor(timeRemaining % 60);
         timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-        if (timeRemaining <= TIMER_WARNING_THRESHOLD) {
-            timerDisplay.classList.add('timer-warning');
-            timerDisplay.classList.remove('timer-normal');
-        } else {
-            timerDisplay.classList.add('timer-normal');
-            timerDisplay.classList.remove('timer-warning');
+        const hasActiveAnimation = timerDisplay.classList.contains('timer-bonus') || 
+                                    timerDisplay.classList.contains('timer-penalty') || 
+                                    timerDisplay.classList.contains('timer-grass');
+
+        if (!hasActiveAnimation) {
+            if (timeRemaining <= TIMER_WARNING_THRESHOLD) {
+                timerDisplay.classList.add('timer-warning');
+                timerDisplay.classList.remove('timer-normal');
+            } else {
+                timerDisplay.classList.add('timer-normal');
+                timerDisplay.classList.remove('timer-warning');
+            }
         }
     }
 
@@ -334,5 +340,50 @@ export function updateTimerDisplay(timeRemaining, hint = null) {
         } else {
             timerHint.style.display = 'none';
         }
+    }
+}
+
+export function animateTimerBonus() {
+    const timerDisplay = document.querySelector('#timer-overlay .timer-display');
+    if (timerDisplay) {
+        timerDisplay.classList.remove('timer-bonus', 'timer-penalty', 'timer-grass');
+
+        timerDisplay.offsetHeight;
+
+        timerDisplay.classList.add('timer-bonus');
+
+        setTimeout(() => {
+            timerDisplay.classList.remove('timer-bonus');
+        }, 800);
+    }
+}
+
+export function animateTimerPenalty() {
+    const timerDisplay = document.querySelector('#timer-overlay .timer-display');
+    if (timerDisplay) {
+        timerDisplay.classList.remove('timer-bonus', 'timer-penalty', 'timer-grass');
+
+        timerDisplay.offsetHeight;
+
+        timerDisplay.classList.add('timer-penalty');
+
+        setTimeout(() => {
+            timerDisplay.classList.remove('timer-penalty');
+        }, 600);
+    }
+}
+
+export function animateTimerGrass() {
+    const timerDisplay = document.querySelector('#timer-overlay .timer-display');
+    if (timerDisplay) {
+        timerDisplay.classList.remove('timer-bonus', 'timer-penalty', 'timer-grass');
+
+        timerDisplay.offsetHeight;
+
+        timerDisplay.classList.add('timer-grass');
+
+        setTimeout(() => {
+            timerDisplay.classList.remove('timer-grass');
+        }, 500);
     }
 }

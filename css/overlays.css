@@ -478,16 +478,31 @@
     font-size: 24px;
     font-weight: 600;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    transition: color 0.3s ease;
+    transition: color 0.3s ease, transform 0.3s ease;
 }
 
 .timer-display.timer-normal {
-    color: #4fc3f7;
+    color: #ffffff;
 }
 
 .timer-display.timer-warning {
     color: #ff5722;
     animation: timerWarningPulse 1s ease-in-out infinite alternate;
+}
+
+.timer-display.timer-bonus {
+    color: #4caf50;
+    animation: timerBonusAnimation 0.8s ease-out;
+}
+
+.timer-display.timer-penalty {
+    color: #f44336;
+    animation: timerPenaltyAnimation 0.6s ease-out;
+}
+
+.timer-display.timer-grass {
+    color: #ff9800;
+    animation: timerGrassAnimation 0.5s ease-in-out;
 }
 
 @keyframes timerWarningPulse {
@@ -498,6 +513,59 @@
     100% { 
         opacity: 0.7;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 8px rgba(255, 87, 34, 0.4);
+    }
+}
+
+@keyframes timerBonusAnimation {
+    0% { 
+        transform: scale(1);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    25% { 
+        transform: scale(1.2);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 15px rgba(76, 175, 80, 0.8);
+    }
+    50% { 
+        transform: scale(1.1);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(76, 175, 80, 1);
+    }
+    100% { 
+        transform: scale(1);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(76, 175, 80, 0.4);
+    }
+}
+
+@keyframes timerPenaltyAnimation {
+    0% { 
+        transform: scale(1);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    25% { 
+        transform: scale(0.9) rotateX(10deg);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 15px rgba(244, 67, 54, 0.8);
+    }
+    50% { 
+        transform: scale(0.95) rotateX(-5deg);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(244, 67, 54, 1);
+    }
+    100% { 
+        transform: scale(1) rotateX(0deg);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+}
+
+@keyframes timerGrassAnimation {
+    0% { 
+        transform: scale(1);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    50% { 
+        transform: scale(1.05);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 12px rgba(255, 152, 0, 0.6);
+    }
+    100% { 
+        transform: scale(1);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     }
 }
 

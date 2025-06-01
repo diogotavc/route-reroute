@@ -37,7 +37,7 @@ import {
 } from './cars.js';
 import { loadMap, getWorldCoordinates, isOnGrass } from './mapLoader.js';
 import { mapData as level1MapData } from './maps/level1_map.js';
-import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, hideAllOverlaysDuringLoading, showAllOverlaysAfterLoading, createHUDElements, updateHUD, updateTimerDisplay } from './interface.js';
+import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, hideAllOverlaysDuringLoading, showAllOverlaysAfterLoading, createHUDElements, updateHUD, updateTimerDisplay, animateTimerBonus, animateTimerPenalty, animateTimerGrass } from './interface.js';
 import {
     initCamera,
     setCameraPaused,
@@ -383,6 +383,12 @@ function restoreTimerAfterRewind() {
     rewindGracePeriodEnd = Date.now() + TIMER_GRACE_PERIOD;
 
     updateTimerDisplay(currentLevelTimer);
+    
+    if (cumulativeRewindPenalty > 0) {
+        setTimeout(() => {
+            animateTimerPenalty();
+        }, 50);
+    }
 }
 
 function getRandomHint() {
@@ -404,6 +410,10 @@ function applyTimerMissionBonus() {
         cumulativeRewindPenalty = 0;
         
         updateTimerDisplay(currentLevelTimer);
+
+        setTimeout(() => {
+            animateTimerBonus();
+        }, 10);
     }
 }
 
@@ -619,6 +629,10 @@ function animate() {
 
                     if (isCurrentlyOnGrass) {
                         timerDecrement *= TIMER_GRASS_SPEED_MULTIPLIER;
+
+                        if (!isOnGrassPrevFrame) {
+                            animateTimerGrass();
+                        }
                     }
 
                     isOnGrassPrevFrame = isCurrentlyOnGrass;

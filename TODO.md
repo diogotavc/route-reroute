@@ -1,14 +1,7 @@
-- [ ] HUD
-    - [x] speed
-        - [x] move it to the right side, match Music UI styling
-    - [ ] time
-    - [x] health
-    - [x] move achievements to the left side
 - [ ] SFX (UI, crashes, car engines, other fx)
 - [ ] Selectable OST (lists files in the designated folder, and let's you toggle it)
 - [ ] add more music
 - [ ] add vehicle specific lights and sounds (i.e. ambulance)
-- [ ] balance out achievements (wrecked and ruined can be 10 crashes, instead of 1; lawn enforcement can be for a few meters; terminal velocity can be for enough time)
 - [ ] save system
 - [ ] Add dialogs for each mission
 - [ ] check for unused variables and bad imports
@@ -19,6 +12,7 @@
 - [?] fix t-bone achievement
 - [?] add support for physics based objects (construction barrier, cone and light)
 - [?] add support for non-physics based objects (trees and signs)
+- [?] balance out achievements (wrecked and ruined can be 10 crashes, instead of 1; lawn enforcement can be for a few meters; terminal velocity can be for enough time)
 
 ### not planned anymore
 
