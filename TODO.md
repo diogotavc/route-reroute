@@ -1,10 +1,11 @@
 ### Fixes
 
-- [ ] make sure reset level exits idle camera first things first (else some things might look weird)
-- [ ] hide UI during pause menu as well
+- [x] make sure reset level exits idle camera first things first (else some things might look weird)
+- [x] hide UI during pause menu as well
 
 ### Features still yet to be added
 
+- [ ] add resolution scaler to config (performance is ass)
 - [ ] SFX (UI, crashes, car engines, other fx)
 - [ ] add vehicle specific lights and sounds (i.e. ambulance)
 - [ ] play a different level (track which levels the user has completed and let him play those on demand), add a credits option, as well as manual (and/or only controls)

@@ -555,6 +555,20 @@ function togglePause(manual = false) {
         if (shouldShowMenu) {
             resetPauseMenuSelection();
         }
+
+        const combinedHUD = document.getElementById('combined-hud');
+        const levelIndicator = document.getElementById('level-indicator');
+        const timerOverlay = document.getElementById('timer-overlay');
+
+        if (shouldShowMenu) {
+            if (combinedHUD) combinedHUD.classList.add('hidden-during-pause');
+            if (levelIndicator) levelIndicator.classList.add('hidden-during-pause');
+            if (timerOverlay) timerOverlay.classList.add('hidden-during-pause');
+        } else {
+            if (combinedHUD) combinedHUD.classList.remove('hidden-during-pause');
+            if (levelIndicator) levelIndicator.classList.remove('hidden-during-pause');
+            if (timerOverlay) timerOverlay.classList.remove('hidden-during-pause');
+        }
     }
 
     setCameraPaused(isPaused);
@@ -605,6 +619,9 @@ window.pauseMenuActions = {
         }
     },
     restartLevel: () => {
+        if (window.stopIdleCameraAnimation) {
+            window.stopIdleCameraAnimation();
+        }
         unpauseGame();
         setTimeout(() => {
             loadCarModelsAndSetupLevel();
@@ -894,3 +911,5 @@ window.setTimeOfDay = (time) => {
 window.getCurrentTimeOfDay = () => {
     return currentTimeOfDay;
 };
+
+window.stopIdleCameraAnimation = stopIdleCameraAnimation;

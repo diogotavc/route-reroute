@@ -569,6 +569,21 @@
     pointer-events: none;
 }
 
+#combined-hud.hidden-during-pause {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+#level-indicator.hidden-during-pause {
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+#timer-overlay.hidden-during-pause {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+}
+
 #music-ui.hidden-during-loading {
     opacity: 0;
     transform: translateY(10px);
