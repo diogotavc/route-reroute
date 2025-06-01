@@ -1217,9 +1217,8 @@ function showTimerTimeoutScreen() {
 
     document.getElementById('select-level-timeout').addEventListener('click', () => {
         document.body.removeChild(timeoutOverlay);
-        unpauseGame();
         setTimeout(() => {
-            showLevelSelectMenu(false);
+            showLevelSelectMenu(false, true);
         }, 100);
     });
 }

@@ -737,7 +737,7 @@ export function isInAnySubmenu() {
     return isShowingAchievements || isShowingManual || isShowingAbout || isShowingLevelSelect;
 }
 
-export function showLevelSelectMenu(isInitialSelection = false) {
+export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = false) {
     isShowingLevelSelect = true;
     
     const levelSelectOverlay = document.createElement('div');
@@ -864,7 +864,7 @@ export function showLevelSelectMenu(isInitialSelection = false) {
         levelSelectContent += `
             </div>
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center;">
-                <em style="color: #888; font-size: 14px;">${isInitialSelection ? 'Select a level to continue' : 'Press ESC to return to pause menu'}</em>
+                <em style="color: #888; font-size: 14px;">${isInitialSelection ? 'Select a level to continue' : (fromTimeout ? 'Press ESC to restart level' : 'Press ESC to return to pause menu')}</em>
             </div>
         `;
     }
@@ -888,6 +888,12 @@ export function showLevelSelectMenu(isInitialSelection = false) {
             if (window.unpauseGame) {
                 window.unpauseGame();
             }
+        } else if (fromTimeout) {
+            setTimeout(() => {
+                if (window.pauseMenuActions && window.pauseMenuActions.restartLevel) {
+                    window.pauseMenuActions.restartLevel();
+                }
+            }, 100);
         } else {
             if (window.pauseMenuActions && window.pauseMenuActions.continueGame) {
                 window.pauseMenuActions.continueGame();
@@ -922,7 +928,16 @@ export function showLevelSelectMenu(isInitialSelection = false) {
     const keyHandler = (event) => {
         if (event.key === 'Escape' && !isInitialSelection) {
             event.preventDefault();
-            removeOverlay();
+            if (fromTimeout) {
+                removeOverlay();
+                setTimeout(() => {
+                    if (window.pauseMenuActions && window.pauseMenuActions.restartLevel) {
+                        window.pauseMenuActions.restartLevel();
+                    }
+                }, 100);
+            } else {
+                removeOverlay();
+            }
         }
     };
 
