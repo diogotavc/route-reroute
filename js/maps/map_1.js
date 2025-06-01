@@ -44,6 +44,9 @@ export const mapData = {
         'debris_tire': 'assets/kenney_car-kit/Models/debris-tire.glb',
         'debris_plate_a': 'assets/kenney_car-kit/Models/debris-plate-a.glb',
         'debris_plate_b': 'assets/kenney_car-kit/Models/debris-plate-b.glb',
+        'planter': 'assets/kenney_city-kit-suburban/Models/planter.glb',
+        'tree_large': 'assets/kenney_city-kit-suburban/Models/tree-large.glb',
+        'tree_small': 'assets/kenney_city-kit-suburban/Models/tree-small.glb',
     },
     layout: [ // [ name, rotation]
         [null, null, null, null, null, null, null, null, null],
@@ -70,8 +73,11 @@ export const mapData = {
         [null, null, null, null, null, null, null, null, null]
     ],
     randomObjectsLayout: [ // [ name, rotationX, rotationY, rotationZ, x_position, y_position, z_position, scale]
-        ['cone', 0, 45, 0, 6.79, 0.1, 5.34, 1.0],
-        ['cone', 50, 0, 75, 6.95, 0.1, 5.14, 1.0],
+        ['cone', 0, 45, 0, 6.79, 0, 5.34, 1.0],
+        ['cone', 180, 0, 75, 6.95, 0.05, 5.14, 1.0],
+        ['tree_small', 0, 0, 0, 4.5, 0, 1.8, 5.0],
+        ['tree_small', 0, 0, 0, 4.3, 0, 1.6, 5.0],
+        ['tree_large', 0, 0, 0, 4.7, 0, 1.6, 5.0],
         // ['box', 0, 0, 0, 8.2, 0.1, 1.5, 0.8],
         // ['cone_flat', 0, 90, 0, 3.1, 0.1, 0.4, 1.2],
         // ['debris_tire', 90, 180, 0, 7.8, 0.1, 5.2, 1.0],
