@@ -565,7 +565,7 @@ window.addEventListener("resize", () => {
 });
 
 function isMovementKey(key) {
-    const movementKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 's', 'a', 'd', 'r'];
+    const movementKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 's', 'a', 'd', 'r', 'n'];
     // THIS WILL BE REPLACED WITH CUSTOM KEY VARIABLES AND SUCH
     return movementKeys.includes(key);
 }
@@ -586,6 +586,12 @@ window.addEventListener("keydown", (event) => {
         case "ArrowRight": case "d": setTurningRight(true); break;
         case "r": setRewinding(); break;        case "c": toggleCameraMode(); break;
         case "p": togglePause(true); break;
+        case "n": 
+            const nextCarResult = nextCar();
+            if (nextCarResult === -1) {
+                advanceToNextLevel();
+            }
+            break;
     }
 });
 
