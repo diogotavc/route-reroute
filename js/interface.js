@@ -759,7 +759,6 @@ export function showLevelSelectMenu(isInitialSelection = false) {
     let levelSelectContent;
     
     if (isInitialSelection) {
-        const availableLevels = Math.min(highestCompleted + 2, totalLevels);
         levelSelectContent = `
             <h2 style="margin: 0 0 20px 0; font-size: 24px; background: linear-gradient(45deg, #4CAF50, #81C784); 
                -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
@@ -771,29 +770,35 @@ export function showLevelSelectMenu(isInitialSelection = false) {
             <div style="margin-bottom: 30px;">
         `;
 
-        levelSelectContent += `
-            <button style="display: block; width: 100%; margin: 10px 0; padding: 15px; 
-                    background: rgba(76, 175, 80, 0.2); border: 2px solid rgba(76, 175, 80, 0.5); 
-                    border-radius: 10px; color: white; cursor: pointer; font-family: inherit; 
-                    font-size: 16px; transition: all 0.3s ease;"
-                    onclick="selectLevel(0)"
-                    onmouseover="this.style.background='rgba(76, 175, 80, 0.4)'"
-                    onmouseout="this.style.background='rgba(76, 175, 80, 0.2)'">
-                🏁 Start from Level 1
-            </button>
-        `;
+        for (let i = 0; i < totalLevels; i++) {
+            const isCompleted = window.isLevelCompleted ? window.isLevelCompleted(i) : false;
+            const isUnlocked = i === 0 || isCompleted || i <= highestCompleted + 1;
+            const isCurrent = i === currentLevel;
+            
+            const statusIcon = isCompleted ? '✓' : (isCurrent ? '▶' : (isUnlocked ? '○' : '🔒'));
+            const statusText = isCompleted ? 'Completed' : (isCurrent ? 'Current' : (isUnlocked ? 'Available' : 'Locked'));
+            
+            const buttonStyle = `
+                display: block;
+                width: 100%;
+                margin: 10px 0;
+                padding: 15px;
+                background: ${isUnlocked ? 'rgba(76, 175, 80, 0.2)' : 'rgba(100, 100, 100, 0.2)'};
+                border: 2px solid ${isUnlocked ? 'rgba(76, 175, 80, 0.5)' : 'rgba(100, 100, 100, 0.3)'};
+                border-radius: 10px;
+                color: ${isUnlocked ? 'white' : '#888'};
+                cursor: ${isUnlocked ? 'pointer' : 'not-allowed'};
+                font-family: inherit;
+                font-size: 16px;
+                transition: all 0.3s ease;
+            `;
 
-        if (availableLevels > 1) {
-            const nextLevel = Math.min(highestCompleted + 1, totalLevels - 1);
             levelSelectContent += `
-                <button style="display: block; width: 100%; margin: 10px 0; padding: 15px; 
-                        background: rgba(255, 152, 0, 0.2); border: 2px solid rgba(255, 152, 0, 0.5); 
-                        border-radius: 10px; color: white; cursor: pointer; font-family: inherit; 
-                        font-size: 16px; transition: all 0.3s ease;"
-                        onclick="selectLevel(${nextLevel})"
-                        onmouseover="this.style.background='rgba(255, 152, 0, 0.4)'"
-                        onmouseout="this.style.background='rgba(255, 152, 0, 0.2)'">
-                    ▶️ Continue to Level ${nextLevel + 1}
+                <button style="${buttonStyle}" 
+                        ${isUnlocked ? `onclick="selectLevel(${i})"` : ''} 
+                        ${isUnlocked ? 'onmouseover="this.style.background=\'rgba(76, 175, 80, 0.4)\'"' : ''}
+                        ${isUnlocked ? 'onmouseout="this.style.background=\'rgba(76, 175, 80, 0.2)\'"' : ''}>
+                    ${statusIcon} Level ${i + 1} - ${statusText}
                 </button>
             `;
         }

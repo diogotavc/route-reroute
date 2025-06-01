@@ -1,8 +1,8 @@
 ### Fixes
 
-- [ ] make sure initial level selection screen shows all available levels (merge that and the pause menu selection)
-- [ ] match styling between reset achievements and reset all data
-- [ ] if the user leaves the menu while inside the reset confirmation, clear it
+- [x] make sure initial level selection screen shows all available levels (merge that and the pause menu selection)
+- [x] match styling between reset achievements and reset all data
+- [x] if the user leaves the menu while inside the reset confirmation, clear it
 - [ ] make sure submenus in pause always go one level back (like with achievements)
 
 ### Features still yet to be added
