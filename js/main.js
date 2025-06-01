@@ -373,8 +373,8 @@ const levels = [
         timeIncrementPerMission: 0.05,
         timeSpeed: 0.005,
         timer: {
-            totalTime: 120,
-            missionTimeBonus: 30
+            totalTime: 30,
+            missionTimeBonus: 5
         }
     },
     { 
@@ -386,8 +386,8 @@ const levels = [
         timeIncrementPerMission: 0.04,
         timeSpeed: 0.008,
         timer: {
-            totalTime: 180,
-            missionTimeBonus: 25
+            totalTime: 35,
+            missionTimeBonus: 5
         }
     },
     { 

@@ -119,17 +119,17 @@ export const mapData = {
         'finish2': { x: 4.67, z: 3.5, carRotationY: 0 },
 
         // Level 2 - Rush Hour (4 cars)
-        'start3': { x: 2.3, z: 1.5, carRotationY: 270 },
-        'finish3': { x: 1.2, z: 7.8, carRotationY: 90 },
+        'start3': { x: 1.85, z: 1.5, carRotationY: 0 },
+        'finish3': { x: 6.86, z: 8.05, carRotationY: 0 },
 
-        'start4': { x: 4.8, z: 3.2, carRotationY: 90 },
-        'finish4': { x: 7.3, z: 6.1, carRotationY: 270 },
+        'start4': { x: 0.85, z: 7.8, carRotationY: 180 },
+        'finish4': { x: 6.81, z: 1.2, carRotationY: 180 },
 
-        'start5': { x: 1.8, z: 5.3, carRotationY: 0 },
-        'finish5': { x: 4.2, z: 6.7, carRotationY: 180 },
+        'start5': { x: 7.16, z: 1.2, carRotationY: 0 },
+        'finish5': { x: 3.85, z: 8, carRotationY: 180 },
 
-        'start6': { x: 6.1, z: 6.8, carRotationY: 180 },
-        'finish6': { x: 2.4, z: 2.1, carRotationY: 0 },
+        'start6': { x: 0.7, z: 5.45, carRotationY: 0 },
+        'finish6': { x: 6.7, z: 5, carRotationY: 0 },
 
         // Level 3 - Traffic Chaos (6 cars)
         'start7': { x: 2.4, z: 7.2, carRotationY: 0 },

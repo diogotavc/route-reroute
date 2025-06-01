@@ -1002,7 +1002,7 @@ export function showManualMenu() {
         <div style="margin-bottom: 25px;">
             <h3 style="color: #E91E63; margin-bottom: 10px; font-size: 20px;">🎵 Music Controls</h3>
             <div style="margin-left: 20px; line-height: 1.6;">
-                <p><strong>M</strong> - Mute/unmute music</p>
+                <p><strong>M / Space</strong> - Play and Pause music</p>
                 <p><strong>]</strong> - Previous track</p>
                 <p><strong>[</strong> - Next track</p>
             </div>
