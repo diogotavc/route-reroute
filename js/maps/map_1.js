@@ -73,11 +73,24 @@ export const mapData = {
         [null, null, null, null, null, null, null, null, null]
     ],
     randomObjectsLayout: [ // [ name, rotationX, rotationY, rotationZ, x_position, y_position, z_position, scale]
+        // cones near intersections
         ['cone', 0, 45, 0, 6.79, 0, 5.34, 1.0],
         ['cone', 180, 0, 75, 6.95, 0.05, 5.14, 1.0],
+        // trees near house, in the grass
         ['tree_small', 0, 0, 0, 4.5, 0, 1.8, 5.0],
         ['tree_small', 0, 0, 0, 4.3, 0, 1.6, 5.0],
         ['tree_large', 0, 0, 0, 4.7, 0, 1.6, 5.0],
+        // trees in the grass cutout with 2 houses
+        ['tree_small', 0, 0, 0, 6.3, 0, 4, 5.0],
+        ['tree_small', 0, 0, 0, 6.2, 0, 4.2, 4.3],
+        ['tree_small', 0, 0, 0, 6.1, 0, 3.9, 5.3],
+        ['tree_small', 0, 0, 0, 5.9, 0, 4.2, 6.3],
+        //
+        ['tree_small', 0, 0, 0, 5.4, 0, 4.7, 5.3],
+        ['tree_small', 0, 0, 0, 5.1, 0, 5.0, 5.0],
+        ['tree_small', 0, 0, 0, 4.9, 0, 5.3, 4.3],
+        ['tree_small', 0, 0, 0, 5.3, 0, 5.1, 5.3],
+        
         // ['box', 0, 0, 0, 8.2, 0.1, 1.5, 0.8],
         // ['cone_flat', 0, 90, 0, 3.1, 0.1, 0.4, 1.2],
         // ['debris_tire', 90, 180, 0, 7.8, 0.1, 5.2, 1.0],
