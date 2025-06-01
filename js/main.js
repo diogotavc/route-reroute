@@ -431,6 +431,7 @@ let isInInitialLevelSelection = false;
 let isSandboxMode = false;
 
 window.isSandboxMode = false;
+window.isInInitialLevelSelection = () => isInInitialLevelSelection;
 
 let currentLevelTimer = 0;
 let isOnGrassPrevFrame = false;
@@ -442,7 +443,6 @@ let hintEndTime = 0;
 let rewindGracePeriodEnd = 0;
 
 function applyTimerRewindPenalty() {
-    // Skip timer penalties in sandbox mode
     if (isSandboxMode) {
         return;
     }
@@ -451,7 +451,6 @@ function applyTimerRewindPenalty() {
 }
 
 function restoreTimerAfterRewind() {
-    // Skip timer restoration in sandbox mode
     if (isSandboxMode) {
         return;
     }
@@ -1371,10 +1370,12 @@ function showGameCompletionScreen() {
         </p>
         <p style="margin-bottom: 40px; color: #E1BEE7; line-height: 1.5; font-size: 16px;">
             Thank you for playing! You've mastered the art of<br>
-            urban navigation and emergency driving.
+            urban navigation and emergency driving.<br><br>
+            <span style="color: #4CAF50; font-weight: bold;">🎮 Sandbox Mode has been unlocked!</span><br>
+            <span style="color: #C8E6C9; font-size: 14px;">Explore freely with any car and custom physics.</span>
         </p>
         <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-            <button id="sandbox-mode-button" style="
+            <button id="try-another-level-button" style="
                 padding: 15px 30px;
                 background: linear-gradient(45deg, #4CAF50, #81C784);
                 border: none;
@@ -1387,7 +1388,7 @@ function showGameCompletionScreen() {
                 transition: all 0.3s ease;
                 box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
             " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                🎮 Sandbox Mode
+                🎯 Try Another Level
             </button>
             <button id="start-over-button" style="
                 padding: 15px 30px;
@@ -1415,10 +1416,27 @@ function showGameCompletionScreen() {
         completionContent.style.opacity = '1';
     }, 100);
 
-    document.getElementById('sandbox-mode-button').addEventListener('click', () => {
+    document.getElementById('try-another-level-button').addEventListener('click', () => {
         document.body.removeChild(completionOverlay);
-        unpauseGame();
-        showSandboxCarSelection();
+        document.removeEventListener('keydown', gameCompletionKeyHandler);
+
+        const dimOverlay = document.createElement('div');
+        dimOverlay.id = 'game-completion-level-select-dim';
+        dimOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+        `;
+        document.body.appendChild(dimOverlay);
+
+        setTimeout(() => {
+            showLevelSelectMenu(false, false);
+        }, 100);
     });
 
     document.getElementById('start-over-button').addEventListener('click', () => {
@@ -1426,8 +1444,18 @@ function showGameCompletionScreen() {
         unpauseGame();
         currentLevelIndex = 0;
         loadCarModelsAndSetupLevel();
+        document.removeEventListener('keydown', gameCompletionKeyHandler);
     });
+
+    const gameCompletionKeyHandler = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+    
+    document.addEventListener('keydown', gameCompletionKeyHandler);
 }
+
+window.showGameCompletionScreen = showGameCompletionScreen;
 
 function showSandboxCarSelection() {
     pauseGame(false, "Sandbox Mode");
@@ -1556,7 +1584,6 @@ function showSandboxCarSelection() {
         sandboxContent.style.opacity = '1';
     }, 100);
 
-    // Add event listeners for car selection
     document.querySelectorAll('.sandbox-car-option').forEach(button => {
         button.addEventListener('click', (e) => {
             const selectedCar = e.target.getAttribute('data-car');
@@ -1567,13 +1594,24 @@ function showSandboxCarSelection() {
 
     document.getElementById('sandbox-back-button').addEventListener('click', () => {
         document.body.removeChild(sandboxOverlay);
-        showGameCompletionScreen();
+        if (window.showSandboxConfigurationMenu) {
+            window.showSandboxConfigurationMenu();
+        } else {
+            showGameCompletionScreen();
+        }
     });
 }
 
 function startSandboxMode(selectedCarModel) {
     isSandboxMode = true;
     window.isSandboxMode = true;
+
+    const gameCompletionDim = document.getElementById('game-completion-level-select-dim');
+    if (gameCompletionDim && document.body.contains(gameCompletionDim)) {
+        document.body.removeChild(gameCompletionDim);
+    }
+
+    delete window.sandboxAccessContext;
 
     const sandboxConfig = window.sandboxConfig || {
         timeOfDay: 0.25,
@@ -1644,6 +1682,9 @@ function startSandboxMode(selectedCarModel) {
                 const levelIndicator = document.getElementById('level-indicator');
                 if (timerOverlay) timerOverlay.style.display = 'none';
                 if (levelIndicator) levelIndicator.style.display = 'none';
+
+                const combinedHUD = document.getElementById('combined-hud');
+                if (combinedHUD) combinedHUD.style.display = 'block';
                 
                 startMusic();
             }, 500);

@@ -326,7 +326,7 @@
     position: fixed;
     top: 30px;
     left: 30px;
-    z-index: 5000;
+    z-index: 15000;
     pointer-events: none;
     display: flex;
     flex-direction: column;

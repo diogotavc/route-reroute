@@ -315,10 +315,8 @@ export function updateHUD(speed, health) {
     }
 
     if (healthBar) {
-        // Hide health bar during sandbox mode
         healthBar.style.display = isSandboxMode ? 'none' : 'flex';
-        
-        // Only process health updates when not in sandbox mode
+
         if (!isSandboxMode) {
             const healthFill = healthBar.querySelector('.health-bar-fill');
             const healthText = healthBar.querySelector('.health-bar-text');
@@ -976,8 +974,15 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
                 }
             }, 100);
         } else {
-            if (window.pauseMenuActions && window.pauseMenuActions.continueGame) {
-                window.pauseMenuActions.continueGame();
+            const gameCompletionDim = document.getElementById('game-completion-level-select-dim');
+            if (gameCompletionDim && document.body.contains(gameCompletionDim)) {
+                if (window.unpauseGame) {
+                    window.unpauseGame();
+                }
+            } else {
+                if (window.pauseMenuActions && window.pauseMenuActions.continueGame) {
+                    window.pauseMenuActions.continueGame();
+                }
             }
         }
     };
@@ -1008,6 +1013,10 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
                     }
                     delete window.selectLevel;
                 } else {
+                    const gameCompletionDim = document.getElementById('game-completion-level-select-dim');
+                    if (gameCompletionDim && document.body.contains(gameCompletionDim)) {
+                        document.body.removeChild(gameCompletionDim);
+                    }
                     delete window.selectLevel;
                 }
                 isShowingLevelSelect = false;
@@ -1029,7 +1038,17 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
                     }
                 }, 100);
             } else {
-                removeOverlay();
+                const gameCompletionDim = document.getElementById('game-completion-level-select-dim');
+                if (gameCompletionDim && document.body.contains(gameCompletionDim)) {
+                    removeOverlay();
+                    setTimeout(() => {
+                        if (window.showGameCompletionScreen) {
+                            window.showGameCompletionScreen();
+                        }
+                    }, 100);
+                } else {
+                    removeOverlay();
+                }
             }
         }
     };
@@ -1325,11 +1344,16 @@ window.enterSandboxMode = function() {
         document.body.removeChild(timeoutDim);
     }
 
-    delete window.selectLevel;
-
-    if (window.clearInitialLevelSelection) {
-        window.clearInitialLevelSelection();
+    const gameCompletionDim = document.getElementById('game-completion-level-select-dim');
+    if (gameCompletionDim && document.body.contains(gameCompletionDim)) {
+        window.sandboxAccessContext = 'game-completion-level-selection';
+    } else if (window.isInInitialLevelSelection && window.isInInitialLevelSelection()) {
+        window.sandboxAccessContext = 'initial-level-selection';
+    } else {
+        window.sandboxAccessContext = 'level-selection';
     }
+
+    delete window.selectLevel;
 
     showSandboxConfigurationMenu();
 };
@@ -1675,6 +1699,54 @@ function showSandboxConfigurationMenu() {
 
     document.getElementById('sandbox-config-back').addEventListener('click', () => {
         document.body.removeChild(sandboxConfigOverlay);
-        showLevelSelectMenu(false, false);
+
+        if (window.sandboxAccessContext === 'level-selection') {
+            delete window.sandboxAccessContext;
+            showLevelSelectMenu(false, false);
+        } else if (window.sandboxAccessContext === 'game-completion-level-selection') {
+            delete window.sandboxAccessContext;
+            const dimOverlay = document.createElement('div');
+            dimOverlay.id = 'game-completion-level-select-dim';
+            dimOverlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(10px);
+                z-index: 9999;
+            `;
+            document.body.appendChild(dimOverlay);
+
+            showLevelSelectMenu(false, false);
+        } else if (window.sandboxAccessContext === 'initial-level-selection') {
+            delete window.sandboxAccessContext;
+
+            const dimOverlay = document.createElement('div');
+            dimOverlay.id = 'initial-level-selection-dim';
+            dimOverlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(5px);
+                z-index: 9999;
+            `;
+            document.body.appendChild(dimOverlay);
+
+            showLevelSelectMenu(true, false);
+        } else {
+            delete window.sandboxAccessContext;
+            if (window.showGameCompletionScreen) {
+                window.showGameCompletionScreen();
+            } else {
+                showLevelSelectMenu(false, false);
+            }
+        }
     });
 }
+
+window.showSandboxConfigurationMenu = showSandboxConfigurationMenu;

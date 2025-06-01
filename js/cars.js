@@ -401,7 +401,7 @@ function checkCarReactions() {
 
     for (const key in loadedCarModels) {
         const carIndex = parseInt(key);
-        if (carIndex === missionIndex) continue; // Skip active car
+        if (carIndex === missionIndex) continue;
 
         const otherCar = loadedCarModels[carIndex];
         if (!otherCar || !otherCar.visible) continue;

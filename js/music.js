@@ -35,7 +35,7 @@ export function initMusicSystem() {
 
     // Don't create AudioContext immediately - wait for user interaction
     // This is required for Chromium-based browsers due to autoplay policies
-    
+
     if (MUSIC_SHUFFLE) shuffleArray(PLAYLIST);
     
     musicUI = document.getElementById('music-ui');
