@@ -590,6 +590,35 @@
     pointer-events: none;
 }
 
+#combined-hud.hidden-during-initial-selection {
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+}
+
+#level-indicator.hidden-during-initial-selection {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+}
+
+#achievement-notification-container.hidden-during-initial-selection {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#music-ui.hidden-during-initial-selection {
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+}
+
+#timer-overlay.hidden-during-initial-selection {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+    pointer-events: none;
+}
+
 #timer-overlay {
     position: fixed;
     top: 30px;

@@ -16,8 +16,6 @@ export function createOverlayElements() {
             <li class="pause-menu-item" data-action="achievements">Achievements</li>
             <li class="pause-menu-item" data-action="manual">Manual & Controls</li>
             <li class="pause-menu-item" data-action="about">About & Credits</li>
-            <li class="pause-menu-item" data-action="rewind-mission">Rewind Mission</li>
-            <li class="pause-menu-item" data-action="restart-level">Restart Level</li>
             <li class="pause-menu-item danger" data-action="reset-achievements">Reset Achievements</li>
             <li class="pause-menu-item danger" data-action="reset-all-data">Reset All Data</li>
         </ul>
@@ -515,16 +513,6 @@ export function activatePauseMenuItem() {
         case 'about':
             showAboutMenu();
             break;
-        case 'rewind-mission':
-            if (window.pauseMenuActions && window.pauseMenuActions.rewindMission) {
-                window.pauseMenuActions.rewindMission();
-            }
-            break;
-        case 'restart-level':
-            if (window.pauseMenuActions && window.pauseMenuActions.restartLevel) {
-                window.pauseMenuActions.restartLevel();
-            }
-            break;
         case 'reset-achievements':
             showPauseConfirmation();
             break;
@@ -904,10 +892,18 @@ export function showManualMenu() {
         <div style="margin-bottom: 25px;">
             <h3 style="color: #FF9800; margin-bottom: 10px; font-size: 20px;">⏰ Game Controls</h3>
             <div style="margin-left: 20px; line-height: 1.6;">
-                <p><strong>R</strong> - Rewind time (when available)</p>
+                <p><strong>R</strong> - Rewind time</p>
                 <p><strong>C</strong> - Switch camera view</p>
-                <p><strong>ESC</strong> - Pause menu</p>
-                <p><strong>Space</strong> - Next car/mission</p>
+                <p><strong>ESC / P</strong> - Pause menu</p>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 25px;">
+            <h3 style="color: #E91E63; margin-bottom: 10px; font-size: 20px;">🎵 Music Controls</h3>
+            <div style="margin-left: 20px; line-height: 1.6;">
+                <p><strong>M</strong> - Mute/unmute music</p>
+                <p><strong>]</strong> - Previous track</p>
+                <p><strong>[</strong> - Next track</p>
             </div>
         </div>
 
@@ -1031,7 +1027,7 @@ export function showAboutMenu() {
             <h3 style="color: #FF9800; margin-bottom: 15px; font-size: 20px; text-align: center;">👨‍💻 Development Team</h3>
             <div style="text-align: center; line-height: 1.8;">
                 <p style="font-size: 18px; margin-bottom: 10px;"><strong>Game Design & Programming</strong></p>
-                <p style="color: #81C784; margin-bottom: 20px;">Route Reroute Development Team</p>
+                <p style="color: #81C784; margin-bottom: 20px; font-size: 16px;">Diogo Carvalho - 113221</p>
                 
                 <p style="font-size: 16px; margin-bottom: 10px;"><strong>Special Thanks</strong></p>
                 <p style="color: #FFB74D; margin-bottom: 10px;">Three.js Community</p>
@@ -1042,7 +1038,7 @@ export function showAboutMenu() {
 
         <div style="margin-bottom: 20px;">
             <h3 style="color: #9C27B0; margin-bottom: 15px; font-size: 20px;">🌟 Version Info</h3>
-            <p style="color: #B39DDB; font-size: 16px;">Version 1.0.0</p>
+            <p style="color: #B39DDB; font-size: 16px;">Version 0.3.0-alpha</p>
             <p style="color: #888; font-size: 14px;">Built with passion for gaming and innovation</p>
         </div>
         

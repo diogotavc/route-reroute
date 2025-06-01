@@ -490,6 +490,21 @@ function showInitialLevelSelection() {
         pauseGame(false);
     }
 
+    const elementsToHide = [
+        'combined-hud',
+        'level-indicator', 
+        'achievement-notification-container',
+        'music-ui',
+        'timer-overlay'
+    ];
+
+    elementsToHide.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.add('hidden-during-initial-selection');
+        }
+    });
+
     const dimOverlay = document.createElement('div');
     dimOverlay.id = 'initial-level-selection-dim';
     dimOverlay.style.cssText = `
@@ -591,6 +606,22 @@ function showInitialLevelSelection() {
                 if (document.body.contains(dimOverlay)) {
                     document.body.removeChild(dimOverlay);
                 }
+
+                const elementsToShow = [
+                    'combined-hud',
+                    'level-indicator', 
+                    'achievement-notification-container',
+                    'music-ui',
+                    'timer-overlay'
+                ];
+
+                elementsToShow.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.classList.remove('hidden-during-initial-selection');
+                    }
+                });
+
                 delete window.selectInitialLevel;
             }, 300);
         }
