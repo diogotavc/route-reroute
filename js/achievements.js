@@ -70,7 +70,7 @@ const ACHIEVEMENT_DEFINITIONS = {
     PERFECT_RUN: {
         id: 'perfect_run',
         name: 'Flawless Victory',
-        description: 'Complete all missions without crashing, going on grass, or out of bounds',
+        description: 'Complete all missions in a level without going on grass or out of bounds',
         type: 'perfectionist'
     },
     REVERSE_DRIVER: {
