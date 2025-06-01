@@ -7,7 +7,8 @@ import {
     STREETLIGHT_SHADOW_MAP_SIZE,
     ENABLE_STREETLIGHT_SHADOWS,
     SHADOW_BIAS,
-    SHADOW_NORMAL_BIAS
+    SHADOW_NORMAL_BIAS,
+    RANDOM_OBJECT_SCALE_DIVISOR
 } from './config.js';
 import { registerStreetLights } from './lights.js';
 
@@ -255,10 +256,11 @@ function createMapLayout(scene, mapDefinition) {
                     const originalModel = loadedTileModels[modelPath];
                     const objectInstance = originalModel.clone();
 
-                    const objectScale = new THREE.Vector3(scale, scale, scale);
+                    const scaledSize = scale * (tileSize / RANDOM_OBJECT_SCALE_DIVISOR);
+                    const objectScale = new THREE.Vector3(scaledSize, scaledSize, scaledSize);
                     objectInstance.scale.copy(objectScale);
 
-                    objectInstance.position.set(positionX, 0, positionZ);
+                    objectInstance.position.set(positionX * tileSize, 0, positionZ * tileSize);
                     objectInstance.rotation.x = THREE.MathUtils.degToRad(rotationXDegrees);
                     objectInstance.rotation.y = THREE.MathUtils.degToRad(rotationYDegrees);
                     objectInstance.rotation.z = THREE.MathUtils.degToRad(rotationZDegrees);
