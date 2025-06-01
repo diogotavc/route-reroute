@@ -1,7 +1,5 @@
 ### Fixes
 
-- [x] broken initial selection screen (loads level 1 regardless, but with broken logic if other levels are selected)
-- [x] make Music UI wider and fix its z-index relative to rewind
 
 ### Features still yet to be added
 

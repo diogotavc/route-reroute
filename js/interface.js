@@ -1129,7 +1129,7 @@ export function showAboutMenu() {
 
         <div style="margin-bottom: 20px;">
             <h3 style="color: #9C27B0; margin-bottom: 15px; font-size: 20px;">🌟 Project Info</h3>
-            <p style="color: #B39DDB; font-size: 16px;">Version 0.2.0-alpha</p>
+            <p style="color: #B39DDB; font-size: 16px;">Version 0.3-alpha</p>
             <p style="color: #888; font-size: 14px;">Built with passion by Diogo Carvalho (113221</p>
         </div>
         
