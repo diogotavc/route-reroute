@@ -1377,10 +1377,12 @@ function showSandboxConfigurationMenu() {
            Sandbox Configuration
         </h2>
         <p style="margin-bottom: 30px; color: #E8F5E8; line-height: 1.6; font-size: 16px;">
-            Configure your sandbox environment settings
+            Configure your sandbox environment and car physics
         </p>
         
         <div style="text-align: left; margin-bottom: 30px;">
+            <h3 style="color: #81C784; font-size: 18px; margin-bottom: 15px; text-align: center;">🌍 Environment Settings</h3>
+            
             <div style="margin-bottom: 25px;">
                 <label style="display: block; color: #E8F5E8; font-size: 14px; margin-bottom: 10px; font-weight: bold;">
                     Time of Day:
@@ -1397,7 +1399,7 @@ function showSandboxConfigurationMenu() {
                 </div>
             </div>
             
-            <div style="margin-bottom: 25px;">
+            <div style="margin-bottom: 30px;">
                 <label style="display: block; color: #E8F5E8; font-size: 14px; margin-bottom: 10px; font-weight: bold;">
                     Time Speed:
                 </label>
@@ -1411,6 +1413,93 @@ function showSandboxConfigurationMenu() {
                     <span>Normal</span>
                     <span>Fast</span>
                 </div>
+            </div>
+
+            <h3 style="color: #81C784; font-size: 18px; margin-bottom: 15px; text-align: center;">🚗 Car Physics Settings</h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #E8F5E8; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
+                        Max Speed:
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" id="max-speed-slider" min="10" max="50" value="20" 
+                               style="flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; outline: none;">
+                        <span id="max-speed-display" style="color: #4CAF50; font-weight: bold; min-width: 35px; font-size: 12px;">20</span>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #E8F5E8; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
+                        Acceleration:
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" id="acceleration-slider" min="2" max="15" value="6" 
+                               style="flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; outline: none;">
+                        <span id="acceleration-display" style="color: #4CAF50; font-weight: bold; min-width: 35px; font-size: 12px;">6</span>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #E8F5E8; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
+                        Braking:
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" id="braking-slider" min="4" max="20" value="8" 
+                               style="flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; outline: none;">
+                        <span id="braking-display" style="color: #4CAF50; font-weight: bold; min-width: 35px; font-size: 12px;">8</span>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #E8F5E8; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
+                        Steering Rate:
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" id="steering-rate-slider" min="0.5" max="4" step="0.1" value="2" 
+                               style="flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; outline: none;">
+                        <span id="steering-rate-display" style="color: #4CAF50; font-weight: bold; min-width: 35px; font-size: 12px;">2.0</span>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #E8F5E8; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
+                        Friction:
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" id="friction-slider" min="0.1" max="2" step="0.1" value="0.8" 
+                               style="flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; outline: none;">
+                        <span id="friction-display" style="color: #4CAF50; font-weight: bold; min-width: 35px; font-size: 12px;">0.8</span>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #E8F5E8; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
+                        Steering Friction:
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" id="steering-friction-slider" min="0.5" max="3" step="0.1" value="1.5" 
+                               style="flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; outline: none;">
+                        <span id="steering-friction-display" style="color: #4CAF50; font-weight: bold; min-width: 35px; font-size: 12px;">1.5</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px; text-align: center;">
+                <button id="reset-physics-button" style="
+                    padding: 10px 20px;
+                    background: linear-gradient(45deg, #FF9800, #FFB74D);
+                    border: none;
+                    border-radius: 8px;
+                    color: white;
+                    font-family: inherit;
+                    font-size: 14px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    Reset to Default
+                </button>
             </div>
         </div>
         
@@ -1460,6 +1549,20 @@ function showSandboxConfigurationMenu() {
     const timeSpeedSlider = document.getElementById('time-speed-slider');
     const timeSpeedDisplay = document.getElementById('time-speed-display');
 
+    const maxSpeedSlider = document.getElementById('max-speed-slider');
+    const maxSpeedDisplay = document.getElementById('max-speed-display');
+    const accelerationSlider = document.getElementById('acceleration-slider');
+    const accelerationDisplay = document.getElementById('acceleration-display');
+    const brakingSlider = document.getElementById('braking-slider');
+    const brakingDisplay = document.getElementById('braking-display');
+    const steeringRateSlider = document.getElementById('steering-rate-slider');
+    const steeringRateDisplay = document.getElementById('steering-rate-display');
+    const frictionSlider = document.getElementById('friction-slider');
+    const frictionDisplay = document.getElementById('friction-display');
+    const steeringFrictionSlider = document.getElementById('steering-friction-slider');
+    const steeringFrictionDisplay = document.getElementById('steering-friction-display');
+    const resetPhysicsButton = document.getElementById('reset-physics-button');
+
     function updateTimeOfDayDisplay(value) {
         const timeValue = value / 100;
         let timeLabel;
@@ -1484,21 +1587,84 @@ function showSandboxConfigurationMenu() {
         timeSpeedDisplay.textContent = speedLabel;
     }
 
+    function updateMaxSpeedDisplay(value) {
+        maxSpeedDisplay.textContent = value;
+    }
+
+    function updateAccelerationDisplay(value) {
+        accelerationDisplay.textContent = value;
+    }
+
+    function updateBrakingDisplay(value) {
+        brakingDisplay.textContent = value;
+    }
+
+    function updateSteeringRateDisplay(value) {
+        steeringRateDisplay.textContent = parseFloat(value).toFixed(1);
+    }
+
+    function updateFrictionDisplay(value) {
+        frictionDisplay.textContent = parseFloat(value).toFixed(1);
+    }
+
+    function updateSteeringFrictionDisplay(value) {
+        steeringFrictionDisplay.textContent = parseFloat(value).toFixed(1);
+    }
+
+    function resetPhysicsToDefault() {
+        maxSpeedSlider.value = '20';
+        accelerationSlider.value = '6';
+        brakingSlider.value = '8';
+        steeringRateSlider.value = '2.0';
+        frictionSlider.value = '0.8';
+        steeringFrictionSlider.value = '1.5';
+        
+        updateMaxSpeedDisplay(maxSpeedSlider.value);
+        updateAccelerationDisplay(accelerationSlider.value);
+        updateBrakingDisplay(brakingSlider.value);
+        updateSteeringRateDisplay(steeringRateSlider.value);
+        updateFrictionDisplay(frictionSlider.value);
+        updateSteeringFrictionDisplay(steeringFrictionSlider.value);
+    }
+
     timeOfDaySlider.addEventListener('input', (e) => updateTimeOfDayDisplay(e.target.value));
     timeSpeedSlider.addEventListener('input', (e) => updateTimeSpeedDisplay(e.target.value));
+    maxSpeedSlider.addEventListener('input', (e) => updateMaxSpeedDisplay(e.target.value));
+    accelerationSlider.addEventListener('input', (e) => updateAccelerationDisplay(e.target.value));
+    brakingSlider.addEventListener('input', (e) => updateBrakingDisplay(e.target.value));
+    steeringRateSlider.addEventListener('input', (e) => updateSteeringRateDisplay(e.target.value));
+    frictionSlider.addEventListener('input', (e) => updateFrictionDisplay(e.target.value));
+    steeringFrictionSlider.addEventListener('input', (e) => updateSteeringFrictionDisplay(e.target.value));
+    resetPhysicsButton.addEventListener('click', resetPhysicsToDefault);
 
     updateTimeOfDayDisplay(timeOfDaySlider.value);
     updateTimeSpeedDisplay(timeSpeedSlider.value);
+    updateMaxSpeedDisplay(maxSpeedSlider.value);
+    updateAccelerationDisplay(accelerationSlider.value);
+    updateBrakingDisplay(brakingSlider.value);
+    updateSteeringRateDisplay(steeringRateSlider.value);
+    updateFrictionDisplay(frictionSlider.value);
+    updateSteeringFrictionDisplay(steeringFrictionSlider.value);
 
     document.getElementById('sandbox-config-continue').addEventListener('click', () => {
         const timeOfDay = timeOfDaySlider.value / 100;
         const timeSpeed = (timeSpeedSlider.value / 100) * 0.02; // Scale to reasonable time speed
 
+        const carPhysics = {
+            maxSpeed: parseInt(maxSpeedSlider.value),
+            accelerationRate: parseInt(accelerationSlider.value),
+            brakingRate: parseInt(brakingSlider.value),
+            steeringRate: parseFloat(steeringRateSlider.value),
+            friction: parseFloat(frictionSlider.value),
+            steeringFriction: parseFloat(steeringFrictionSlider.value)
+        };
+
         document.body.removeChild(sandboxConfigOverlay);
 
         window.sandboxConfig = {
             timeOfDay: timeOfDay,
-            timeSpeed: timeSpeed
+            timeSpeed: timeSpeed,
+            carPhysics: carPhysics
         };
 
         if (window.showSandboxCarSelection) {

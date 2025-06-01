@@ -1577,20 +1577,30 @@ function startSandboxMode(selectedCarModel) {
 
     const sandboxConfig = window.sandboxConfig || {
         timeOfDay: 0.25,
-        timeSpeed: 0.002
+        timeSpeed: 0.002,
+        carPhysics: {
+            maxSpeed: 20,
+            accelerationRate: 6,
+            brakingRate: 8,
+            steeringRate: 2.0,
+            friction: 0.8,
+            steeringFriction: 1.5
+        }
+    };
+
+    const carPhysics = sandboxConfig.carPhysics || {
+        maxSpeed: 20,
+        accelerationRate: 6,
+        brakingRate: 8,
+        steeringRate: 2.0,
+        friction: 0.8,
+        steeringFriction: 1.5
     };
 
     const sandboxLevel = {
         name: "Sandbox Mode",
         missions: [
-            [selectedCarModel, "Free Driver", "Explore the city at your own pace!", "start1", null, {
-                maxSpeed: 20,
-                accelerationRate: 6,
-                brakingRate: 8,
-                steeringRate: 2.0,
-                friction: 0.8,
-                steeringFriction: 1.5
-            }]
+            [selectedCarModel, "Free Driver", "Explore the city at your own pace!", "start1", null, carPhysics]
         ],
         map: MapData,
         cameraStart: [0, 20, 30],
