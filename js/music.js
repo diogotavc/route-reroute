@@ -22,9 +22,12 @@ let musicUI = null;
 let uiTimeout = null;
 
 const PLAYLIST = [
-    'An Old Bassman.mp3',
-    'Be At Home.mp3',
-    'Hypnosis.mp3'
+    'An Old Bassman (Gran Turismo 4).mp3',
+    'Light Velocity Ver. II (Gran Turismo 4).mp3',
+    'Hypnosis (Gran Turismo 4).mp3',
+    'The Motorious Zone (Gran Turismo 4).mp3',
+    'Concentration (Gran Turismo 3 A-Spec).mp3',
+    'Light Velocity (Gran Turismo 3 A-Spec).mp3'
 ];
 
 export function initMusicSystem() {

@@ -1,18 +1,20 @@
 ### Fixes
 
 - [ ] broken initial selection screen (loads level 1 regardless, but with broken logic if other levels are selected)
+- [ ] make text scroll if it doesn't fit (Music UI)
 
 ### Features still yet to be added
 
 - [ ] SFX (UI, crashes, car engines, other fx)
 - [ ] add vehicle specific lights and sounds (i.e. ambulance)
+- [ ] make car wobble from the grass, and fall (and rewind) from the void
 
 ### Right before delivery
 
 - [ ] check for unused variables and bad imports
 - [ ] look over the configs before prod
 - [ ] remove debug / check for console.*
-- [ ] add more music
+- [x] add more music
 
 ### maybe?
 
