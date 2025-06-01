@@ -1,13 +1,9 @@
 ### Fixes
 
-- [x] make sure initial level selection screen shows all available levels (merge that and the pause menu selection)
-- [x] match styling between reset achievements and reset all data
-- [x] if the user leaves the menu while inside the reset confirmation, clear it
-- [x] make sure submenus in pause always go one level back (like with achievements)
+- [ ] broken initial selection screen (loads level 1 regardless, but with broken logic if other levels are selected)
 
 ### Features still yet to be added
 
-- [x] add resolution scaler to config (performance is ass)
 - [ ] SFX (UI, crashes, car engines, other fx)
 - [ ] add vehicle specific lights and sounds (i.e. ambulance)
 
