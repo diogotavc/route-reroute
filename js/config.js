@@ -66,7 +66,7 @@ export const TIMER_REWIND_PENALTY = 5;
 export const TIMER_GRASS_SPEED_MULTIPLIER = 3;
 export const TIMER_HINTS_ENABLED = true;
 export const TIMER_HINT_DURATION = 5000;
-export const TIMER_WARNING_THRESHOLD = 30;
+export const TIMER_WARNING_THRESHOLD = 5;
 export const TIMER_GRACE_PERIOD = 1000;
 
 export const TIMER_RANDOM_HINTS = [

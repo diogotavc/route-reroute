@@ -296,21 +296,21 @@ const exampleLevel4_Missions = [
         friction: 0.5,
         steeringFriction: 0.8
     }],
-    ["race-future", "Future Racer", "Testing tomorrow's racing technology.", "start16", "finish16", {
-        maxSpeed: 30,
-        accelerationRate: 12,
-        brakingRate: 5,
-        steeringRate: 3.2,
-        friction: 0.4,
-        steeringFriction: 0.6
-    }],
-    ["truck-flat", "Night Hauler", "Moving heavy equipment under cover of darkness.", "start17", "finish17", {
+    ["truck-flat", "Night Hauler", "Moving heavy equipment under cover of darkness.", "start16", "finish16", {
         maxSpeed: 6,
         accelerationRate: 1.8,
         brakingRate: 20,
         steeringRate: 0.5,
         friction: 2.5,
         steeringFriction: 5.0
+    }],
+    ["race-future", "Future Racer", "Testing tomorrow's racing technology.", "start17", "finish17", {
+        maxSpeed: 30,
+        accelerationRate: 12,
+        brakingRate: 5,
+        steeringRate: 3.2,
+        friction: 0.4,
+        steeringFriction: 0.6
     }],
 ];
 
@@ -412,8 +412,8 @@ const levels = [
         timeIncrementPerMission: 0.02,
         timeSpeed: 0,
         timer: {
-            totalTime: 300,
-            missionTimeBonus: 15
+            totalTime: 25,
+            missionTimeBonus: 5
         }
     }
 ];
