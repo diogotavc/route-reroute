@@ -101,39 +101,158 @@ loadMap(scene, level1MapData).then((mapGroup) => {
 });
 
 const exampleLevel1_Missions = [
-    ["ambulance", "Dr. Healmore", "Rushing to save a critical patient.", "start1", "finish1"],
-    ["firetruck", "Chief Blaze", "A fire broke out.", "start2", "finish2"],
+    ["ambulance", "Dr. Healmore", "Rushing to save a critical patient.", "start1", "finish1", {
+        maxSpeed: 12,
+        accelerationRate: 4,
+        brakingRate: 8,
+        steeringRate: 1.2,
+        friction: 0.8,
+        steeringFriction: 1.8
+    }],
+    ["firetruck", "Chief Blaze", "A fire broke out.", "start2", "finish2", {
+        maxSpeed: 10,
+        accelerationRate: 3,
+        brakingRate: 12,
+        steeringRate: 1.0,
+        friction: 1.2,
+        steeringFriction: 2.5
+    }],
 ];
 
 const exampleLevel2_Missions = [
-    ["police", "Officer Justice", "Pursuing a speeding vehicle through the city.", "start3", "finish3"],
-    ["taxi", "Taxi Driver", "Getting passengers to their destination on time.", "start4", "finish4"],
-    ["delivery", "Express Courier", "Rush delivery before the store closes.", "start5", "finish5"],
-    ["sedan", "Commuter Carl", "Late for an important business meeting.", "start6", "finish6"],
+    ["police", "Officer Justice", "Pursuing a speeding vehicle through the city.", "start3", "finish3", {
+        maxSpeed: 18,
+        accelerationRate: 6,
+        brakingRate: 10,
+        steeringRate: 1.8,
+        friction: 0.9,
+        steeringFriction: 1.5
+    }],
+    ["taxi", "Taxi Driver", "Getting passengers to their destination on time.", "start4", "finish4", {
+        maxSpeed: 14,
+        accelerationRate: 5,
+        brakingRate: 9,
+        steeringRate: 1.6,
+        friction: 1.0,
+        steeringFriction: 2.0
+    }],
+    ["delivery", "Express Courier", "Rush delivery before the store closes.", "start5", "finish5", {
+        maxSpeed: 13,
+        accelerationRate: 4.5,
+        brakingRate: 8,
+        steeringRate: 1.4,
+        friction: 1.1,
+        steeringFriction: 2.2
+    }],
+    ["sedan", "Commuter Carl", "Late for an important business meeting.", "start6", "finish6", {
+        maxSpeed: 15,
+        accelerationRate: 5,
+        brakingRate: 10,
+        steeringRate: 1.5,
+        friction: 1.0,
+        steeringFriction: 2.0
+    }],
 ];
 
 const exampleLevel3_Missions = [
-    ["garbage-truck", "Sanitation Sam", "Emergency garbage collection before the storm.", "start7", "finish7"],
-    ["van", "Moving Mike", "Urgent furniture delivery across town.", "start8", "finish8"],
-    ["suv", "Soccer Mom", "Racing to pick up kids from practice.", "start9", "finish9"],
-    ["truck", "Trucker Tom", "Heavy cargo delivery to the construction site.", "start10", "finish10"],
-    ["sedan-sports", "Speed Racer", "Testing the new sports car around the city.", "start11", "finish11"],
-    ["race", "Pro Driver", "Training run through the urban circuit.", "start12", "finish12"],
+    ["garbage-truck", "Sanitation Sam", "Emergency garbage collection before the storm.", "start7", "finish7", {
+        maxSpeed: 8,
+        accelerationRate: 2.5,
+        brakingRate: 15,
+        steeringRate: 0.8,
+        friction: 1.5,
+        steeringFriction: 3.0
+    }],
+    ["van", "Moving Mike", "Urgent furniture delivery across town.", "start8", "finish8", {
+        maxSpeed: 11,
+        accelerationRate: 3.5,
+        brakingRate: 12,
+        steeringRate: 1.1,
+        friction: 1.3,
+        steeringFriction: 2.4
+    }],
+    ["suv", "Soccer Mom", "Racing to pick up kids from practice.", "start9", "finish9", {
+        maxSpeed: 16,
+        accelerationRate: 4.8,
+        brakingRate: 9,
+        steeringRate: 1.7,
+        friction: 0.9,
+        steeringFriction: 1.8
+    }],
+    ["truck", "Trucker Tom", "Heavy cargo delivery to the construction site.", "start10", "finish10", {
+        maxSpeed: 9,
+        accelerationRate: 2.8,
+        brakingRate: 18,
+        steeringRate: 0.9,
+        friction: 1.8,
+        steeringFriction: 3.5
+    }],
+    ["sedan-sports", "Speed Racer", "Testing the new sports car around the city.", "start11", "finish11", {
+        maxSpeed: 20,
+        accelerationRate: 7,
+        brakingRate: 8,
+        steeringRate: 2.2,
+        friction: 0.7,
+        steeringFriction: 1.2
+    }],
+    ["race", "Pro Driver", "Training run through the urban circuit.", "start12", "finish12", {
+        maxSpeed: 22,
+        accelerationRate: 8,
+        brakingRate: 7,
+        steeringRate: 2.5,
+        friction: 0.6,
+        steeringFriction: 1.0
+    }],
 ];
 
 const exampleLevel4_Missions = [
-    ["tractor-police", "Night Patrol", "Special police tractor patrolling the quiet streets.", "start13", "finish13"],
-    ["suv-luxury", "VIP Transport", "Luxury ride for an important client.", "start14", "finish14"],
-    ["hatchback-sports", "Street Racer", "Underground racing through the night.", "start15", "finish15"],
-    ["race-future", "Future Racer", "Testing tomorrow's racing technology.", "start16", "finish16"],
-    ["truck-flat", "Night Hauler", "Moving heavy equipment under cover of darkness.", "start17", "finish17"],
+    ["tractor-police", "Night Patrol", "Special police tractor patrolling the quiet streets.", "start13", "finish13", {
+        maxSpeed: 7,
+        accelerationRate: 2.2,
+        brakingRate: 14,
+        steeringRate: 0.7,
+        friction: 2.0,
+        steeringFriction: 4.0
+    }],
+    ["suv-luxury", "VIP Transport", "Luxury ride for an important client.", "start14", "finish14", {
+        maxSpeed: 17,
+        accelerationRate: 5.5,
+        brakingRate: 11,
+        steeringRate: 1.9,
+        friction: 0.8,
+        steeringFriction: 1.6
+    }],
+    ["hatchback-sports", "Street Racer", "Underground racing through the night.", "start15", "finish15", {
+        maxSpeed: 25,
+        accelerationRate: 9,
+        brakingRate: 6,
+        steeringRate: 2.8,
+        friction: 0.5,
+        steeringFriction: 0.8
+    }],
+    ["race-future", "Future Racer", "Testing tomorrow's racing technology.", "start16", "finish16", {
+        maxSpeed: 30,
+        accelerationRate: 12,
+        brakingRate: 5,
+        steeringRate: 3.2,
+        friction: 0.4,
+        steeringFriction: 0.6
+    }],
+    ["truck-flat", "Night Hauler", "Moving heavy equipment under cover of darkness.", "start17", "finish17", {
+        maxSpeed: 6,
+        accelerationRate: 1.8,
+        brakingRate: 20,
+        steeringRate: 0.5,
+        friction: 2.5,
+        steeringFriction: 5.0
+    }],
 ];
 
 let currentLevelData;
 
 function processLevelMissions(missions, mapDefinition) {
     return missions.map(mission => {
-        const [modelName, character, backstory, startPointName, finishPointName] = mission;
+        const [modelName, character, backstory, startPointName, finishPointName, physicsConfig] = mission;
         const startPointInfo = mapDefinition.startPoints[startPointName];
         let finishPointInfo = null;
 
@@ -165,7 +284,15 @@ function processLevelMissions(missions, mapDefinition) {
             backstory,
             [startWorldPos.x, startWorldPos.y, startWorldPos.z],
             finishWorldPosArray,
-            startPointInfo.carRotationY !== undefined ? startPointInfo.carRotationY : 0
+            startPointInfo.carRotationY !== undefined ? startPointInfo.carRotationY : 0,
+            physicsConfig || {
+                maxSpeed: 15,
+                accelerationRate: 5,
+                brakingRate: 10,
+                steeringRate: 1.5,
+                friction: 1,
+                steeringFriction: 2
+            }
         ];
     }).filter(mission => mission !== null);
 }

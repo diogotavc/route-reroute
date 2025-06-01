@@ -36,7 +36,6 @@ export const CAR_FLASH_DURATION = 1.0;
 export const CAR_FLASH_INTERVALS = 2;
 export const CAR_REACTION_COOLDOWN = 3.0;
 
-
 // Formula: damage = CAR_DAMAGE_BASE + (collisionSpeed * CAR_DAMAGE_SPEED_MULTIPLIER)
 // Building collisions get 1.5x multiplier, then clamped to CAR_DAMAGE_MAX
 export const CAR_MAX_HEALTH = 100;
@@ -48,6 +47,8 @@ export const CAR_DAMAGE_COOLDOWN = 0.2;
 export const VEHICLE_COORDINATE_DEBUG_LOGGING = true;
 export const VEHICLE_COORDINATE_LOG_INTERVAL = 1.0;
 
+// since this now supports per-mission values
+// these are kept only as fallback
 export const MAX_SPEED = 15;
 export const ACCELERATION_RATE = 5;
 export const BRAKING_RATE = 10;

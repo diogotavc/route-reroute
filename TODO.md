@@ -21,7 +21,7 @@
 - [x] if the user exits idle while the music is transitioning gain (entering idle), the gain at the end is wrong
 
 - [ ] add vehicle specific lights and sounds (i.e. ambulance)
-- [ ] add vehicle specific stats (acceleration, braking, lateral grip)
+- [x] add vehicle specific stats (acceleration, braking, lateral grip)
 - [ ] balance out achievements (wrecked and ruined can be 10 crashes, instead of 1; lawn enforcement can be for a few meters; terminal velocity can be for enough time)
 - [x] reset certain achievements on level reset
 - [ ] save system

@@ -123,28 +123,37 @@ function checkOBBCollisionSAT(carA, carB, positionAOverride = null, isCarBStatic
     return { collision: true, mtvAxis: mtvAxis, mtvDepth: minOverlap };
 }
 
-export function updatePhysics(activeCar, physicsState, inputState, deltaTime, otherCars, collidableMapTiles = [], mapDefinition = null) {
+export function updatePhysics(activeCar, physicsState, inputState, deltaTime, otherCars, collidableMapTiles = [], mapDefinition = null, missionPhysics = null) {
     let { speed, acceleration, steeringAngle } = physicsState;
     const { isAccelerating, isBraking, isTurningLeft, isTurningRight } = inputState;
 
+    const physics = missionPhysics || {
+        maxSpeed: MAX_SPEED,
+        accelerationRate: ACCELERATION_RATE,
+        brakingRate: BRAKING_RATE,
+        steeringRate: STEERING_RATE,
+        friction: FRICTION,
+        steeringFriction: STEERING_FRICTION
+    };
+
     let steeringChange = 0;
-    if (isTurningLeft) steeringChange += STEERING_RATE * deltaTime;
-    if (isTurningRight) steeringChange -= STEERING_RATE * deltaTime;
+    if (isTurningLeft) steeringChange += physics.steeringRate * deltaTime;
+    if (isTurningRight) steeringChange -= physics.steeringRate * deltaTime;
     steeringAngle += steeringChange;
 
     if (!isTurningLeft && !isTurningRight) {
-        steeringAngle -= steeringAngle * STEERING_FRICTION * deltaTime;
+        steeringAngle -= steeringAngle * physics.steeringFriction * deltaTime;
         if (Math.abs(steeringAngle) < 0.01) steeringAngle = 0;
     }
     steeringAngle = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, steeringAngle)); 
 
     if (isAccelerating) {
-        acceleration = ACCELERATION_RATE;
+        acceleration = physics.accelerationRate;
     } else if (isBraking) {
-        acceleration = -BRAKING_RATE;
+        acceleration = -physics.brakingRate;
     } else {
-        acceleration = -Math.sign(speed) * FRICTION;
-        if (Math.abs(speed) < FRICTION * deltaTime) {
+        acceleration = -Math.sign(speed) * physics.friction;
+        if (Math.abs(speed) < physics.friction * deltaTime) {
             speed = 0;
             acceleration = 0;
         }
@@ -152,18 +161,18 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
 
     speed += acceleration * deltaTime;
 
-    let maxSpeedForTerrain = MAX_SPEED;
+    let maxSpeedForTerrain = physics.maxSpeed;
     if (mapDefinition && isOnGrass(activeCar.position.x, activeCar.position.z, mapDefinition)) {
-        maxSpeedForTerrain = MAX_SPEED * GRASS_SPEED_SCALE;
+        maxSpeedForTerrain = physics.maxSpeed * GRASS_SPEED_SCALE;
     }
 
     speed = Math.max(-maxSpeedForTerrain / 2, Math.min(maxSpeedForTerrain, speed)); 
     if (isBraking && Math.abs(speed) < 0.1) speed = 0; 
 
-    if (Math.abs(speed) >= MAX_SPEED) {
+    if (Math.abs(speed) >= physics.maxSpeed) {
         Achievements.onMaxSpeedReached({ 
             speed: Math.abs(speed), 
-            maxSpeed: MAX_SPEED,
+            maxSpeed: physics.maxSpeed,
             percentage: (Math.abs(speed) / MAX_SPEED) * 100
         });
     } 
@@ -266,7 +275,7 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
                 } else {
                     speed = 0; 
                 }
-                speed = Math.max(-MAX_SPEED / 2, Math.min(MAX_SPEED, speed));
+                speed = Math.max(-physics.maxSpeed / 2, Math.min(physics.maxSpeed, speed));
             }
 
             separationVector.copy(collisionNormal).multiplyScalar(penetrationDepth * COLLISION_SEPARATION_FACTOR);

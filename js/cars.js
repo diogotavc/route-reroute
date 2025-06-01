@@ -529,6 +529,14 @@ export function loadCarModels(processedLevelData) {
         }
         const startingPoint = mission[3];
         const initialRotationY = mission[5] !== undefined ? mission[5] : 0;
+        const physicsConfig = mission[6] || {
+            maxSpeed: 15,
+            accelerationRate: 5,
+            brakingRate: 10,
+            steeringRate: 1.5,
+            friction: 1,
+            steeringFriction: 2
+        };
 
         return new Promise((resolve, reject) => {
             modelLoader.load(
@@ -545,6 +553,8 @@ export function loadCarModels(processedLevelData) {
                     const box = new THREE.Box3().setFromObject(model);
                     const size = box.getSize(new THREE.Vector3());
                     model.userData.halfExtents = size.multiplyScalar(0.5);
+
+                    model.userData.physicsConfig = physicsConfig;
 
                     model.visible = false;
                     model.scale.set(1, 1, 1);
@@ -976,7 +986,8 @@ Distance to destination: ${distanceToDestination.toFixed(2)} units`;
             deltaTime,
             otherCars,
             collidableMapTiles,
-            mapDefinition
+            mapDefinition,
+            activeCar.userData.physicsConfig
         );
 
         carSpeed = updatedPhysicsState.speed;
@@ -1122,7 +1133,7 @@ export function getCurrentMissionInfo() {
         return null;
     }
     
-    const [modelName, character, backstory, startingPoint, finishingPoint, initialRotationY] = missionData;
+    const [modelName, character, backstory, startingPoint, finishingPoint, initialRotationY, physicsConfig] = missionData;
     
     return {
         missionIndex: missionIndex + 1,
@@ -1130,6 +1141,22 @@ export function getCurrentMissionInfo() {
         modelName,
         character,
         backstory,
-        hasDestination: finishingPoint && Array.isArray(finishingPoint) && finishingPoint.length === 3
+        hasDestination: finishingPoint && Array.isArray(finishingPoint) && finishingPoint.length === 3,
+        physicsConfig
     };
+}
+
+export function getCurrentMissionPhysics() {
+    const activeCar = getActiveCar();
+    if (!activeCar || !activeCar.userData.physicsConfig) {
+        return {
+            maxSpeed: 15,
+            accelerationRate: 5,
+            brakingRate: 10,
+            steeringRate: 1.5,
+            friction: 1,
+            steeringFriction: 2
+        };
+    }
+    return activeCar.userData.physicsConfig;
 }
