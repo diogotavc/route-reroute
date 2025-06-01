@@ -100,7 +100,6 @@ loadMap(scene, level1MapData).then((mapGroup) => {
 
     setupLights(scene);
 
-    // Hide overlays during initial loading
     hideAllOverlaysDuringLoading();
     
     loadCarModelsAndSetupLevel();
@@ -376,7 +375,6 @@ let rewindGracePeriodEnd = 0;
 
 function applyTimerRewindPenalty() {
     cumulativeRewindPenalty += TIMER_REWIND_PENALTY;
-    console.log(`Rewind penalty applied. Cumulative penalty: ${cumulativeRewindPenalty}s`);
 }
 
 function restoreTimerAfterRewind() {
@@ -385,7 +383,6 @@ function restoreTimerAfterRewind() {
     rewindGracePeriodEnd = Date.now() + TIMER_GRACE_PERIOD;
 
     updateTimerDisplay(currentLevelTimer);
-    console.log(`Timer restored after rewind. Mission start: ${missionStartTimer}s, Cumulative penalty: ${cumulativeRewindPenalty}s, New time: ${currentLevelTimer.toFixed(1)}s`);
 }
 
 function getRandomHint() {
@@ -407,13 +404,11 @@ function applyTimerMissionBonus() {
         cumulativeRewindPenalty = 0;
         
         updateTimerDisplay(currentLevelTimer);
-        console.log(`Mission bonus applied: +${currentLevelConfig.timer.missionTimeBonus}s. New time: ${currentLevelTimer.toFixed(1)}s. New checkpoint: ${missionStartTimer}s`);
     }
 }
 
 function resetMissionTimer() {
     cumulativeRewindPenalty = 0;
-    console.log('Mission timer reset for new level');
 }
 
 window.applyTimerRewindPenalty = applyTimerRewindPenalty;
