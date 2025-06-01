@@ -42,7 +42,7 @@ import {
 } from './cars.js';
 import { loadMap, getWorldCoordinates, isOnGrass } from './mapLoader.js';
 import { mapData as MapData } from './maps/map_1.js';
-import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, hideAllOverlaysDuringLoading, showAllOverlaysAfterLoading, createHUDElements, updateHUD, updateTimerDisplay, animateTimerBonus, animateTimerPenalty, animateTimerGrass, initializePauseMenu, updatePauseMenuSelection, navigatePauseMenu, activatePauseMenuItem, resetPauseMenuSelection, isInAchievementsSubmenu } from './interface.js';
+import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, hideAllOverlaysDuringLoading, showAllOverlaysAfterLoading, createHUDElements, updateHUD, updateTimerDisplay, animateTimerBonus, animateTimerPenalty, animateTimerGrass, initializePauseMenu, updatePauseMenuSelection, navigatePauseMenu, activatePauseMenuItem, resetPauseMenuSelection, isInAchievementsSubmenu, clearActiveConfirmation, showLevelSelectMenu } from './interface.js';
 import {
     initCamera,
     setCameraPaused,
@@ -515,6 +515,8 @@ window.markLevelCompleted = markLevelCompleted;
 window.isLevelCompleted = isLevelCompleted;
 window.getHighestCompletedLevel = getHighestCompletedLevel;
 window.setCurrentLevel = setCurrentLevel;
+window.unpauseGame = unpauseGame;
+window.levels = levels;
 
 function resetAllData() {
     completedLevels = [];
@@ -573,122 +575,7 @@ function showInitialLevelSelection() {
     `;
     document.body.appendChild(dimOverlay);
 
-    const levelSelectOverlay = document.createElement('div');
-    levelSelectOverlay.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: linear-gradient(135deg, rgba(20, 20, 40, 0.95), rgba(40, 40, 80, 0.95));
-        border: 2px solid rgba(255, 255, 255, 0.1);
-        border-radius: 20px;
-        padding: 40px;
-        color: white;
-        font-family: 'Orbitron', 'Courier New', monospace;
-        text-align: center;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-        backdrop-filter: blur(10px);
-        max-width: 500px;
-        z-index: 10001;
-    `;
-
-    const availableLevels = Math.min(highestCompleted + 2, levels.length); // Can play completed + 1 next level
-    
-    let levelSelectContent = `
-        <h2 style="margin: 0 0 20px 0; font-size: 24px; background: linear-gradient(45deg, #4CAF50, #81C784); 
-           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-           Welcome Back!
-        </h2>
-        <p style="margin-bottom: 30px; color: #B0BEC5; line-height: 1.5;">
-            You've completed level ${highestCompleted + 1}. Which level would you like to play?
-        </p>
-        <div style="margin-bottom: 30px;">
-    `;
-
-    levelSelectContent += `
-        <button style="display: block; width: 100%; margin: 10px 0; padding: 15px; 
-                background: rgba(76, 175, 80, 0.2); border: 2px solid rgba(76, 175, 80, 0.5); 
-                border-radius: 10px; color: white; cursor: pointer; font-family: inherit; 
-                font-size: 16px; transition: all 0.3s ease;"
-                onclick="selectInitialLevel(0)"
-                onmouseover="this.style.background='rgba(76, 175, 80, 0.4)'"
-                onmouseout="this.style.background='rgba(76, 175, 80, 0.2)'">
-            🏁 Start from Level 1
-        </button>
-    `;
-
-    if (availableLevels > 1) {
-        const nextLevel = Math.min(highestCompleted + 1, levels.length - 1);
-        levelSelectContent += `
-            <button style="display: block; width: 100%; margin: 10px 0; padding: 15px; 
-                    background: rgba(255, 152, 0, 0.2); border: 2px solid rgba(255, 152, 0, 0.5); 
-                    border-radius: 10px; color: white; cursor: pointer; font-family: inherit; 
-                    font-size: 16px; transition: all 0.3s ease;"
-                    onclick="selectInitialLevel(${nextLevel})"
-                    onmouseover="this.style.background='rgba(255, 152, 0, 0.4)'"
-                    onmouseout="this.style.background='rgba(255, 152, 0, 0.2)'">
-                ▶️ Continue to Level ${nextLevel + 1}
-            </button>
-        `;
-    }
-
-    levelSelectContent += `
-        </div>
-        <p style="color: #666; font-size: 14px; margin-top: 20px;">
-            You can also change levels anytime from the pause menu
-        </p>
-    `;
-
-    levelSelectOverlay.innerHTML = levelSelectContent;
-    document.body.appendChild(levelSelectOverlay);
-
-    window.selectInitialLevel = (levelIndex) => {
-        currentLevelIndex = levelIndex;
-        removeOverlay();
-        unpauseGame();
-        loadCarModelsAndSetupLevel();
-    };
-
-    const removeOverlay = () => {
-        if (document.body.contains(levelSelectOverlay)) {
-            levelSelectOverlay.style.opacity = '0';
-            levelSelectOverlay.style.transform = 'translate(-50%, -50%) scale(0.9)';
-            setTimeout(() => {
-                if (document.body.contains(levelSelectOverlay)) {
-                    document.body.removeChild(levelSelectOverlay);
-                }
-                if (document.body.contains(dimOverlay)) {
-                    document.body.removeChild(dimOverlay);
-                }
-
-                const elementsToShow = [
-                    'combined-hud',
-                    'level-indicator', 
-                    'achievement-notification-container',
-                    'music-ui',
-                    'timer-overlay'
-                ];
-
-                elementsToShow.forEach(id => {
-                    const element = document.getElementById(id);
-                    if (element) {
-                        element.classList.remove('hidden-during-initial-selection');
-                    }
-                });
-
-                delete window.selectInitialLevel;
-            }, 300);
-        }
-    };
-
-    levelSelectOverlay.style.opacity = '0';
-    levelSelectOverlay.style.transform = 'translate(-50%, -50%) scale(0.9)';
-    levelSelectOverlay.style.transition = 'all 0.3s ease';
-
-    setTimeout(() => {
-        levelSelectOverlay.style.opacity = '1';
-        levelSelectOverlay.style.transform = 'translate(-50%, -50%) scale(1)';
-    }, 10);
+    showLevelSelectMenu(true);
     
     return true;
 }
@@ -1100,6 +987,7 @@ window.addEventListener("keydown", (event) => {
                 return;
             case "Escape":
                 event.preventDefault();
+                clearActiveConfirmation();
                 unpauseGame();
                 return;
         }

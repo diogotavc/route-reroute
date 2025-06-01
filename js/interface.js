@@ -27,7 +27,7 @@ export function createOverlayElements() {
                 <button class="confirmation-button confirm">Reset Everything</button>
             </div>
         </div>
-        <div class="reset-all-confirmation-overlay" style="display: none;">
+        <div class="confirmation-overlay reset-all-confirmation" style="display: none;">
             <div class="confirmation-title">Reset All Data?</div>
             <div class="confirmation-message">This will reset ALL progress including:<br>• Level completion progress<br>• Achievement data<br>• All game settings<br><br>This action cannot be undone!</div>
             <div class="confirmation-buttons">
@@ -461,7 +461,7 @@ export function initializePauseMenu() {
     cancelButton.addEventListener('click', hidePauseConfirmation);
     confirmButton.addEventListener('click', confirmResetAchievements);
 
-    const resetAllConfirmationOverlay = pauseOverlay.querySelector('.reset-all-confirmation-overlay');
+    const resetAllConfirmationOverlay = pauseOverlay.querySelector('.confirmation-overlay.reset-all-confirmation');
     const resetAllCancelButton = resetAllConfirmationOverlay.querySelector('.confirmation-button.cancel');
     const resetAllConfirmButton = resetAllConfirmationOverlay.querySelector('.confirmation-button.confirm');
 
@@ -478,7 +478,10 @@ export function updatePauseMenuSelection() {
 }
 
 export function navigatePauseMenu(direction) {
-    if (pauseMenuState.isConfirmationVisible) return;
+    if (pauseMenuState.isConfirmationVisible) {
+        clearActiveConfirmation();
+        return;
+    }
     
     if (direction === 'up') {
         pauseMenuState.selectedIndex = (pauseMenuState.selectedIndex - 1 + pauseMenuState.menuItems.length) % pauseMenuState.menuItems.length;
@@ -727,7 +730,7 @@ export function isInAchievementsSubmenu() {
     return isShowingAchievements;
 }
 
-export function showLevelSelectMenu() {
+export function showLevelSelectMenu(isInitialSelection = false) {
     const levelSelectOverlay = document.createElement('div');
     levelSelectOverlay.style.cssText = `
         position: fixed;
@@ -743,9 +746,9 @@ export function showLevelSelectMenu() {
         text-align: center;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
         backdrop-filter: blur(10px);
-        max-width: 600px;
-        min-width: 400px;
-        z-index: 10000;
+        max-width: ${isInitialSelection ? '500px' : '600px'};
+        min-width: ${isInitialSelection ? '400px' : '400px'};
+        z-index: ${isInitialSelection ? '10001' : '10000'};
     `;
 
     const totalLevels = window.getCurrentLevelIndex !== undefined ? 
@@ -753,54 +756,104 @@ export function showLevelSelectMenu() {
     const currentLevel = window.getCurrentLevelIndex ? window.getCurrentLevelIndex() : 0;
     const highestCompleted = window.getHighestCompletedLevel ? window.getHighestCompletedLevel() : -1;
 
-    let levelSelectContent = `
-        <h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #4CAF50, #81C784); 
-           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-           Select Level
-        </h2>
-        <div style="margin-bottom: 30px;">
-    `;
-
-    for (let i = 0; i < totalLevels; i++) {
-        const isCompleted = window.isLevelCompleted ? window.isLevelCompleted(i) : false;
-        const isUnlocked = i === 0 || isCompleted || i <= highestCompleted + 1;
-        const isCurrent = i === currentLevel;
-        
-        const statusIcon = isCompleted ? '✓' : (isCurrent ? '▶' : (isUnlocked ? '○' : '🔒'));
-        const statusText = isCompleted ? 'Completed' : (isCurrent ? 'Current' : (isUnlocked ? 'Available' : 'Locked'));
-        
-        const buttonStyle = `
-            display: block;
-            width: 100%;
-            margin: 10px 0;
-            padding: 15px;
-            background: ${isUnlocked ? 'rgba(76, 175, 80, 0.2)' : 'rgba(100, 100, 100, 0.2)'};
-            border: 2px solid ${isUnlocked ? 'rgba(76, 175, 80, 0.5)' : 'rgba(100, 100, 100, 0.3)'};
-            border-radius: 10px;
-            color: ${isUnlocked ? 'white' : '#888'};
-            cursor: ${isUnlocked ? 'pointer' : 'not-allowed'};
-            font-family: inherit;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            ${isUnlocked ? 'background: rgba(76, 175, 80, 0.3); border-color: rgba(76, 175, 80, 0.7);' : ''}
+    let levelSelectContent;
+    
+    if (isInitialSelection) {
+        const availableLevels = Math.min(highestCompleted + 2, totalLevels);
+        levelSelectContent = `
+            <h2 style="margin: 0 0 20px 0; font-size: 24px; background: linear-gradient(45deg, #4CAF50, #81C784); 
+               -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+               Welcome Back!
+            </h2>
+            <p style="margin-bottom: 30px; color: #B0BEC5; line-height: 1.5;">
+                You've completed level ${highestCompleted + 1}. Which level would you like to play?
+            </p>
+            <div style="margin-bottom: 30px;">
         `;
 
         levelSelectContent += `
-            <button style="${buttonStyle}" 
-                    ${isUnlocked ? `onclick="selectLevel(${i})"` : ''} 
-                    ${isUnlocked ? 'onmouseover="this.style.background=\'rgba(76, 175, 80, 0.4)\'"' : ''}
-                    ${isUnlocked ? 'onmouseout="this.style.background=\'rgba(76, 175, 80, 0.2)\'"' : ''}>
-                ${statusIcon} Level ${i + 1} - ${statusText}
+            <button style="display: block; width: 100%; margin: 10px 0; padding: 15px; 
+                    background: rgba(76, 175, 80, 0.2); border: 2px solid rgba(76, 175, 80, 0.5); 
+                    border-radius: 10px; color: white; cursor: pointer; font-family: inherit; 
+                    font-size: 16px; transition: all 0.3s ease;"
+                    onclick="selectLevel(0)"
+                    onmouseover="this.style.background='rgba(76, 175, 80, 0.4)'"
+                    onmouseout="this.style.background='rgba(76, 175, 80, 0.2)'">
+                🏁 Start from Level 1
             </button>
         `;
-    }
 
-    levelSelectContent += `
-        </div>
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center;">
-            <em style="color: #888; font-size: 14px;">Press ESC to return to pause menu</em>
-        </div>
-    `;
+        if (availableLevels > 1) {
+            const nextLevel = Math.min(highestCompleted + 1, totalLevels - 1);
+            levelSelectContent += `
+                <button style="display: block; width: 100%; margin: 10px 0; padding: 15px; 
+                        background: rgba(255, 152, 0, 0.2); border: 2px solid rgba(255, 152, 0, 0.5); 
+                        border-radius: 10px; color: white; cursor: pointer; font-family: inherit; 
+                        font-size: 16px; transition: all 0.3s ease;"
+                        onclick="selectLevel(${nextLevel})"
+                        onmouseover="this.style.background='rgba(255, 152, 0, 0.4)'"
+                        onmouseout="this.style.background='rgba(255, 152, 0, 0.2)'">
+                    ▶️ Continue to Level ${nextLevel + 1}
+                </button>
+            `;
+        }
+
+        levelSelectContent += `
+            </div>
+            <p style="color: #666; font-size: 14px; margin-top: 20px;">
+                You can also change levels anytime from the pause menu
+            </p>
+        `;
+    } else {
+        levelSelectContent = `
+            <h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #4CAF50, #81C784); 
+               -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+               Select Level
+            </h2>
+            <div style="margin-bottom: 30px;">
+        `;
+
+        for (let i = 0; i < totalLevels; i++) {
+            const isCompleted = window.isLevelCompleted ? window.isLevelCompleted(i) : false;
+            const isUnlocked = i === 0 || isCompleted || i <= highestCompleted + 1;
+            const isCurrent = i === currentLevel;
+            
+            const statusIcon = isCompleted ? '✓' : (isCurrent ? '▶' : (isUnlocked ? '○' : '🔒'));
+            const statusText = isCompleted ? 'Completed' : (isCurrent ? 'Current' : (isUnlocked ? 'Available' : 'Locked'));
+            
+            const buttonStyle = `
+                display: block;
+                width: 100%;
+                margin: 10px 0;
+                padding: 15px;
+                background: ${isUnlocked ? 'rgba(76, 175, 80, 0.2)' : 'rgba(100, 100, 100, 0.2)'};
+                border: 2px solid ${isUnlocked ? 'rgba(76, 175, 80, 0.5)' : 'rgba(100, 100, 100, 0.3)'};
+                border-radius: 10px;
+                color: ${isUnlocked ? 'white' : '#888'};
+                cursor: ${isUnlocked ? 'pointer' : 'not-allowed'};
+                font-family: inherit;
+                font-size: 16px;
+                transition: all 0.3s ease;
+                ${isUnlocked ? 'background: rgba(76, 175, 80, 0.3); border-color: rgba(76, 175, 80, 0.7);' : ''}
+            `;
+
+            levelSelectContent += `
+                <button style="${buttonStyle}" 
+                        ${isUnlocked ? `onclick="selectLevel(${i})"` : ''} 
+                        ${isUnlocked ? 'onmouseover="this.style.background=\'rgba(76, 175, 80, 0.4)\'"' : ''}
+                        ${isUnlocked ? 'onmouseout="this.style.background=\'rgba(76, 175, 80, 0.2)\'"' : ''}>
+                    ${statusIcon} Level ${i + 1} - ${statusText}
+                </button>
+            `;
+        }
+
+        levelSelectContent += `
+            </div>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center;">
+                <em style="color: #888; font-size: 14px;">Press ESC to return to pause menu</em>
+            </div>
+        `;
+    }
 
     levelSelectOverlay.innerHTML = levelSelectContent;
     document.body.appendChild(levelSelectOverlay);
@@ -813,8 +866,30 @@ export function showLevelSelectMenu() {
             window.setCurrentLevel(levelIndex);
         }
         removeOverlay();
-        if (window.pauseMenuActions && window.pauseMenuActions.continueGame) {
-            window.pauseMenuActions.continueGame();
+        
+        if (isInitialSelection) {
+            if (window.unpauseGame) {
+                window.unpauseGame();
+            }
+            
+            const elementsToShow = [
+                'combined-hud',
+                'level-indicator', 
+                'achievement-notification-container',
+                'music-ui',
+                'timer-overlay'
+            ];
+
+            elementsToShow.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.classList.remove('hidden-during-initial-selection');
+                }
+            });
+        } else {
+            if (window.pauseMenuActions && window.pauseMenuActions.continueGame) {
+                window.pauseMenuActions.continueGame();
+            }
         }
     };
 
@@ -826,7 +901,16 @@ export function showLevelSelectMenu() {
                 if (document.body.contains(levelSelectOverlay)) {
                     document.body.removeChild(levelSelectOverlay);
                 }
-                delete window.selectLevel;
+                
+                if (isInitialSelection) {
+                    const dimOverlay = document.getElementById('initial-level-selection-dim');
+                    if (dimOverlay && document.body.contains(dimOverlay)) {
+                        document.body.removeChild(dimOverlay);
+                    }
+                    delete window.selectLevel;
+                } else {
+                    delete window.selectLevel;
+                }
             }, 300);
             document.removeEventListener('keydown', keyHandler);
         }
@@ -1071,7 +1155,7 @@ export function showAboutMenu() {
 
 export function showResetAllDataConfirmation() {
     const pauseOverlay = document.getElementById('pause-overlay');
-    const resetAllConfirmationOverlay = pauseOverlay.querySelector('.reset-all-confirmation-overlay');
+    const resetAllConfirmationOverlay = pauseOverlay.querySelector('.confirmation-overlay.reset-all-confirmation');
     
     resetAllConfirmationOverlay.style.display = 'flex';
     pauseMenuState.isConfirmationVisible = true;
@@ -1079,7 +1163,7 @@ export function showResetAllDataConfirmation() {
 
 export function hideResetAllDataConfirmation() {
     const pauseOverlay = document.getElementById('pause-overlay');
-    const resetAllConfirmationOverlay = pauseOverlay.querySelector('.reset-all-confirmation-overlay');
+    const resetAllConfirmationOverlay = pauseOverlay.querySelector('.confirmation-overlay.reset-all-confirmation');
     
     resetAllConfirmationOverlay.style.display = 'none';
     pauseMenuState.isConfirmationVisible = false;
@@ -1092,5 +1176,12 @@ export function confirmResetAllData() {
     hideResetAllDataConfirmation();
     if (window.pauseMenuActions && window.pauseMenuActions.continueGame) {
         window.pauseMenuActions.continueGame();
+    }
+}
+
+export function clearActiveConfirmation() {
+    if (pauseMenuState.isConfirmationVisible) {
+        hidePauseConfirmation();
+        hideResetAllDataConfirmation();
     }
 }
