@@ -33,11 +33,9 @@ const PLAYLIST = [
 export function initMusicSystem() {
     if (!MUSIC_ENABLED) return;
 
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    gainNode = audioContext.createGain();
-    gainNode.gain.value = MUSIC_VOLUME_GAMEPLAY;
-    gainNode.connect(audioContext.destination);
-
+    // Don't create AudioContext immediately - wait for user interaction
+    // This is required for Chromium-based browsers due to autoplay policies
+    
     if (MUSIC_SHUFFLE) shuffleArray(PLAYLIST);
     
     musicUI = document.getElementById('music-ui');
@@ -58,6 +56,28 @@ function stopProgressUpdates() {
         clearInterval(progressInterval);
         progressInterval = null;
     }
+}
+
+function initAudioContext() {
+    if (!audioContext) {
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            gainNode = audioContext.createGain();
+            gainNode.gain.value = MUSIC_VOLUME_GAMEPLAY;
+            gainNode.connect(audioContext.destination);
+        } catch (error) {
+            console.warn('Failed to create AudioContext:', error);
+            return false;
+        }
+    }
+
+    if (audioContext.state === 'suspended') {
+        audioContext.resume().catch((error) => {
+            console.warn('Failed to resume AudioContext:', error);
+        });
+    }
+    
+    return true;
 }
 
 function shuffleArray(array) {
@@ -129,20 +149,27 @@ function playCurrentTrack() {
     if (currentAudio) {
         currentAudio.pause();
     }
+
+    const audioContextReady = initAudioContext();
     
     currentAudio = new Audio(MUSIC_FOLDER + PLAYLIST[currentTrackIndex]);
     currentAudio.volume = 1.0;
 
-    if (audioContext) {
-        const source = audioContext.createMediaElementSource(currentAudio);
-        source.connect(gainNode);
+    if (audioContextReady && audioContext && gainNode) {
+        try {
+            const source = audioContext.createMediaElementSource(currentAudio);
+            source.connect(gainNode);
+        } catch (error) {
+            console.warn('Failed to connect audio to AudioContext:', error);
+        }
     }
 
     currentAudio.addEventListener('ended', () => {
         if (MUSIC_AUTO_NEXT) nextTrack();
     });
 
-    currentAudio.addEventListener('error', () => {
+    currentAudio.addEventListener('error', (error) => {
+        console.warn('Audio error:', error);
         if (MUSIC_AUTO_NEXT) nextTrack();
     });
 
@@ -158,14 +185,29 @@ function playCurrentTrack() {
         stopProgressUpdates();
     });
 
-    currentAudio.play().catch(() => {});
+    currentAudio.play().catch((error) => {
+        console.warn('Failed to play music:', error);
+    });
     updateMusicUI();
     showMusicUI();
 }
 
 export function startMusic() {
     if (!MUSIC_ENABLED || !PLAYLIST.length) return;
-    playCurrentTrack();
+
+    initAudioContext();
+
+    if (!isPlaying || !currentAudio) {
+        playCurrentTrack();
+    }
+}
+
+export function ensureMusicReady() {
+    if (!MUSIC_ENABLED) return;
+
+    if (hasUserInteracted) {
+        initAudioContext();
+    }
 }
 
 export function nextTrack() {
@@ -203,12 +245,16 @@ export function togglePlayPause() {
         playCurrentTrack();
         return;
     }
+
+    initAudioContext();
     
     if (isPlaying) {
         currentAudio.pause();
         isPlaying = false;
     } else {
-        currentAudio.play();
+        currentAudio.play().catch((error) => {
+            console.warn('Failed to play music:', error);
+        });
         isPlaying = true;
     }
 
@@ -312,13 +358,29 @@ document.addEventListener('keydown', (event) => {
 });
 
 let hasUserInteracted = false;
+
 function handleFirstInteraction() {
     if (!hasUserInteracted && MUSIC_ENABLED) {
         hasUserInteracted = true;
+
+        const audioContextReady = initAudioContext();
+
+        if (audioContextReady) {
+            console.log('Music system ready - AudioContext initialized');
+        }
+
+        if (MUSIC_AUTO_NEXT && !currentAudio && !isPlaying) {
+            setTimeout(() => {
+                startMusic();
+            }, 1000);
+        }
+        
         document.removeEventListener('click', handleFirstInteraction);
         document.removeEventListener('keydown', handleFirstInteraction);
+        document.removeEventListener('touchstart', handleFirstInteraction);
     }
 }
 
 document.addEventListener('click', handleFirstInteraction);
 document.addEventListener('keydown', handleFirstInteraction);
+document.addEventListener('touchstart', handleFirstInteraction);

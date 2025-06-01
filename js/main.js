@@ -20,7 +20,7 @@ import {
 
 import { setupLights, updateDayNightCycle } from './lights.js';
 import * as Achievements from './achievements.js';
-import { initMusicSystem, setIdleMode as setMusicIdleMode } from './music.js';
+import { initMusicSystem, setIdleMode as setMusicIdleMode, startMusic } from './music.js';
 import {
     initCars,
     loadCarModels,
@@ -706,6 +706,8 @@ function loadCarModelsAndSetupLevel() {
                     unpauseGame();
                 }
                 isLoading = false;
+
+                startMusic();
             }, 500);
         }, 800);
     }).catch(error => {
