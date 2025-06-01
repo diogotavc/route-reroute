@@ -1,7 +1,8 @@
 ### Fixes
 
-- [ ] initial level selection screen doesn't pause or dim/blur
-- [ ] level selection doesn't quit idle camera
+- [x] initial level selection screen doesn't pause or dim/blur
+- [x] level selection doesn't quit idle camera
+- [ ] initial level selection doesn't hide UI elements
 
 ### Features still yet to be added
 

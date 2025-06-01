@@ -818,6 +818,9 @@ export function showLevelSelectMenu() {
     document.body.appendChild(levelSelectOverlay);
 
     window.selectLevel = (levelIndex) => {
+        if (window.stopIdleCameraAnimation) {
+            window.stopIdleCameraAnimation();
+        }
         if (window.setCurrentLevel) {
             window.setCurrentLevel(levelIndex);
         }

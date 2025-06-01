@@ -486,6 +486,24 @@ function showInitialLevelSelection() {
 
     hasAskedForLevelSelection = true;
 
+    if (!isPaused) {
+        pauseGame(false);
+    }
+
+    const dimOverlay = document.createElement('div');
+    dimOverlay.id = 'initial-level-selection-dim';
+    dimOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+        z-index: 9999;
+    `;
+    document.body.appendChild(dimOverlay);
+
     const levelSelectOverlay = document.createElement('div');
     levelSelectOverlay.style.cssText = `
         position: fixed;
@@ -558,6 +576,7 @@ function showInitialLevelSelection() {
     window.selectInitialLevel = (levelIndex) => {
         currentLevelIndex = levelIndex;
         removeOverlay();
+        unpauseGame();
         loadCarModelsAndSetupLevel();
     };
 
@@ -568,6 +587,9 @@ function showInitialLevelSelection() {
             setTimeout(() => {
                 if (document.body.contains(levelSelectOverlay)) {
                     document.body.removeChild(levelSelectOverlay);
+                }
+                if (document.body.contains(dimOverlay)) {
+                    document.body.removeChild(dimOverlay);
                 }
                 delete window.selectInitialLevel;
             }, 300);
