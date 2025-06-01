@@ -428,6 +428,9 @@ let isLoading = false;
 let completedLevels = JSON.parse(localStorage.getItem('completedLevels') || '[]');
 let hasAskedForLevelSelection = false;
 let isInInitialLevelSelection = false;
+let isSandboxMode = false;
+
+window.isSandboxMode = false;
 
 let currentLevelTimer = 0;
 let isOnGrassPrevFrame = false;
@@ -528,6 +531,7 @@ window.getHighestCompletedLevel = getHighestCompletedLevel;
 window.setCurrentLevel = setCurrentLevel;
 window.unpauseGame = unpauseGame;
 window.levels = levels;
+window.showSandboxCarSelection = showSandboxCarSelection;
 
 function resetAllData() {
     completedLevels = [];
@@ -651,6 +655,9 @@ function safeUpdateLevelIndicatorWithMission() {
 
 function loadCarModelsAndSetupLevel() {
     if (isLoading) return;
+
+    isSandboxMode = false;
+    window.isSandboxMode = false;
 
     isLoading = true;
     const levelConfig = levels[currentLevelIndex];
@@ -1555,7 +1562,9 @@ function showSandboxCarSelection() {
 }
 
 function startSandboxMode(selectedCarModel) {
-    // Create a special sandbox level configuration
+    isSandboxMode = true;
+    window.isSandboxMode = true;
+
     const sandboxLevel = {
         name: "Sandbox Mode",
         missions: [
@@ -1573,36 +1582,30 @@ function startSandboxMode(selectedCarModel) {
         initialTimeOfDay: 0.25,
         timeIncrementPerMission: 0,
         timeSpeed: 0.002,
-        timer: null // No timer in sandbox mode
+        timer: null
     };
 
-    // Set up sandbox mode
-    currentLevelIndex = levels.length; // Use index beyond normal levels
+    currentLevelIndex = levels.length;
     currentLevelData = processLevelMissions(sandboxLevel.missions, sandboxLevel.map);
     currentMapDefinition = sandboxLevel.map;
-    
-    // Set time of day
+
     currentTimeOfDay = sandboxLevel.initialTimeOfDay;
     updateDayNightCycle(scene, currentTimeOfDay);
-    
-    // Reset timer variables
+
     currentLevelTimer = 0;
     missionStartTimer = 0;
     cumulativeRewindPenalty = 0;
     nextHintTime = 0;
     currentHint = null;
-    
-    // Show loading and start sandbox
+
     showLoadingOverlay("Sandbox Mode", `Loading ${selectedCarModel}...`);
-    
-    // Load the single car for sandbox mode
+
     loadCarModels(currentLevelData).then(() => {
         setTimeout(() => {
             hideLoadingOverlay();
             setTimeout(() => {
                 unpauseGame();
-                
-                // Update level indicator for sandbox mode
+
                 updateLevelIndicator("SANDBOX", {
                     missionIndex: 1,
                     totalMissions: 1,
@@ -1611,6 +1614,11 @@ function startSandboxMode(selectedCarModel) {
                     backstory: "Explore the city at your own pace!",
                     hasDestination: false
                 }, "Sandbox Mode");
+
+                const timerOverlay = document.getElementById('timer-overlay');
+                const levelIndicator = document.getElementById('level-indicator');
+                if (timerOverlay) timerOverlay.style.display = 'none';
+                if (levelIndicator) levelIndicator.style.display = 'none';
                 
                 startMusic();
             }, 500);

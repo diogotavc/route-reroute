@@ -285,7 +285,13 @@ export function updateHUD(speed, health) {
     const speedometer = document.getElementById('speedometer');
     const healthBar = document.getElementById('health-bar');
     const combinedHUD = document.getElementById('combined-hud');
-    
+
+    const isSandboxMode = window.isSandboxMode || false;
+
+    if (healthBar) {
+        healthBar.style.display = isSandboxMode ? 'none' : 'flex';
+    }
+
     if (speedometer) {
         const speedValue = speedometer.querySelector('.speed-value');
         if (speedValue) {
@@ -309,31 +315,37 @@ export function updateHUD(speed, health) {
     }
 
     if (healthBar) {
-        const healthFill = healthBar.querySelector('.health-bar-fill');
-        const healthText = healthBar.querySelector('.health-bar-text');
+        // Hide health bar during sandbox mode
+        healthBar.style.display = isSandboxMode ? 'none' : 'flex';
+        
+        // Only process health updates when not in sandbox mode
+        if (!isSandboxMode) {
+            const healthFill = healthBar.querySelector('.health-bar-fill');
+            const healthText = healthBar.querySelector('.health-bar-text');
 
-        if (healthFill && healthText) {
-            const healthPercentage = Math.max(0, Math.min(100, health));
-            healthFill.style.width = `${healthPercentage}%`;
-            healthText.textContent = `${Math.round(healthPercentage)}%`;
+            if (healthFill && healthText) {
+                const healthPercentage = Math.max(0, Math.min(100, health));
+                healthFill.style.width = `${healthPercentage}%`;
+                healthText.textContent = `${Math.round(healthPercentage)}%`;
 
-            if (healthPercentage > 60) {
-                healthFill.style.background = 'linear-gradient(90deg, #66bb6a, #4caf50, #43a047)';
-            } else if (healthPercentage > 30) {
-                healthFill.style.background = 'linear-gradient(90deg, #ffb74d, #ff9800, #f57c00)';
-            } else {
-                healthFill.style.background = 'linear-gradient(90deg, #ef5350, #f44336, #d32f2f)';
+                if (healthPercentage > 60) {
+                    healthFill.style.background = 'linear-gradient(90deg, #66bb6a, #4caf50, #43a047)';
+                } else if (healthPercentage > 30) {
+                    healthFill.style.background = 'linear-gradient(90deg, #ffb74d, #ff9800, #f57c00)';
+                } else {
+                    healthFill.style.background = 'linear-gradient(90deg, #ef5350, #f44336, #d32f2f)';
 
-                if (healthPercentage < 20) {
-                    if (combinedHUD) {
-                        combinedHUD.style.animation = 'pulse 1.5s infinite alternate';
+                    if (healthPercentage < 20) {
+                        if (combinedHUD) {
+                            combinedHUD.style.animation = 'pulse 1.5s infinite alternate';
+                        }
                     }
                 }
-            }
 
-            if (healthPercentage >= 20) {
-                if (combinedHUD) {
-                    combinedHUD.style.animation = 'none';
+                if (healthPercentage >= 20) {
+                    if (combinedHUD) {
+                        combinedHUD.style.animation = 'none';
+                    }
                 }
             }
         }
@@ -878,6 +890,31 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
             `;
         }
 
+        if (highestCompleted >= 0) {
+            levelSelectContent += `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                    <button onclick="enterSandboxMode()" style="
+                        display: block;
+                        width: 100%;
+                        margin: 15px 0;
+                        padding: 15px;
+                        background: linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.3));
+                        border: 2px solid rgba(76, 175, 80, 0.6);
+                        border-radius: 10px;
+                        color: white;
+                        cursor: pointer;
+                        font-family: inherit;
+                        font-size: 16px;
+                        font-weight: bold;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.4), rgba(129, 199, 132, 0.4))'"
+                       onmouseout="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.3))'">
+                        🎮 Enter Sandbox Mode
+                    </button>
+                </div>
+            `;
+        }
+
         levelSelectContent += `
             </div>
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center;">
@@ -1240,3 +1277,35 @@ export function clearActiveConfirmation() {
 export function isConfirmationVisible() {
     return pauseMenuState.isConfirmationVisible;
 }
+
+// Function to enter sandbox mode from level selection menus
+window.enterSandboxMode = function() {
+    // Remove any level selection overlays
+    const levelSelectOverlay = document.querySelector('[style*="translate(-50%, -50%)"]');
+    if (levelSelectOverlay && document.body.contains(levelSelectOverlay)) {
+        document.body.removeChild(levelSelectOverlay);
+    }
+    
+    const dimOverlay = document.getElementById('initial-level-selection-dim');
+    if (dimOverlay && document.body.contains(dimOverlay)) {
+        document.body.removeChild(dimOverlay);
+    }
+    
+    const timeoutDim = document.getElementById('timeout-level-select-dim');
+    if (timeoutDim && document.body.contains(timeoutDim)) {
+        document.body.removeChild(timeoutDim);
+    }
+    
+    // Clean up any global functions
+    delete window.selectLevel;
+    
+    // Clear initial level selection state if active
+    if (window.clearInitialLevelSelection) {
+        window.clearInitialLevelSelection();
+    }
+    
+    // Show sandbox car selection
+    if (window.showSandboxCarSelection) {
+        window.showSandboxCarSelection();
+    }
+};

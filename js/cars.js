@@ -193,6 +193,10 @@ export function cleanupAllCars() {
 }
 
 function updateCarHealth(deltaTime, collisionData) {
+    if (window.isSandboxMode) {
+        return;
+    }
+    
     if (collisionData.collisionDetected) {
         const currentTime = elapsedTime;
 
