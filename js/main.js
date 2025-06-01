@@ -368,28 +368,24 @@ let isLoading = false;
 let currentLevelTimer = 0;
 let isOnGrassPrevFrame = false;
 let nextHintTime = 0;
-let savedTimerState = null;
+let missionStartTimer = 0;
+let cumulativeRewindPenalty = 0;
 let currentHint = null;
 let hintEndTime = 0;
 let rewindGracePeriodEnd = 0;
 
 function applyTimerRewindPenalty() {
-    if (savedTimerState === null) {
-        savedTimerState = currentLevelTimer;
-    }
+    cumulativeRewindPenalty += TIMER_REWIND_PENALTY;
+    console.log(`Rewind penalty applied. Cumulative penalty: ${cumulativeRewindPenalty}s`);
 }
 
 function restoreTimerAfterRewind() {
-    if (savedTimerState !== null) {
-        currentLevelTimer = savedTimerState - TIMER_REWIND_PENALTY;
-        currentLevelTimer = Math.max(0, currentLevelTimer);
-        savedTimerState = null;
+    currentLevelTimer = Math.max(0, missionStartTimer - cumulativeRewindPenalty);
 
-        rewindGracePeriodEnd = Date.now() + TIMER_GRACE_PERIOD;
+    rewindGracePeriodEnd = Date.now() + TIMER_GRACE_PERIOD;
 
-        updateTimerDisplay(currentLevelTimer);
-        console.log(`Timer restored after rewind. New time: ${currentLevelTimer.toFixed(1)}s (penalty: ${TIMER_REWIND_PENALTY}s)`);
-    }
+    updateTimerDisplay(currentLevelTimer);
+    console.log(`Timer restored after rewind. Mission start: ${missionStartTimer}s, Cumulative penalty: ${cumulativeRewindPenalty}s, New time: ${currentLevelTimer.toFixed(1)}s`);
 }
 
 function getRandomHint() {
@@ -407,13 +403,23 @@ function applyTimerMissionBonus() {
     if (currentLevelConfig && currentLevelConfig.timer && currentLevelConfig.timer.missionTimeBonus > 0) {
         currentLevelTimer += currentLevelConfig.timer.missionTimeBonus;
 
+        missionStartTimer = currentLevelTimer;
+        cumulativeRewindPenalty = 0;
+        
         updateTimerDisplay(currentLevelTimer);
+        console.log(`Mission bonus applied: +${currentLevelConfig.timer.missionTimeBonus}s. New time: ${currentLevelTimer.toFixed(1)}s. New checkpoint: ${missionStartTimer}s`);
     }
+}
+
+function resetMissionTimer() {
+    cumulativeRewindPenalty = 0;
+    console.log('Mission timer reset for new level');
 }
 
 window.applyTimerRewindPenalty = applyTimerRewindPenalty;
 window.restoreTimerAfterRewind = restoreTimerAfterRewind;
 window.applyTimerMissionBonus = applyTimerMissionBonus;
+window.resetMissionTimer = resetMissionTimer;
 
 window.getCurrentLevelIndex = () => currentLevelIndex;
 
@@ -424,6 +430,8 @@ function advanceToNextLevel() {
 
     if (currentLevelIndex < levels.length - 1) {
         currentLevelIndex++;
+        resetMissionTimer();
+
         // MISSION COMPLETION / STARTING NEXT ONE LOGIC HERE
         updateLevelIndicatorWithMission();
         loadCarModelsAndSetupLevel();
@@ -475,8 +483,9 @@ function loadCarModelsAndSetupLevel() {
 
     if (levelConfig && levelConfig.timer) {
         currentLevelTimer = levelConfig.timer.totalTime;
+        missionStartTimer = currentLevelTimer;
+        cumulativeRewindPenalty = 0;
         nextHintTime = 0;
-        savedTimerState = null;
         currentHint = null;
         hintEndTime = 0;
         rewindGracePeriodEnd = 0;
