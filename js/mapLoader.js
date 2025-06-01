@@ -239,6 +239,64 @@ function createMapLayout(scene, mapDefinition) {
         });
     }
 
+    if (mapDefinition.randomObjectsLayout) {
+        mapDefinition.randomObjectsLayout.forEach((objectInfo) => {
+            if (objectInfo && objectInfo.length >= 7) {
+                const objectAssetName = objectInfo[0];
+                const rotationXDegrees = objectInfo[1];
+                const rotationYDegrees = objectInfo[2];
+                const rotationZDegrees = objectInfo[3];
+                const positionX = objectInfo[4];
+                const positionZ = objectInfo[5];
+                const scale = objectInfo[6];
+                const modelPath = mapDefinition.tileAssets[objectAssetName];
+
+                if (modelPath && loadedTileModels[modelPath]) {
+                    const originalModel = loadedTileModels[modelPath];
+                    const objectInstance = originalModel.clone();
+
+                    const objectScale = new THREE.Vector3(scale, scale, scale);
+                    objectInstance.scale.copy(objectScale);
+
+                    objectInstance.position.set(positionX, 0, positionZ);
+                    objectInstance.rotation.x = THREE.MathUtils.degToRad(rotationXDegrees);
+                    objectInstance.rotation.y = THREE.MathUtils.degToRad(rotationYDegrees);
+                    objectInstance.rotation.z = THREE.MathUtils.degToRad(rotationZDegrees);
+
+                    objectInstance.traverse(node => {
+                        if (node.isMesh) {
+                            node.castShadow = true;
+                            node.receiveShadow = true;
+                            if (node.material) {
+                                if (Array.isArray(node.material)) {
+                                    node.material.forEach(mat => {
+                                        mat.shadowSide = THREE.DoubleSide;
+                                    });
+                                } else {
+                                    node.material.shadowSide = THREE.DoubleSide;
+                                }
+                            }
+                        }
+                    });
+
+                    if (originalModel.userData.originalHalfExtents) {
+                        objectInstance.userData.halfExtents = originalModel.userData.originalHalfExtents.clone().multiply(objectScale);
+                    } else {
+                        const box = new THREE.Box3().setFromObject(objectInstance);
+                        objectInstance.userData.halfExtents = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);
+                    }
+
+                    objectInstance.userData.isCollidable = true;
+                    mapGroup.userData.collidableTiles.push(objectInstance);
+
+                    mapGroup.add(objectInstance);
+                } else {
+                    console.warn(`Model for random object '${objectAssetName}' not found or not loaded.`);
+                }
+            }
+        });
+    }
+
     scene.add(mapGroup);
 
     if (mapGroup.userData.streetLights.length > 0) {

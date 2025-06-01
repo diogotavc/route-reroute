@@ -38,6 +38,14 @@ export const mapData = {
         // Streetlights
         'streetlight_curved': 'assets/kenney_city-kit-roads/Models/light-curved.glb',
         'streetlight_square': 'assets/kenney_city-kit-roads/Models/light-square.glb',
+
+        // Random Objects
+        'cone': 'assets/kenney_car-kit/Models/cone.glb',
+        'cone_flat': 'assets/kenney_car-kit/Models/cone-flat.glb',
+        'box': 'assets/kenney_car-kit/Models/box.glb',
+        'debris_tire': 'assets/kenney_car-kit/Models/debris-tire.glb',
+        'debris_plate_a': 'assets/kenney_car-kit/Models/debris-plate-a.glb',
+        'debris_plate_b': 'assets/kenney_car-kit/Models/debris-plate-b.glb',
     },
     layout: [ // [ name, rotation]
         [null, null, null, null, null, null, null, null, null],
@@ -62,6 +70,25 @@ export const mapData = {
         [null, null, ['streetlight_curved', 0, 0.45, 0.45], null, null, null, null, null, null],
         [null, ['streetlight_curved', 270, -0.45, -0.45], null, null, ['streetlight_curved', 0, 0, 0.45], null, null, ['streetlight_square', 270, -0.45, 0], null],
         [null, null, null, null, null, null, null, null, null]
+    ],
+    randomObjectsLayout: [ // [ name, rotationX, rotationY, rotationZ, x_position, z_position, scale]
+        ['cone', 0, 45, 0, 0.3, 0.8, 1.0],
+        ['box', 0, 0, 0, 8.2, 1.5, 0.8],
+        ['cone_flat', 0, 90, 0, 3.1, 0.4, 1.2],
+        ['debris_tire', 90, 180, 0, 7.8, 5.2, 1.0],
+        ['cone', 0, 0, 0, 5.5, 2.1, 1.1],
+        ['debris_plate_a', 15, 45, 0, 0.7, 3.8, 0.9],
+        ['box', 0, 270, 20, 8.5, 6.7, 0.7],
+        ['cone_flat', 0, 180, 0, 2.8, 8.9, 1.0],
+        ['debris_plate_b', -10, 90, 0, 0.2, 5.9, 1.3],
+        ['cone', 0, 315, 0, 6.9, 0.3, 1.0],
+        ['debris_tire', 45, 0, 30, 4.7, 9.1, 0.8],
+        ['box', 0, 135, -15, 8.7, 3.4, 1.2],
+        ['cone_flat', 0, 270, 0, 1.1, 7.6, 1.1],
+        ['debris_plate_a', 20, 180, 10, 5.3, 8.5, 0.9],
+        ['cone', 0, 90, 0, 8.1, 8.8, 1.0],
+        ['debris_tire', -30, 45, 0, 1.5, 2.3, 0.9],
+        ['debris_tire', 60, 270, 45, 6.2, 7.8, 1.1]
     ],
     tileSize: TILE_SIZE,
     buildingScale: 0.7,
