@@ -24,6 +24,11 @@ export const GRASS_HEIGHT = -0.1;
 export const GRASS_COLOR = 0x4a7c59;
 export const GRASS_SPEED_SCALE = 0.5;
 
+export const GRASS_WOBBLE_ENABLED = true;
+export const GRASS_WOBBLE_INTENSITY = 0.01;
+export const GRASS_WOBBLE_SPEED = 8.0;
+export const GRASS_WOBBLE_DAMPING = 0.95; // How much wobble reduces when off grass
+
 export const RANDOM_OBJECT_SCALE_DIVISOR = 6;
 
 export const TARGET_REWIND_DURATION = 2.0;
@@ -215,3 +220,8 @@ export const ADAPTIVE_RESOLUTION = true;
 export const MIN_RESOLUTION_SCALE = 0.5;
 export const MAX_RESOLUTION_SCALE = 1.0;
 export const TARGET_FPS = 60;
+
+export const VOID_FALL_ENABLED = true;
+export const VOID_FALL_SPEED = 10.0;
+export const VOID_FALL_DEPTH = -10.0;
+export const VOID_REWIND_DELAY = 2.0;
