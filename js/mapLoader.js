@@ -242,14 +242,15 @@ function createMapLayout(scene, mapDefinition) {
 
     if (mapDefinition.randomObjectsLayout) {
         mapDefinition.randomObjectsLayout.forEach((objectInfo) => {
-            if (objectInfo && objectInfo.length >= 7) {
+            if (objectInfo && objectInfo.length >= 8) {
                 const objectAssetName = objectInfo[0];
                 const rotationXDegrees = objectInfo[1];
                 const rotationYDegrees = objectInfo[2];
                 const rotationZDegrees = objectInfo[3];
                 const positionX = objectInfo[4];
-                const positionZ = objectInfo[5];
-                const scale = objectInfo[6];
+                const positionY = objectInfo[5];
+                const positionZ = objectInfo[6];
+                const scale = objectInfo[7];
                 const modelPath = mapDefinition.tileAssets[objectAssetName];
 
                 if (modelPath && loadedTileModels[modelPath]) {
@@ -260,7 +261,7 @@ function createMapLayout(scene, mapDefinition) {
                     const objectScale = new THREE.Vector3(scaledSize, scaledSize, scaledSize);
                     objectInstance.scale.copy(objectScale);
 
-                    objectInstance.position.set(positionX * tileSize, 0, positionZ * tileSize);
+                    objectInstance.position.set(positionX * tileSize, positionY * tileSize, positionZ * tileSize);
                     objectInstance.rotation.x = THREE.MathUtils.degToRad(rotationXDegrees);
                     objectInstance.rotation.y = THREE.MathUtils.degToRad(rotationYDegrees);
                     objectInstance.rotation.z = THREE.MathUtils.degToRad(rotationZDegrees);
