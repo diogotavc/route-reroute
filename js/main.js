@@ -36,7 +36,7 @@ import {
     setOnMissionChangeCallback
 } from './cars.js';
 import { loadMap, getWorldCoordinates, isOnGrass } from './mapLoader.js';
-import { mapData as level1MapData } from './maps/level1_map.js';
+import { mapData as MapData } from './maps/map_1.js';
 import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, hideAllOverlaysDuringLoading, showAllOverlaysAfterLoading, createHUDElements, updateHUD, updateTimerDisplay, animateTimerBonus, animateTimerPenalty, animateTimerGrass, initializePauseMenu, updatePauseMenuSelection, navigatePauseMenu, activatePauseMenuItem, resetPauseMenuSelection, isInAchievementsSubmenu } from './interface.js';
 import {
     initCamera,
@@ -89,7 +89,7 @@ initCars(scene, camera, controls);
 
 let collidableMapElements = []; 
 
-loadMap(scene, level1MapData).then((mapGroup) => {
+loadMap(scene, MapData).then((mapGroup) => {
     if (mapGroup && mapGroup.userData && mapGroup.userData.collidableTiles) {
         collidableMapElements = mapGroup.userData.collidableTiles;
     }
@@ -308,7 +308,7 @@ const levels = [
     { 
         name: "Basic Tutorial",
         missions: exampleLevel1_Missions, 
-        map: level1MapData, 
+        map: MapData, 
         cameraStart: [0, 20, 30], 
         initialTimeOfDay: 0.3, 
         timeIncrementPerMission: 0.05,
@@ -321,7 +321,7 @@ const levels = [
     { 
         name: "Rush Hour",
         missions: exampleLevel2_Missions, 
-        map: level1MapData, 
+        map: MapData, 
         cameraStart: [0, 20, 30], 
         initialTimeOfDay: 0.45, 
         timeIncrementPerMission: 0.04,
@@ -334,7 +334,7 @@ const levels = [
     { 
         name: "Traffic Chaos",
         missions: exampleLevel3_Missions, 
-        map: level1MapData, 
+        map: MapData, 
         cameraStart: [0, 20, 30], 
         initialTimeOfDay: 0.6, 
         timeIncrementPerMission: 0.03,
@@ -347,7 +347,7 @@ const levels = [
     { 
         name: "Night Shift",
         missions: exampleLevel4_Missions, 
-        map: level1MapData, 
+        map: MapData, 
         cameraStart: [0, 20, 30], 
         initialTimeOfDay: 0.85, 
         timeIncrementPerMission: 0.02,
