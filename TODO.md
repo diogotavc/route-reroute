@@ -3,14 +3,13 @@
 - [ ] make sure initial level selection screen shows all available levels (merge that and the pause menu selection)
 - [ ] match styling between reset achievements and reset all data
 - [ ] if the user leaves the menu while inside the reset confirmation, clear it
+- [ ] make sure submenus in pause always go one level back (like with achievements)
 
 ### Features still yet to be added
 
-- [ ] add resolution scaler to config (performance is ass)
+- [x] add resolution scaler to config (performance is ass)
 - [ ] SFX (UI, crashes, car engines, other fx)
 - [ ] add vehicle specific lights and sounds (i.e. ambulance)
-- [x] play a different level (track which levels the user has completed and let him play those on demand), add a credits option, as well as manual (and/or only controls)
-- [x] if the user has played more than a level, ask before first loading, if they want to play level 1, or whatever level they're on
 
 ### Right before delivery
 

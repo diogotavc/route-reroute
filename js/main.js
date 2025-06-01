@@ -3,6 +3,11 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import {
     AUTO_PAUSE_ON_FOCUS_LOST, 
     RENDERER_PIXEL_RATIO,
+    RESOLUTION_SCALE,
+    ADAPTIVE_RESOLUTION,
+    MIN_RESOLUTION_SCALE,
+    MAX_RESOLUTION_SCALE,
+    TARGET_FPS,
     TIMER_REWIND_PENALTY,
     TIMER_GRASS_SPEED_MULTIPLIER,
     TIMER_HINTS_ENABLED,
@@ -58,7 +63,56 @@ const renderer = new THREE.WebGLRenderer({
     antialias: true,
     powerPreference: "high-performance"
 });
-renderer.setSize(window.innerWidth, window.innerHeight);
+
+let currentResolutionScale = RESOLUTION_SCALE;
+let frameCount = 0;
+let lastFPSCheck = 0;
+let recentFrameTimes = [];
+
+function applyResolutionScale(scale = currentResolutionScale) {
+    const scaledWidth = Math.floor(window.innerWidth * scale);
+    const scaledHeight = Math.floor(window.innerHeight * scale);
+    renderer.setSize(scaledWidth, scaledHeight, false);
+    renderer.domElement.style.width = window.innerWidth + 'px';
+    renderer.domElement.style.height = window.innerHeight + 'px';
+    currentResolutionScale = scale;
+}
+
+function updateAdaptiveResolution(deltaTime) {
+    if (!ADAPTIVE_RESOLUTION) return;
+
+    recentFrameTimes.push(deltaTime);
+    if (recentFrameTimes.length > 60) {
+        recentFrameTimes.shift();
+    }
+
+    frameCount++;
+    const now = performance.now();
+
+    if (now - lastFPSCheck >= 1000 && recentFrameTimes.length >= 30) {
+        const avgFrameTime = recentFrameTimes.reduce((a, b) => a + b) / recentFrameTimes.length;
+        const currentFPS = 1 / avgFrameTime;
+
+        if (currentFPS < TARGET_FPS * 0.9 && currentResolutionScale > MIN_RESOLUTION_SCALE) {
+            const newScale = Math.max(MIN_RESOLUTION_SCALE, currentResolutionScale - 0.1);
+            if (newScale !== currentResolutionScale) {
+                applyResolutionScale(newScale);
+                console.log(`Adaptive resolution: Reduced to ${(newScale * 100).toFixed(0)}% (FPS: ${currentFPS.toFixed(1)})`);
+            }
+        } else if (currentFPS > TARGET_FPS * 1.1 && currentResolutionScale < MAX_RESOLUTION_SCALE) {
+            const newScale = Math.min(MAX_RESOLUTION_SCALE, currentResolutionScale + 0.05);
+            if (newScale !== currentResolutionScale) {
+                applyResolutionScale(newScale);
+                console.log(`Adaptive resolution: Increased to ${(newScale * 100).toFixed(0)}% (FPS: ${currentFPS.toFixed(1)})`);
+            }
+        }
+        
+        lastFPSCheck = now;
+        recentFrameTimes = [];
+    }
+}
+
+applyResolutionScale();
 renderer.setPixelRatio(RENDERER_PIXEL_RATIO);
 renderer.setAnimationLoop(animate);
 renderer.setClearColor(0x212121);
@@ -885,6 +939,7 @@ function animate() {
 
     const rawDeltaTime = clock.getDelta();
 
+    updateAdaptiveResolution(rawDeltaTime);
     checkIdleTimeout();
 
     let scaledDeltaTime = rawDeltaTime;
@@ -1012,7 +1067,7 @@ function animate() {
 window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    applyResolutionScale();
 });
 
 function isMovementKey(key) {
