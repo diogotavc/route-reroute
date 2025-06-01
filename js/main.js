@@ -584,7 +584,12 @@ window.addEventListener("keydown", (event) => {
         case "ArrowDown": case "s": setBraking(true); break;
         case "ArrowLeft": case "a": setTurningLeft(true); break;
         case "ArrowRight": case "d": setTurningRight(true); break;
-        case "r": setRewinding(); break;        case "c": toggleCameraMode(); break;
+        case "r": 
+            if (!isLoading && !isRewinding) {
+                setRewinding(); 
+            }
+            break;
+        case "c": toggleCameraMode(); break;
         case "p": togglePause(true); break;
         case "n": 
             const nextCarResult = nextCar();
