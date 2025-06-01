@@ -1,8 +1,8 @@
 ### Fixes
 
-- [x] initial level selection screen doesn't pause or dim/blur
-- [x] level selection doesn't quit idle camera
-- [ ] initial level selection doesn't hide UI elements
+- [ ] make sure initial level selection screen shows all available levels (merge that and the pause menu selection)
+- [ ] match styling between reset achievements and reset all data
+- [ ] if the user leaves the menu while inside the reset confirmation, clear it
 
 ### Features still yet to be added
 

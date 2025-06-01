@@ -1023,23 +1023,10 @@ export function showAboutMenu() {
             </div>
         </div>
 
-        <div style="margin-bottom: 30px; text-align: left;">
-            <h3 style="color: #FF9800; margin-bottom: 15px; font-size: 20px; text-align: center;">👨‍💻 Development Team</h3>
-            <div style="text-align: center; line-height: 1.8;">
-                <p style="font-size: 18px; margin-bottom: 10px;"><strong>Game Design & Programming</strong></p>
-                <p style="color: #81C784; margin-bottom: 20px; font-size: 16px;">Diogo Carvalho - 113221</p>
-                
-                <p style="font-size: 16px; margin-bottom: 10px;"><strong>Special Thanks</strong></p>
-                <p style="color: #FFB74D; margin-bottom: 10px;">Three.js Community</p>
-                <p style="color: #FFB74D; margin-bottom: 10px;">Open Source Contributors</p>
-                <p style="color: #FFB74D;">Web Gaming Community</p>
-            </div>
-        </div>
-
         <div style="margin-bottom: 20px;">
-            <h3 style="color: #9C27B0; margin-bottom: 15px; font-size: 20px;">🌟 Version Info</h3>
-            <p style="color: #B39DDB; font-size: 16px;">Version 0.3.0-alpha</p>
-            <p style="color: #888; font-size: 14px;">Built with passion for gaming and innovation</p>
+            <h3 style="color: #9C27B0; margin-bottom: 15px; font-size: 20px;">🌟 Project Info</h3>
+            <p style="color: #B39DDB; font-size: 16px;">Version 0.2.0-alpha</p>
+            <p style="color: #888; font-size: 14px;">Built with passion by Diogo Carvalho (113221</p>
         </div>
         
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
