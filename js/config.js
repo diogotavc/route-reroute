@@ -22,7 +22,7 @@ export const DAY_CYCLE = {
 
 export const GRASS_HEIGHT = -0.1;
 export const GRASS_COLOR = 0x4a7c59;
-export const GRASS_SPEED_SCALE = 0.5;
+export const GRASS_SPEED_SCALE = 0.25;
 
 export const RANDOM_OBJECT_SCALE_DIVISOR = 6;
 
