@@ -1017,6 +1017,7 @@ window.addEventListener("keydown", (event) => {
                 activatePauseMenuItem();
                 return;
             case "Escape":
+            case "p":
                 event.preventDefault();
                 if (isConfirmationVisible()) {
                     clearActiveConfirmation();
