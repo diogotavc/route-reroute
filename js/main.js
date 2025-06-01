@@ -1216,7 +1216,7 @@ function showTimerTimeoutScreen() {
     });
 
     document.getElementById('select-level-timeout').addEventListener('click', () => {
-        document.body.removeChild(timeoutOverlay);
+        timeoutOverlay.style.display = 'none';
         setTimeout(() => {
             showLevelSelectMenu(false, true);
         }, 100);

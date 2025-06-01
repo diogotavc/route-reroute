@@ -739,7 +739,24 @@ export function isInAnySubmenu() {
 
 export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = false) {
     isShowingLevelSelect = true;
-    
+
+    let timeoutDimOverlay = null;
+    if (fromTimeout) {
+        timeoutDimOverlay = document.createElement('div');
+        timeoutDimOverlay.id = 'timeout-level-select-dim';
+        timeoutDimOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+        `;
+        document.body.appendChild(timeoutDimOverlay);
+    }
+
     const levelSelectOverlay = document.createElement('div');
     levelSelectOverlay.style.cssText = `
         position: fixed;
@@ -914,6 +931,16 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
                     const dimOverlay = document.getElementById('initial-level-selection-dim');
                     if (dimOverlay && document.body.contains(dimOverlay)) {
                         document.body.removeChild(dimOverlay);
+                    }
+                    delete window.selectLevel;
+                } else if (fromTimeout) {
+                    const timeoutDim = document.getElementById('timeout-level-select-dim');
+                    if (timeoutDim && document.body.contains(timeoutDim)) {
+                        document.body.removeChild(timeoutDim);
+                    }
+                    const timeoutOverlay = document.getElementById('timer-timeout-overlay');
+                    if (timeoutOverlay && document.body.contains(timeoutOverlay)) {
+                        document.body.removeChild(timeoutOverlay);
                     }
                     delete window.selectLevel;
                 } else {
