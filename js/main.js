@@ -42,7 +42,7 @@ import {
 } from './cars.js';
 import { loadMap, getWorldCoordinates, isOnGrass } from './mapLoader.js';
 import { mapData as MapData } from './maps/map_1.js';
-import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, hideAllOverlaysDuringLoading, showAllOverlaysAfterLoading, createHUDElements, updateHUD, updateTimerDisplay, animateTimerBonus, animateTimerPenalty, animateTimerGrass, initializePauseMenu, updatePauseMenuSelection, navigatePauseMenu, activatePauseMenuItem, resetPauseMenuSelection, isInAchievementsSubmenu, clearActiveConfirmation, showLevelSelectMenu } from './interface.js';
+import { createOverlayElements, createAchievementNotification, animateAchievementNotification, updateLevelIndicator, showLoadingOverlay, hideLoadingOverlay, hideAllOverlaysDuringLoading, showAllOverlaysAfterLoading, createHUDElements, updateHUD, updateTimerDisplay, animateTimerBonus, animateTimerPenalty, animateTimerGrass, initializePauseMenu, updatePauseMenuSelection, navigatePauseMenu, activatePauseMenuItem, resetPauseMenuSelection, isInAnySubmenu, clearActiveConfirmation, showLevelSelectMenu } from './interface.js';
 import {
     initCamera,
     setCameraPaused,
@@ -964,7 +964,7 @@ function isMovementKey(key) {
 }
 
 window.addEventListener("keydown", (event) => {
-    if (isInAchievementsSubmenu()) {
+    if (isInAnySubmenu()) {
         return;
     }
 
@@ -987,8 +987,11 @@ window.addEventListener("keydown", (event) => {
                 return;
             case "Escape":
                 event.preventDefault();
-                clearActiveConfirmation();
-                unpauseGame();
+                if (pauseMenuState.isConfirmationVisible) {
+                    clearActiveConfirmation();
+                } else {
+                    unpauseGame();
+                }
                 return;
         }
         return;
@@ -1027,7 +1030,7 @@ window.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("keyup", (event) => {
-    if (isInAchievementsSubmenu()) {
+    if (isInAnySubmenu()) {
         return;
     }
 

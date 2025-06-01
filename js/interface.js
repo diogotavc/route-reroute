@@ -549,6 +549,9 @@ export function confirmResetAchievements() {
 }
 
 let isShowingAchievements = false;
+let isShowingManual = false;
+let isShowingAbout = false;
+let isShowingLevelSelect = false;
 
 export function showAchievementsMenu() {
     isShowingAchievements = true;
@@ -730,7 +733,13 @@ export function isInAchievementsSubmenu() {
     return isShowingAchievements;
 }
 
+export function isInAnySubmenu() {
+    return isShowingAchievements || isShowingManual || isShowingAbout || isShowingLevelSelect;
+}
+
 export function showLevelSelectMenu(isInitialSelection = false) {
+    isShowingLevelSelect = true;
+    
     const levelSelectOverlay = document.createElement('div');
     levelSelectOverlay.style.cssText = `
         position: fixed;
@@ -916,6 +925,7 @@ export function showLevelSelectMenu(isInitialSelection = false) {
                 } else {
                     delete window.selectLevel;
                 }
+                isShowingLevelSelect = false;
             }, 300);
             document.removeEventListener('keydown', keyHandler);
         }
@@ -941,6 +951,8 @@ export function showLevelSelectMenu(isInitialSelection = false) {
 }
 
 export function showManualMenu() {
+    isShowingManual = true;
+    
     const manualOverlay = document.createElement('div');
     manualOverlay.style.cssText = `
         position: fixed;
@@ -1034,6 +1046,7 @@ export function showManualMenu() {
                 if (document.body.contains(manualOverlay)) {
                     document.body.removeChild(manualOverlay);
                 }
+                isShowingManual = false;
             }, 300);
             document.removeEventListener('keydown', keyHandler);
         }
@@ -1059,6 +1072,8 @@ export function showManualMenu() {
 }
 
 export function showAboutMenu() {
+    isShowingAbout = true;
+    
     const aboutOverlay = document.createElement('div');
     aboutOverlay.style.cssText = `
         position: fixed;
@@ -1134,6 +1149,7 @@ export function showAboutMenu() {
                 if (document.body.contains(aboutOverlay)) {
                     document.body.removeChild(aboutOverlay);
                 }
+                isShowingAbout = false;
             }, 300);
             document.removeEventListener('keydown', keyHandler);
         }
