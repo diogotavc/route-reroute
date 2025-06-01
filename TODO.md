@@ -5,7 +5,7 @@
 
 - [ ] SFX (UI, crashes, car engines, other fx)
 - [ ] add vehicle specific lights and sounds (i.e. ambulance)
-- [ ] make car wobble from the grass, and fall (and rewind) from the void
+- [x] make car wobble from the grass, and fall (and rewind) from the void
 
 ### Right before delivery
 

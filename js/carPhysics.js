@@ -6,11 +6,9 @@ import {
     GRASS_WOBBLE_ENABLED,
     GRASS_WOBBLE_INTENSITY,
     GRASS_WOBBLE_SPEED,
-    GRASS_WOBBLE_DAMPING,
     VOID_FALL_ENABLED,
     VOID_FALL_SPEED,
     VOID_FALL_DEPTH,
-    VOID_REWIND_DELAY,
     MAX_SPEED,
     ACCELERATION_RATE,
     BRAKING_RATE,
@@ -30,8 +28,7 @@ let separationVector = new THREE.Vector3();
 let grassWobbleTime = 0;
 let currentWobbleIntensity = 0;
 let isCarFalling = false;
-let fallStartTime = 0;
-let originalCarRotation = new THREE.Quaternion();
+let baseRotation = new THREE.Quaternion();
 
 const satBoxA = { center: new THREE.Vector3(), halfExtents: new THREE.Vector3(), axes: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()] };
 const satBoxB = { center: new THREE.Vector3(), halfExtents: new THREE.Vector3(), axes: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()] };
@@ -141,13 +138,14 @@ export function resetCarPhysicsEffects() {
     grassWobbleTime = 0;
     currentWobbleIntensity = 0;
     isCarFalling = false;
-    fallStartTime = 0;
-    originalCarRotation.identity();
+    baseRotation.identity();
 }
 
 export function updatePhysics(activeCar, physicsState, inputState, deltaTime, otherCars, collidableMapTiles = [], mapDefinition = null, missionPhysics = null) {
     let { speed, acceleration, steeringAngle } = physicsState;
     const { isAccelerating, isBraking, isTurningLeft, isTurningRight } = inputState;
+
+    activeCar.quaternion.copy(baseRotation);
 
     const physics = missionPhysics || {
         maxSpeed: MAX_SPEED,
@@ -202,7 +200,8 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
     if (Math.abs(speed) > 0.01) {
         const rotationAmount = steeringAngle * deltaTime * Math.sign(speed);
         const deltaRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAmount);
-        activeCar.quaternion.multiplyQuaternions(deltaRotation, activeCar.quaternion);
+        baseRotation.multiplyQuaternions(deltaRotation, baseRotation);
+        activeCar.quaternion.copy(baseRotation);
         activeCar.updateMatrixWorld();
 
         if (speed < 0) {
@@ -321,14 +320,11 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
         if (VOID_FALL_ENABLED && isOutOfBounds) {
             if (!isCarFalling) {
                 isCarFalling = true;
-                fallStartTime = 0;
             }
-
-            fallStartTime += deltaTime;
 
             activeCar.position.y -= VOID_FALL_SPEED * deltaTime;
 
-            if (activeCar.position.y <= VOID_FALL_DEPTH || fallStartTime >= VOID_REWIND_DELAY) {
+            if (activeCar.position.y <= VOID_FALL_DEPTH) {
                 if (typeof window.setRewinding === 'function') {
                     window.setRewinding();
                 } else {
@@ -367,11 +363,8 @@ export function updatePhysics(activeCar, physicsState, inputState, deltaTime, ot
                     position: { x: activeCar.position.x, y: activeCar.position.y, z: activeCar.position.z }
                 });
             } else {
-                currentWobbleIntensity *= GRASS_WOBBLE_DAMPING;
-                if (currentWobbleIntensity < 0.01) {
-                    currentWobbleIntensity = 0;
-                    grassWobbleTime = 0;
-                }
+                currentWobbleIntensity = 0;
+                grassWobbleTime = 0;
             }
         }
     }
