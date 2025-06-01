@@ -156,9 +156,7 @@ loadMap(scene, MapData).then((mapGroup) => {
 
     hideAllOverlaysDuringLoading();
     
-    if (!showInitialLevelSelection()) {
-        loadCarModelsAndSetupLevel();
-    }
+    requestAnimationFrame(animate);
 }).catch(error => {
     console.error("Failed to load map in main.js:", error);
 });
@@ -1073,4 +1071,6 @@ window.getCurrentTimeOfDay = () => {
 
 window.stopIdleCameraAnimation = stopIdleCameraAnimation;
 
-showInitialLevelSelection();
+if (!showInitialLevelSelection()) {
+    loadCarModelsAndSetupLevel();
+}

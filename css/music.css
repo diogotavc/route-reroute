@@ -13,7 +13,7 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(8px);
-    z-index: 1600;
+    z-index: 5000;
 
     opacity: 0;
     transform: translateY(20px);

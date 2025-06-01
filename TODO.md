@@ -1,7 +1,7 @@
 ### Fixes
 
-- [ ] broken initial selection screen (loads level 1 regardless, but with broken logic if other levels are selected)
-- [ ] make text scroll if it doesn't fit (Music UI)
+- [x] broken initial selection screen (loads level 1 regardless, but with broken logic if other levels are selected)
+- [x] make Music UI wider and fix its z-index relative to rewind
 
 ### Features still yet to be added
 
@@ -13,8 +13,8 @@
 
 - [ ] check for unused variables and bad imports
 - [ ] look over the configs before prod
-- [ ] remove debug / check for console.*
-- [x] add more music
+- [ ] remove debug / check for console.* (including 'n' key)
+- [ ] add last level finishing logic
 
 ### maybe?
 
