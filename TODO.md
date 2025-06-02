@@ -1,6 +1,12 @@
 ### Fixes
 
 - [ ] complete the third level before 0.4-alpha (which will be good enough for delivery)
+- [ ] fix control flow
+- [ ] fix UI when exiting sandbox mode and entering a regular level
+- [ ] fix missing UI if level is invoked at the initial level selection screen (sometimes?)
+- [ ] prevent esc on the initial level selection screen
+- [ ] add a localstorage graphics preset system (prompts if there's no graphics save in localstorage, before loading anything)
+- [ ] make sure music/audio context only starts after the levels prompt
 
 ### Features still yet to be added
 
