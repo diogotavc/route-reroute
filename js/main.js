@@ -1676,11 +1676,9 @@ function startSandboxMode(selectedCarModel) {
     updateDayNightCycle(scene, currentTimeOfDay);
 
     Achievements.initDayNightTracking(currentTimeOfDay);
-    
-    // Reset achievement tracking for sandbox mode
+
     Achievements.onLevelReset();
 
-    // Reset timer variables for sandbox mode
     currentLevelTimer = 0;
     missionStartTimer = 0;
     cumulativeRewindPenalty = 0;
@@ -1689,7 +1687,6 @@ function startSandboxMode(selectedCarModel) {
     hintEndTime = 0;
     rewindGracePeriodEnd = 0;
 
-    // Set camera position
     if (sandboxLevel.cameraStart) {
         camera.position.set(...sandboxLevel.cameraStart);
     } else if (sandboxLevel.map.startPoints && sandboxLevel.map.startPoints.playerSpawn) {
@@ -1720,7 +1717,6 @@ function startSandboxMode(selectedCarModel) {
                     hasDestination: false
                 }, "Sandbox Mode");
 
-                // Hide timer and level indicator, show combined HUD for sandbox mode
                 const timerOverlay = document.getElementById('timer-overlay');
                 const levelIndicator = document.getElementById('level-indicator');
                 const healthBar = document.getElementById('health-bar');
@@ -1737,12 +1733,9 @@ function startSandboxMode(selectedCarModel) {
     }).catch(error => {
         console.error("Failed to load sandbox mode:", error);
         hideLoadingOverlay();
-
-        if (!wasAlreadyPaused && isPaused) {
-            unpauseGame();
-        }
         isLoading = false;
     });
+    unpauseGame();
 }
 
 function proceedToNextLevel() {
