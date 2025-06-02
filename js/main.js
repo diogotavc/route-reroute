@@ -1613,8 +1613,11 @@ function showSandboxCarSelection() {
 }
 
 function startSandboxMode(selectedCarModel) {
+    if (isLoading) return;
+
     isSandboxMode = true;
     window.isSandboxMode = true;
+    isLoading = true;
 
     const gameCompletionDim = document.getElementById('game-completion-level-select-dim');
     if (gameCompletionDim && document.body.contains(gameCompletionDim)) {
@@ -1622,6 +1625,13 @@ function startSandboxMode(selectedCarModel) {
     }
 
     delete window.sandboxAccessContext;
+
+    showLoadingOverlay("Sandbox Mode", `Preparing ${selectedCarModel} and setting up environment...`);
+
+    const wasAlreadyPaused = isPaused;
+    if (!isPaused) {
+        pauseGame(false);
+    }
 
     const sandboxConfig = window.sandboxConfig || {
         timeOfDay: 0.25,
@@ -1665,19 +1675,41 @@ function startSandboxMode(selectedCarModel) {
     currentTimeOfDay = sandboxLevel.initialTimeOfDay;
     updateDayNightCycle(scene, currentTimeOfDay);
 
+    Achievements.initDayNightTracking(currentTimeOfDay);
+    
+    // Reset achievement tracking for sandbox mode
+    Achievements.onLevelReset();
+
+    // Reset timer variables for sandbox mode
     currentLevelTimer = 0;
     missionStartTimer = 0;
     cumulativeRewindPenalty = 0;
     nextHintTime = 0;
     currentHint = null;
+    hintEndTime = 0;
+    rewindGracePeriodEnd = 0;
 
-    showLoadingOverlay("Sandbox Mode", `Loading ${selectedCarModel}...`);
+    // Set camera position
+    if (sandboxLevel.cameraStart) {
+        camera.position.set(...sandboxLevel.cameraStart);
+    } else if (sandboxLevel.map.startPoints && sandboxLevel.map.startPoints.playerSpawn) {
+        const spawnWorldPos = getWorldCoordinates(sandboxLevel.map.startPoints.playerSpawn.x, sandboxLevel.map.startPoints.playerSpawn.z, sandboxLevel.map);
+        camera.position.set(spawnWorldPos.x, 20, spawnWorldPos.z + 15);
+        controls.target.set(spawnWorldPos.x, 0, spawnWorldPos.z);
+    } else {
+        camera.position.set(0, 20, 30);
+    }
+    controls.update();
 
     loadCarModels(currentLevelData).then(() => {
         setTimeout(() => {
             hideLoadingOverlay();
+
             setTimeout(() => {
-                unpauseGame();
+                if (!wasAlreadyPaused && isPaused) {
+                    unpauseGame();
+                }
+                isLoading = false;
 
                 updateLevelIndicator("SANDBOX", {
                     missionIndex: 1,
@@ -1688,12 +1720,15 @@ function startSandboxMode(selectedCarModel) {
                     hasDestination: false
                 }, "Sandbox Mode");
 
+                // Hide timer and level indicator, show combined HUD for sandbox mode
                 const timerOverlay = document.getElementById('timer-overlay');
                 const levelIndicator = document.getElementById('level-indicator');
+                const healthBar = document.getElementById('health-bar');
+                const combinedHUD = document.getElementById('combined-hud');
+
                 if (timerOverlay) timerOverlay.style.display = 'none';
                 if (levelIndicator) levelIndicator.style.display = 'none';
-
-                const combinedHUD = document.getElementById('combined-hud');
+                if (healthBar) healthBar.style.display = 'flex';
                 if (combinedHUD) combinedHUD.style.display = 'block';
                 
                 startMusic();
@@ -1702,7 +1737,11 @@ function startSandboxMode(selectedCarModel) {
     }).catch(error => {
         console.error("Failed to load sandbox mode:", error);
         hideLoadingOverlay();
-        unpauseGame();
+
+        if (!wasAlreadyPaused && isPaused) {
+            unpauseGame();
+        }
+        isLoading = false;
     });
 }
 
