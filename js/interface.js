@@ -1438,7 +1438,7 @@ function showSandboxConfigurationMenu() {
                 <div style="display: flex; justify-content: space-between; font-size: 12px; color: #B0BEC5; margin-top: 5px;">
                     <span>Frozen</span>
                     <span>Normal</span>
-                    <span>Fast</span>
+                    <span>Very Fast</span>
                 </div>
             </div>
 
@@ -1607,10 +1607,11 @@ function showSandboxConfigurationMenu() {
         const speedValue = value / 100;
         let speedLabel;
         if (speedValue === 0) speedLabel = 'Frozen';
-        else if (speedValue < 0.25) speedLabel = 'Very Slow';
-        else if (speedValue < 0.5) speedLabel = 'Slow';
-        else if (speedValue < 0.75) speedLabel = 'Normal';
-        else speedLabel = 'Fast';
+        else if (speedValue < 0.1) speedLabel = 'Very Slow';
+        else if (speedValue < 0.25) speedLabel = 'Slow';
+        else if (speedValue < 0.5) speedLabel = 'Normal';
+        else if (speedValue < 0.75) speedLabel = 'Fast';
+        else speedLabel = 'Very Fast';
         timeSpeedDisplay.textContent = speedLabel;
     }
 
@@ -1676,7 +1677,7 @@ function showSandboxConfigurationMenu() {
 
     document.getElementById('sandbox-config-continue').addEventListener('click', () => {
         const timeOfDay = timeOfDaySlider.value / 100;
-        const timeSpeed = (timeSpeedSlider.value / 100) * 0.02; // Scale to reasonable time speed
+        const timeSpeed = (timeSpeedSlider.value / 100) * 0.2; // Scale to much higher time speed (10x faster)
 
         const carPhysics = {
             maxSpeed: parseInt(maxSpeedSlider.value),

@@ -1669,6 +1669,7 @@ function startSandboxMode(selectedCarModel) {
     };
 
     currentLevelIndex = levels.length;
+    levels.push(sandboxLevel);
     currentLevelData = processLevelMissions(sandboxLevel.missions, sandboxLevel.map);
     currentMapDefinition = sandboxLevel.map;
 
