@@ -723,6 +723,14 @@ function loadCarModelsAndSetupLevel() {
                 }
                 isLoading = false;
 
+                const timerOverlay = document.getElementById('timer-overlay');
+                const levelIndicator = document.getElementById('level-indicator');
+                const healthBar = document.getElementById('health-bar');
+
+                if (timerOverlay) timerOverlay.style.display = '';
+                if (levelIndicator) levelIndicator.style.display = '';
+                if (healthBar) healthBar.style.display = 'flex';
+
                 startMusic();
             }, 500);
         }, 800);
