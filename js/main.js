@@ -62,7 +62,7 @@ const renderer = new THREE.WebGLRenderer({
 
 function loadResolutionScale() {
     try {
-        const saved = localStorage.getItem('route-reroute-resolution-scale');
+        const saved = localStorage.getItem('route_reroute_resolution_scale');
         if (saved !== null) {
             const scale = parseFloat(saved);
             if (!isNaN(scale) && scale > 0 && scale <= 2) {
@@ -77,7 +77,7 @@ function loadResolutionScale() {
 
 function saveResolutionScale(scale) {
     try {
-        localStorage.setItem('route-reroute-resolution-scale', scale.toString());
+        localStorage.setItem('route_reroute_resolution_scale', scale.toString());
     } catch (error) {
         console.warn('Failed to save resolution scale to localStorage:', error);
     }
@@ -419,7 +419,7 @@ let currentTimeOfDay = 0.25;
 let currentMapDefinition = null;
 let isLoading = false;
 
-let completedLevels = JSON.parse(localStorage.getItem('completedLevels') || '[]');
+let completedLevels = JSON.parse(localStorage.getItem('route_reroute_completed_levels') || '[]');
 let hasAskedForLevelSelection = false;
 let isInInitialLevelSelection = false;
 let isSandboxMode = false;
@@ -509,7 +509,7 @@ window.getCurrentLevelIndex = () => currentLevelIndex;
 function markLevelCompleted(levelIndex) {
     if (!completedLevels.includes(levelIndex)) {
         completedLevels.push(levelIndex);
-        localStorage.setItem('completedLevels', JSON.stringify(completedLevels));
+        localStorage.setItem('route_reroute_completed_levels', JSON.stringify(completedLevels));
     }
 }
 
@@ -538,7 +538,8 @@ window.showSandboxCarSelection = showSandboxCarSelection;
 
 function resetAllData() {
     completedLevels = [];
-    localStorage.removeItem('completedLevels');
+    localStorage.removeItem('route_reroute_completed_levels');
+    localStorage.removeItem('route_reroute_resolution_scale');
 
     currentLevelIndex = 0;
     hasAskedForLevelSelection = false;
