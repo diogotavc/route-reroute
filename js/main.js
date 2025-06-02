@@ -726,10 +726,12 @@ function loadCarModelsAndSetupLevel() {
                 const timerOverlay = document.getElementById('timer-overlay');
                 const levelIndicator = document.getElementById('level-indicator');
                 const healthBar = document.getElementById('health-bar');
+                const combinedHUD = document.getElementById('combined-hud');
 
                 if (timerOverlay) timerOverlay.style.display = '';
                 if (levelIndicator) levelIndicator.style.display = '';
                 if (healthBar) healthBar.style.display = 'flex';
+                if (combinedHUD) combinedHUD.style.display = '';
 
                 startMusic();
             }, 500);

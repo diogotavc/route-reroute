@@ -1349,6 +1349,9 @@ window.enterSandboxMode = function() {
         window.sandboxAccessContext = 'game-completion-level-selection';
     } else if (window.isInInitialLevelSelection && window.isInInitialLevelSelection()) {
         window.sandboxAccessContext = 'initial-level-selection';
+        if (window.clearInitialLevelSelection) {
+            window.clearInitialLevelSelection();
+        }
     } else {
         window.sandboxAccessContext = 'level-selection';
     }
