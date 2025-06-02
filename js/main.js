@@ -60,15 +60,51 @@ const renderer = new THREE.WebGLRenderer({
     powerPreference: "high-performance"
 });
 
-function applyResolutionScale(scale = RESOLUTION_SCALE) {
+function loadResolutionScale() {
+    try {
+        const saved = localStorage.getItem('route-reroute-resolution-scale');
+        if (saved !== null) {
+            const scale = parseFloat(saved);
+            if (!isNaN(scale) && scale > 0 && scale <= 2) {
+                return scale;
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to load resolution scale from localStorage:', error);
+    }
+    return RESOLUTION_SCALE;
+}
+
+function saveResolutionScale(scale) {
+    try {
+        localStorage.setItem('route-reroute-resolution-scale', scale.toString());
+    } catch (error) {
+        console.warn('Failed to save resolution scale to localStorage:', error);
+    }
+}
+
+function applyResolutionScale(scale) {
+    if (scale === undefined) {
+        scale = loadResolutionScale();
+    }
+
     const scaledWidth = Math.floor(window.innerWidth * scale);
     const scaledHeight = Math.floor(window.innerHeight * scale);
     renderer.setSize(scaledWidth, scaledHeight, false);
     renderer.domElement.style.width = window.innerWidth + 'px';
     renderer.domElement.style.height = window.innerHeight + 'px';
+
+    saveResolutionScale(scale);
+
+    console.log(`Resolution scale set to ${(scale * 100).toFixed(1)}% (${scaledWidth}x${scaledHeight})`);
 }
 
 window.applyResolutionScale = applyResolutionScale;
+window.getCurrentResolutionScale = () => loadResolutionScale();
+window.resetResolutionScale = () => {
+    applyResolutionScale(RESOLUTION_SCALE);
+    console.log(`Resolution scale reset to default: ${(RESOLUTION_SCALE * 100).toFixed(1)}%`);
+};
 
 applyResolutionScale();
 renderer.setPixelRatio(RENDERER_PIXEL_RATIO);
