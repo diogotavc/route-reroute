@@ -1,35 +1,35 @@
 export const GRAPHICS_PRESETS = {
     POTATO: {
         ANTIALIAS: false,
-        SHADOW_MAP_SIZE: 1024,
-        HEADLIGHT_SHADOW_MAP_SIZE: 512,
-        STREETLIGHT_SHADOW_MAP_SIZE: 256,
+        SHADOW_MAP_SIZE: 512,
+        HEADLIGHT_SHADOW_MAP_SIZE: 256,
+        STREETLIGHT_SHADOW_MAP_SIZE: 128,
         ENABLE_STREETLIGHT_SHADOWS: false,
-        SHADOW_CAMERA_NEAR: 10,
-        SHADOW_CAMERA_FAR: 300,
-        SHADOW_BIAS: -0.0005,
-        SHADOW_NORMAL_BIAS: 0.1,
-        MAX_LIGHTS_PER_SCENE: 6,
-        RENDERER_PIXEL_RATIO: Math.min(window.devicePixelRatio, 2),
+        SHADOW_CAMERA_NEAR: 15,
+        SHADOW_CAMERA_FAR: 200,
+        SHADOW_BIAS: -0.001,
+        SHADOW_NORMAL_BIAS: 0.2,
+        MAX_LIGHTS_PER_SCENE: 4,
+        RENDERER_PIXEL_RATIO: Math.min(window.devicePixelRatio, 1),
         ENABLE_FRUSTUM_CULLING: true,
-        LOD_DISTANCE_THRESHOLD: 50,
+        LOD_DISTANCE_THRESHOLD: 30,
         RESOLUTION_SCALE: 0.5
     },
     LOW: {
-        ANTIALIAS: true,
+        ANTIALIAS: false,
         SHADOW_MAP_SIZE: 1024,
         HEADLIGHT_SHADOW_MAP_SIZE: 512,
         STREETLIGHT_SHADOW_MAP_SIZE: 256,
         ENABLE_STREETLIGHT_SHADOWS: false,
         SHADOW_CAMERA_NEAR: 10,
-        SHADOW_CAMERA_FAR: 300,
+        SHADOW_CAMERA_FAR: 250,
         SHADOW_BIAS: -0.0005,
-        SHADOW_NORMAL_BIAS: 0.1,
-        MAX_LIGHTS_PER_SCENE: 8,
-        RENDERER_PIXEL_RATIO: Math.min(window.devicePixelRatio, 2),
+        SHADOW_NORMAL_BIAS: 0.15,
+        MAX_LIGHTS_PER_SCENE: 6,
+        RENDERER_PIXEL_RATIO: Math.min(window.devicePixelRatio, 1.5),
         ENABLE_FRUSTUM_CULLING: true,
-        LOD_DISTANCE_THRESHOLD: 50,
-        RESOLUTION_SCALE: 0.75
+        LOD_DISTANCE_THRESHOLD: 40,
+        RESOLUTION_SCALE: 0.65
     },
     MEDIUM: {
         ANTIALIAS: true,
@@ -49,23 +49,23 @@ export const GRAPHICS_PRESETS = {
     },
     HIGH: {
         ANTIALIAS: true,
-        SHADOW_MAP_SIZE: 2048,
-        HEADLIGHT_SHADOW_MAP_SIZE: 1024,
-        STREETLIGHT_SHADOW_MAP_SIZE: 512,
+        SHADOW_MAP_SIZE: 4096,
+        HEADLIGHT_SHADOW_MAP_SIZE: 2048,
+        STREETLIGHT_SHADOW_MAP_SIZE: 1024,
         ENABLE_STREETLIGHT_SHADOWS: true,
-        SHADOW_CAMERA_NEAR: 10,
-        SHADOW_CAMERA_FAR: 300,
-        SHADOW_BIAS: -0.0005,
-        SHADOW_NORMAL_BIAS: 0.1,
-        MAX_LIGHTS_PER_SCENE: 12,
+        SHADOW_CAMERA_NEAR: 5,
+        SHADOW_CAMERA_FAR: 400,
+        SHADOW_BIAS: -0.0003,
+        SHADOW_NORMAL_BIAS: 0.05,
+        MAX_LIGHTS_PER_SCENE: 16,
         RENDERER_PIXEL_RATIO: Math.min(window.devicePixelRatio, 2),
-        ENABLE_FRUSTUM_CULLING: true,
-        LOD_DISTANCE_THRESHOLD: 50,
+        ENABLE_FRUSTUM_CULLING: false,
+        LOD_DISTANCE_THRESHOLD: 75,
         RESOLUTION_SCALE: 1.0
     }
 };
 
-const DEFAULT_GRAPHICS_PRESET = 'LOW';
+const DEFAULT_GRAPHICS_PRESET = 'MEDIUM';
 
 function loadGraphicsPreset() {
     try {
