@@ -86,9 +86,13 @@ applyResolutionScale();
 renderer.setPixelRatio(graphicsSettings.RENDERER_PIXEL_RATIO);
 renderer.setAnimationLoop(animate);
 renderer.setClearColor(0x212121);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFShadowMap;
-renderer.shadowMap.autoUpdate = true;
+
+renderer.shadowMap.enabled = graphicsSettings.ENABLE_SHADOWS;
+if (renderer.shadowMap.enabled) {
+    renderer.shadowMap.type = THREE.PCFShadowMap;
+    renderer.shadowMap.autoUpdate = true;
+}
+
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 renderer.outputColorSpace = THREE.SRGBColorSpace;

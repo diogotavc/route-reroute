@@ -31,21 +31,25 @@ export function setupLights(scene) {
     scene.add(ambientLight);
     directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
     directionalLight.position.set(50, 50, 50);
-    directionalLight.castShadow = true;
 
-    directionalLight.shadow.mapSize.width = graphicsSettings.SHADOW_MAP_SIZE;
-    directionalLight.shadow.mapSize.height = graphicsSettings.SHADOW_MAP_SIZE;
-    directionalLight.shadow.camera.near = graphicsSettings.SHADOW_CAMERA_NEAR;
-    directionalLight.shadow.camera.far = graphicsSettings.SHADOW_CAMERA_FAR;
-    directionalLight.shadow.camera.left = -100;
-    directionalLight.shadow.camera.right = 100;
-    directionalLight.shadow.camera.top = 100;
-    directionalLight.shadow.camera.bottom = -100;
+    directionalLight.castShadow = graphicsSettings.ENABLE_SHADOWS;
 
-    directionalLight.shadow.bias = graphicsSettings.SHADOW_BIAS;
-    directionalLight.shadow.normalBias = graphicsSettings.SHADOW_NORMAL_BIAS;
+    if (directionalLight.castShadow) {
+        directionalLight.shadow.mapSize.width = graphicsSettings.SHADOW_MAP_SIZE;
+        directionalLight.shadow.mapSize.height = graphicsSettings.SHADOW_MAP_SIZE;
+        directionalLight.shadow.camera.near = graphicsSettings.SHADOW_CAMERA_NEAR;
+        directionalLight.shadow.camera.far = graphicsSettings.SHADOW_CAMERA_FAR;
+        directionalLight.shadow.camera.left = -100;
+        directionalLight.shadow.camera.right = 100;
+        directionalLight.shadow.camera.top = 100;
+        directionalLight.shadow.camera.bottom = -100;
+
+        directionalLight.shadow.bias = graphicsSettings.SHADOW_BIAS;
+        directionalLight.shadow.normalBias = graphicsSettings.SHADOW_NORMAL_BIAS;
+        
+        directionalLight.shadow.camera.updateProjectionMatrix();
+    }
     
-    directionalLight.shadow.camera.updateProjectionMatrix();
     scene.add(directionalLight);
     return {
         ambientLight,

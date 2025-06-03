@@ -1,6 +1,7 @@
 export const GRAPHICS_PRESETS = {
     POTATO: {
         ANTIALIAS: false,
+        ENABLE_SHADOWS: false,
         SHADOW_MAP_SIZE: 512,
         HEADLIGHT_SHADOW_MAP_SIZE: 256,
         STREETLIGHT_SHADOW_MAP_SIZE: 128,
@@ -17,6 +18,7 @@ export const GRAPHICS_PRESETS = {
     },
     LOW: {
         ANTIALIAS: false,
+        ENABLE_SHADOWS: true,
         SHADOW_MAP_SIZE: 1024,
         HEADLIGHT_SHADOW_MAP_SIZE: 512,
         STREETLIGHT_SHADOW_MAP_SIZE: 256,
@@ -33,6 +35,7 @@ export const GRAPHICS_PRESETS = {
     },
     MEDIUM: {
         ANTIALIAS: true,
+        ENABLE_SHADOWS: true,
         SHADOW_MAP_SIZE: 2048,
         HEADLIGHT_SHADOW_MAP_SIZE: 1024,
         STREETLIGHT_SHADOW_MAP_SIZE: 512,
@@ -49,6 +52,7 @@ export const GRAPHICS_PRESETS = {
     },
     HIGH: {
         ANTIALIAS: true,
+        ENABLE_SHADOWS: true,
         SHADOW_MAP_SIZE: 4096,
         HEADLIGHT_SHADOW_MAP_SIZE: 2048,
         STREETLIGHT_SHADOW_MAP_SIZE: 1024,
