@@ -32,14 +32,8 @@ import {
     CAMERA_HEIGHT,
     LOOK_AT_Y_OFFSET,
     FIRST_PERSON_HEIGHT_OFFSET,
-    FIRST_PERSON_FORWARD_OFFSET,
-    VEHICLE_COORDINATE_DEBUG_LOGGING,
-    VEHICLE_COORDINATE_LOG_INTERVAL
+    FIRST_PERSON_FORWARD_OFFSET
 } from './config.js';
-
-let debug_coordinateLogInterval = VEHICLE_COORDINATE_LOG_INTERVAL;
-let debug_timeSinceLastCoordinateLog = 0;
-
 
 let scene = null;
 let camera = null;
@@ -854,30 +848,6 @@ function applyEasing(t, type) {
 export function updateCarPhysics(deltaTime, collidableMapTiles = [], mapDefinition = null) {
     const activeCar = loadedCarModels[missionIndex];
     if (!activeCar) return;
-
-    debug_timeSinceLastCoordinateLog += deltaTime;
-    if (debug_timeSinceLastCoordinateLog >= debug_coordinateLogInterval && VEHICLE_COORDINATE_DEBUG_LOGGING) {
-        const pos = activeCar.position;
-        const gridCoords = getGridCoordinates(pos.x, pos.z, mapDefinition);
-
-        const tileSize = mapDefinition.tileSize;
-        const preciseGridX = (pos.x + tileSize / 2) / tileSize;
-        const preciseGridZ = (pos.z + tileSize / 2) / tileSize;
-        
-        let logMessage = `VEHICLE COORDINATES:
-World: (${pos.x.toFixed(2)}, ${pos.y.toFixed(2)}, ${pos.z.toFixed(2)})
-Grid: (${preciseGridX.toFixed(2)}, ${preciseGridZ.toFixed(2)})
-Grid (integer): (${gridCoords.x}, ${gridCoords.z})`;
-
-        if (currentMissionDestination) {
-            const distanceToDestination = pos.distanceTo(currentMissionDestination);
-            logMessage += `
-Distance to destination: ${distanceToDestination.toFixed(2)} units`;
-        }
-        
-        console.log(logMessage);
-        debug_timeSinceLastCoordinateLog -= debug_coordinateLogInterval;
-    }
 
     if (isRewinding) {
         const totalRecordedTime = currentRecording.length > 0 ? currentRecording[currentRecording.length - 1].time : 0;

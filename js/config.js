@@ -44,8 +44,6 @@ export const CAR_DAMAGE_SPEED_MULTIPLIER = 3; // How much extra damage per unit 
 export const CAR_DAMAGE_MAX = 80;
 export const CAR_DAMAGE_COOLDOWN = 0.2;
 
-export const VEHICLE_COORDINATE_DEBUG_LOGGING = false;
-export const VEHICLE_COORDINATE_LOG_INTERVAL = 1.0;
 
 // since this now supports per-mission values
 // these are kept only as fallback
