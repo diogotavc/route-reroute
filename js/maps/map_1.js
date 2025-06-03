@@ -12,26 +12,10 @@ export const mapData = {
         // Buildings
 
         'building_a': 'assets/kenney_city-kit-suburban/Models/building-type-a.glb',
-        'building_b': 'assets/kenney_city-kit-suburban/Models/building-type-b.glb',
         'building_c': 'assets/kenney_city-kit-suburban/Models/building-type-c.glb',
         'building_d': 'assets/kenney_city-kit-suburban/Models/building-type-d.glb',
-        'building_e': 'assets/kenney_city-kit-suburban/Models/building-type-e.glb',
-        'building_f': 'assets/kenney_city-kit-suburban/Models/building-type-f.glb',
-        'building_g': 'assets/kenney_city-kit-suburban/Models/building-type-g.glb',
         'building_h': 'assets/kenney_city-kit-suburban/Models/building-type-h.glb',
-        'building_i': 'assets/kenney_city-kit-suburban/Models/building-type-i.glb',
-        'building_j': 'assets/kenney_city-kit-suburban/Models/building-type-j.glb',
-        'building_k': 'assets/kenney_city-kit-suburban/Models/building-type-k.glb',
-        'building_l': 'assets/kenney_city-kit-suburban/Models/building-type-l.glb',
-        'building_m': 'assets/kenney_city-kit-suburban/Models/building-type-m.glb',
-        'building_n': 'assets/kenney_city-kit-suburban/Models/building-type-n.glb',
-        'building_o': 'assets/kenney_city-kit-suburban/Models/building-type-o.glb',
-        'building_p': 'assets/kenney_city-kit-suburban/Models/building-type-p.glb',
-        'building_q': 'assets/kenney_city-kit-suburban/Models/building-type-q.glb',
-        'building_r': 'assets/kenney_city-kit-suburban/Models/building-type-r.glb',
-        'building_s': 'assets/kenney_city-kit-suburban/Models/building-type-s.glb',
         'building_t': 'assets/kenney_city-kit-suburban/Models/building-type-t.glb',
-        'building_u': 'assets/kenney_city-kit-suburban/Models/building-type-u.glb',
 
         // Streetlights
         'streetlight_curved': 'assets/kenney_city-kit-roads/Models/light-curved.glb',
@@ -39,17 +23,11 @@ export const mapData = {
 
         // Random Objects
         'cone': 'assets/kenney_car-kit/Models/cone.glb',
-        'cone_flat': 'assets/kenney_car-kit/Models/cone-flat.glb',
         'box': 'assets/kenney_car-kit/Models/box.glb',
-        'debris_tire': 'assets/kenney_car-kit/Models/debris-tire.glb',
-        'debris_plate_a': 'assets/kenney_car-kit/Models/debris-plate-a.glb',
-        'debris_plate_b': 'assets/kenney_car-kit/Models/debris-plate-b.glb',
-        'planter': 'assets/kenney_city-kit-suburban/Models/planter.glb',
+        'delivery': 'assets/kenney_car-kit/Models/delivery.glb',
         'tree_large': 'assets/kenney_city-kit-suburban/Models/tree-large.glb',
         'tree_small': 'assets/kenney_city-kit-suburban/Models/tree-small.glb',
         'construction_barrier': 'assets/kenney_city-kit-roads/Models/construction-barrier.glb',
-        'fence': 'assets/kenney_city-kit-suburban/Models/fence.glb',
-        'path_stones_messy': 'assets/kenney_city-kit-suburban/Models/path-stones-messy.glb',
     },
     layout: [ // [ name, rotation]
         [null, null, null, null, null, null, null, null, null],
@@ -96,13 +74,16 @@ export const mapData = {
         ['tree_small', 0, 0, 0, 5.3, 0, 5.1, 5.3],
 
         // barrier near grass house
-        ['construction_barrier', 0, 0, 0, 2.8, -0.02, 2.5, 5.5],
-        ['construction_barrier', 0, 12, 0, 2.7, -0.02, 3.2, 5.5],
-        ['construction_barrier', 0, 15, 0, 3.1, -0.02, 1.9, 5.5],
-        ['construction_barrier', 0, -12, 0, 3.0, -0.02, 3.9, 5.5],
-        // ['fence', 0, 90, 0, 2.8, 0.0, 2.5, 5.5],
-        // ['fence', 0, 87, 0, 2.78, 0.0, 2.9, 5.5],
-        // ['fence', 0, 83, 0, 2.82, 0.0, 2.2, 5.5],
+        ['construction_barrier', 0, 0, 0, 2.8, -0.02, 2.5, 6],
+        ['construction_barrier', 0, 12, 0, 2.7, -0.02, 3.2, 6],
+        ['construction_barrier', 0, 15, 0, 3.1, -0.02, 1.9, 6],
+        ['construction_barrier', 0, -12, 0, 3.0, -0.02, 3.9, 6],
+        ['delivery', 0, -47, 90, 3.0, 0.1, 5, 1],
+        ['box', 0, -12, 90, 3.05, 0.007, 4.55, 0.5],
+        ['box', 0, 5, 270, 3.1, 0.035, 4.5, 0.9],
+        ['construction_barrier', 0, -30, 0, 2.2, -0.02, 5.8, 6],
+        ['construction_barrier', 0, -8, 0, 2.7, -0.02, 5.6, 6],
+        // ['planter', 0, 50, 0, 2.5, -0.01, 5.5, 7.5],
     ],
     tileSize: 6,
     buildingScale: 0.7,
@@ -140,7 +121,7 @@ export const mapData = {
         'start6': { x: 0.7, z: 5.45, carRotationY: 0 },
         'finish6': { x: 6.7, z: 5, carRotationY: 0 },
 
-        // Level 4 - Night Shift (5 cars) - Night theme with more complex routes
+        // Level 4 - Night Shift (5 cars)
         'start13': { x: 7.16, z: 1.2, carRotationY: 0 },
         'finish13': { x: 1.2, z: 7.8, carRotationY: 90 },
 
