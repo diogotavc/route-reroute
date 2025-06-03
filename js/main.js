@@ -1132,7 +1132,6 @@ function showTimerTimeoutScreen() {
     `;
 
     timeoutContent.innerHTML = `
-        <div style="font-size: 1.5em; margin-bottom: 20px; color: #FF5722; font-weight: bold;">TIME OUT</div>
         <h2 style="margin: 0 0 20px 0; font-size: 28px; background: linear-gradient(45deg, #FF5722, #FF8A65); 
            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
            Time's Up!
@@ -1240,10 +1239,6 @@ function showLevelCompletionScreen() {
 
     completionContent.innerHTML = `
         <div style="font-size: 3em; margin-bottom: 20px;">LEVEL COMPLETE</div>
-        <h2 style="margin: 0 0 20px 0; font-size: 28px; background: linear-gradient(45deg, #FFD700, #FFDD33); 
-           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-           Level Complete!
-        </h2>
         <p style="margin-bottom: 30px; color: #E8F5E8; line-height: 1.6; font-size: 18px;">
             Congratulations! You've successfully completed<br>
             <strong>${levelName}</strong>
@@ -1318,19 +1313,13 @@ function showGameCompletionScreen() {
 
     completionContent.innerHTML = `
         <div style="font-size: 4em; margin-bottom: 20px;">GAME COMPLETE!</div>
-        <h2 style="margin: 0 0 20px 0; font-size: 32px; background: linear-gradient(45deg, #FFD700, #FFDD33); 
-           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-           Congratulations!
-        </h2>
         <p style="margin-bottom: 30px; color: #F3E5F5; line-height: 1.6; font-size: 20px;">
-            You've completed all levels in<br>
-            <strong>Route Reroute</strong>!
+            As a reward, you can now enjoy <strong>Sandbox Mode</strong><br>
+            available from the Level Selection menu
         </p>
         <p style="margin-bottom: 40px; color: #E1BEE7; line-height: 1.5; font-size: 16px;">
             Thank you for playing! You've mastered the art of<br>
             urban navigation and emergency driving.<br><br>
-            <span style="color: #4CAF50; font-weight: bold;">Sandbox Mode has been unlocked!</span><br>
-            <span style="color: #C8E6C9; font-size: 14px;">Explore freely with any car and custom physics.</span>
         </p>
         <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
             <button id="try-another-level-button" style="
@@ -1350,7 +1339,7 @@ function showGameCompletionScreen() {
             </button>
             <button id="start-over-button" style="
                 padding: 15px 30px;
-                background: linear-gradient(45deg, #9C27B0, #A838C4);
+                background: linear-gradient(45deg,rgb(176, 77, 201),rgb(195, 85, 223));
                 border: none;
                 border-radius: 10px;
                 color: white;
@@ -1479,10 +1468,9 @@ function showSandboxCarSelection() {
     };
 
     let carSelectionHTML = `
-        <div style="font-size: 3em; margin-bottom: 20px;">SANDBOX MODE</div>
         <h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #4CAF50, #5CBF64); 
            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-           Sandbox Mode
+           Sandbox Configuration
         </h2>
         <p style="margin-bottom: 30px; color: #E8F5E8; line-height: 1.6; font-size: 18px;">
             Choose any car and drive freely without time limits!<br>
