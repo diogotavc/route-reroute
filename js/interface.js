@@ -586,7 +586,7 @@ export function showAchievementsMenu() {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     `;
 
-    let achievementContent = '<h2 style="margin-top: 0; color: #4A90E2; text-align: center;">🏆 Achievements</h2>';
+    let achievementContent = '<h2 style="margin-top: 0; color: #4A90E2; text-align: center;">Achievements</h2>';
 
     if (window.getAchievementStats) {
         const stats = window.getAchievementStats();
@@ -594,7 +594,7 @@ export function showAchievementsMenu() {
             <div style="margin: 20px 0; font-size: 18px; text-align: center;">
                 <div style="margin-bottom: 10px; font-weight: 600;">Progress: ${stats.unlocked}/${stats.total} (${stats.percentage}%)</div>
                 <div style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden; margin: 15px auto; max-width: 400px;">
-                    <div style="background: linear-gradient(90deg, #4A90E2, #50C878); height: 100%; width: ${stats.percentage}%; transition: width 0.3s ease; border-radius: 4px;"></div>
+                    <div style="background: linear-gradient(90deg, #4A90E2, #5A9FE7); height: 100%; width: ${stats.percentage}%; transition: width 0.3s ease; border-radius: 4px;"></div>
                 </div>
             </div>
         `;
@@ -666,13 +666,13 @@ export function showAchievementsMenu() {
             achievementContent += '</div>';
         } else {
             achievementContent += '<div style="margin: 20px 0; padding: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 12px; color: #ccc; text-align: center;">';
-            achievementContent += '<div style="font-size: 48px; margin-bottom: 10px;">🎯</div>';
+            achievementContent += '<div style="font-size: 48px; margin-bottom: 10px;">NO ACHIEVEMENTS YET</div>';
             achievementContent += '<p>No achievements unlocked yet.<br>Start playing to earn your first achievement!</p>';
             achievementContent += '</div>';
         }
     } else {
         achievementContent += '<div style="margin: 20px 0; padding: 20px; background: rgba(255, 87, 34, 0.1); border-radius: 12px; border-left: 4px solid #ff5722; text-align: center;">';
-        achievementContent += '<div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>';
+        achievementContent += '<div style="font-size: 24px; margin-bottom: 10px; color: #ff5722; font-weight: bold;">WARNING</div>';
         achievementContent += '<p style="color: #ffab91; margin: 0;">Achievement system not available.</p>';
         achievementContent += '</div>';
     }
@@ -795,7 +795,7 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
     
     if (isInitialSelection) {
         levelSelectContent = `
-            <h2 style="margin: 0 0 20px 0; font-size: 24px; background: linear-gradient(45deg, #4CAF50, #81C784); 
+            <h2 style="margin: 0 0 20px 0; font-size: 24px; background: linear-gradient(45deg, #4CAF50, #5CBF64); 
                -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
                Welcome Back!
             </h2>
@@ -810,7 +810,7 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
             const isUnlocked = i === 0 || isCompleted || i <= highestCompleted + 1;
             const isCurrent = i === currentLevel;
             
-            const statusIcon = isCompleted ? '✓' : (isCurrent ? '▶' : (isUnlocked ? '○' : '🔒'));
+            const statusIcon = isCompleted ? '✓' : (isCurrent ? '▶' : (isUnlocked ? '○' : 'LOCKED'));
             const statusText = isCompleted ? 'Completed' : (isCurrent ? 'Current' : (isUnlocked ? 'Available' : 'Locked'));
             
             const buttonStyle = `
@@ -847,7 +847,7 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
                         width: 100%;
                         margin: 15px 0;
                         padding: 15px;
-                        background: linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.3));
+                        background: linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(86, 185, 90, 0.3));
                         border: 2px solid rgba(76, 175, 80, 0.6);
                         border-radius: 10px;
                         color: white;
@@ -856,9 +856,9 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
                         font-size: 16px;
                         font-weight: bold;
                         transition: all 0.3s ease;
-                    " onmouseover="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.4), rgba(129, 199, 132, 0.4))'"
-                       onmouseout="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.3))'">
-                        🎮 Enter Sandbox Mode
+                    " onmouseover="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.4), rgba(86, 185, 90, 0.4))'"
+                       onmouseout="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(86, 185, 90, 0.3))'">
+                        Enter Sandbox Mode
                     </button>
                 </div>
             `;
@@ -872,7 +872,7 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
         `;
     } else {
         levelSelectContent = `
-            <h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #4CAF50, #81C784); 
+            <h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #4CAF50, #5CBF64); 
                -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
                Select Level
             </h2>
@@ -884,7 +884,7 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
             const isUnlocked = i === 0 || isCompleted || i <= highestCompleted + 1;
             const isCurrent = i === currentLevel;
             
-            const statusIcon = isCompleted ? '✓' : (isCurrent ? '▶' : (isUnlocked ? '○' : '🔒'));
+            const statusIcon = isCompleted ? '✓' : (isCurrent ? '▶' : (isUnlocked ? '○' : 'LOCKED'));
             const statusText = isCompleted ? 'Completed' : (isCurrent ? 'Current' : (isUnlocked ? 'Available' : 'Locked'));
             
             const buttonStyle = `
@@ -922,7 +922,7 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
                         width: 100%;
                         margin: 15px 0;
                         padding: 15px;
-                        background: linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.3));
+                        background: linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(86, 185, 90, 0.3));
                         border: 2px solid rgba(76, 175, 80, 0.6);
                         border-radius: 10px;
                         color: white;
@@ -931,9 +931,9 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
                         font-size: 16px;
                         font-weight: bold;
                         transition: all 0.3s ease;
-                    " onmouseover="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.4), rgba(129, 199, 132, 0.4))'"
-                       onmouseout="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(129, 199, 132, 0.3))'">
-                        🎮 Enter Sandbox Mode
+                    " onmouseover="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.4), rgba(86, 185, 90, 0.4))'"
+                       onmouseout="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(86, 185, 90, 0.3))'">
+                        Enter Sandbox Mode
                     </button>
                 </div>
             `;
@@ -1095,7 +1095,7 @@ export function showManualMenu() {
         </h2>
         
         <div style="margin-bottom: 25px;">
-            <h3 style="color: #4CAF50; margin-bottom: 10px; font-size: 20px;">🎮 Movement Controls</h3>
+            <h3 style="color: #4CAF50; margin-bottom: 10px; font-size: 20px;">Movement Controls</h3>
             <div style="margin-left: 20px; line-height: 1.6;">
                 <p><strong>W / ↑</strong> - Accelerate forward</p>
                 <p><strong>S / ↓</strong> - Brake / Reverse</p>
@@ -1105,7 +1105,7 @@ export function showManualMenu() {
         </div>
 
         <div style="margin-bottom: 25px;">
-            <h3 style="color: #FF9800; margin-bottom: 10px; font-size: 20px;">⏰ Game Controls</h3>
+            <h3 style="color: #FF9800; margin-bottom: 10px; font-size: 20px;">Game Controls</h3>
             <div style="margin-left: 20px; line-height: 1.6;">
                 <p><strong>R</strong> - Rewind time</p>
                 <p><strong>C</strong> - Switch camera view</p>
@@ -1114,7 +1114,7 @@ export function showManualMenu() {
         </div>
 
         <div style="margin-bottom: 25px;">
-            <h3 style="color: #E91E63; margin-bottom: 10px; font-size: 20px;">🎵 Music Controls</h3>
+            <h3 style="color: #E91E63; margin-bottom: 10px; font-size: 20px;">Music Controls</h3>
             <div style="margin-left: 20px; line-height: 1.6;">
                 <p><strong>M / Space</strong> - Play and Pause music</p>
                 <p><strong>]</strong> - Previous track</p>
@@ -1123,7 +1123,7 @@ export function showManualMenu() {
         </div>
 
         <div style="margin-bottom: 25px;">
-            <h3 style="color: #9C27B0; margin-bottom: 10px; font-size: 20px;">🎯 Game Objectives</h3>
+            <h3 style="color: #9C27B0; margin-bottom: 10px; font-size: 20px;">Game Objectives</h3>
             <div style="margin-left: 20px; line-height: 1.6;">
                 <p>• Drive each character to their destination</p>
                 <p>• Complete all missions to advance to the next level</p>
@@ -1134,7 +1134,7 @@ export function showManualMenu() {
         </div>
 
         <div style="margin-bottom: 25px;">
-            <h3 style="color: #F44336; margin-bottom: 10px; font-size: 20px;">⚡ Tips & Strategies</h3>
+            <h3 style="color: #F44336; margin-bottom: 10px; font-size: 20px;">Tips & Strategies</h3>
             <div style="margin-left: 20px; line-height: 1.6;">
                 <p>• Plan your route before starting each mission</p>
                 <p>• Use different camera angles to better navigate</p>
@@ -1210,13 +1210,13 @@ export function showAboutMenu() {
     `;
 
     const aboutContent = `
-        <h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #E91E63, #F8BBD9); 
+        <h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #E91E63, #ED4A7B); 
            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
            About Route Reroute
         </h2>
         
         <div style="margin-bottom: 30px; text-align: left;">
-            <h3 style="color: #4CAF50; margin-bottom: 15px; font-size: 20px; text-align: center;">🚗 The Game</h3>
+            <h3 style="color: #4CAF50; margin-bottom: 15px; font-size: 20px; text-align: center;">The Game</h3>
             <p style="line-height: 1.6; margin-bottom: 15px;">
                 Route Reroute is an innovative 3D driving game where you help different characters 
                 reach their destinations. Each mission presents unique challenges and time constraints, 
@@ -1229,7 +1229,7 @@ export function showAboutMenu() {
         </div>
 
         <div style="margin-bottom: 30px; text-align: left;">
-            <h3 style="color: #2196F3; margin-bottom: 15px; font-size: 20px; text-align: center;">🛠️ Technical Features</h3>
+            <h3 style="color: #2196F3; margin-bottom: 15px; font-size: 20px; text-align: center;">Technical Features</h3>
             <div style="margin-left: 20px; line-height: 1.6;">
                 <p>• Built with Three.js for stunning 3D graphics</p>
                 <p>• Advanced physics simulation for realistic driving</p>
@@ -1242,7 +1242,7 @@ export function showAboutMenu() {
         </div>
 
         <div style="margin-bottom: 20px;">
-            <h3 style="color: #9C27B0; margin-bottom: 15px; font-size: 20px;">🌟 Project Info</h3>
+            <h3 style="color: #9C27B0; margin-bottom: 15px; font-size: 20px;">Project Info</h3>
             <p style="color: #B39DDB; font-size: 16px;">Version 0.3-alpha</p>
             <p style="color: #888; font-size: 14px;">Built with passion by Diogo Carvalho (113221</p>
         </div>
@@ -1379,14 +1379,16 @@ function showSandboxConfigurationMenu() {
 
     const sandboxConfigContent = document.createElement('div');
     sandboxConfigContent.style.cssText = `
-        background: linear-gradient(135deg, rgba(76, 175, 80, 0.95), rgba(56, 142, 60, 0.95));
-        border: 2px solid rgba(255, 255, 255, 0.2);
+        background: linear-gradient(135deg, rgba(20, 20, 40, 0.95), rgba(40, 40, 80, 0.95));
+        border: 2px solid rgba(255, 255, 255, 0.1);
         border-radius: 20px;
         padding: 40px;
         color: white;
         font-family: 'Orbitron', 'Courier New', monospace;
         text-align: center;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                    0 0 30px rgba(76, 175, 80, 0.1);
         max-width: 600px;
         min-width: 500px;
         max-height: 80vh;
@@ -1397,26 +1399,25 @@ function showSandboxConfigurationMenu() {
     `;
 
     sandboxConfigContent.innerHTML = `
-        <div style="font-size: 3em; margin-bottom: 20px;">⚙️</div>
-        <h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #4CAF50, #81C784); 
+        <h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #4CAF50, #5CBF64); 
            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
            Sandbox Configuration
         </h2>
-        <p style="margin-bottom: 30px; color: #E8F5E8; line-height: 1.6; font-size: 16px;">
+        <p style="margin-bottom: 30px; color: #B0BEC5; line-height: 1.6; font-size: 16px;">
             Configure your sandbox environment and car physics
         </p>
         
         <div style="text-align: left; margin-bottom: 30px;">
-            <h3 style="color: #81C784; font-size: 18px; margin-bottom: 15px; text-align: center;">🌍 Environment Settings</h3>
+            <h3 style="color: #81C784; margin-bottom: 15px; text-align: center; font-size: 18px; font-weight: bold;">Environment Settings</h3>
             
             <div style="margin-bottom: 25px;">
-                <label style="display: block; color: #E8F5E8; font-size: 14px; margin-bottom: 10px; font-weight: bold;">
+                <label style="display: block; color: #ffffff; font-size: 14px; margin-bottom: 10px; font-weight: bold;">
                     Time of Day:
                 </label>
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <input type="range" id="time-of-day-slider" min="0" max="100" value="25" 
-                           style="flex: 1; height: 8px; background: rgba(255,255,255,0.2); border-radius: 5px; outline: none;">
-                    <span id="time-of-day-display" style="color: #4CAF50; font-weight: bold; min-width: 80px;">Dawn</span>
+                           style="flex: 1; height: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 5px; outline: none; border: 1px solid rgba(255, 255, 255, 0.2);">
+                    <span id="time-of-day-display" style="color: #ffffff; font-weight: bold; min-width: 80px; background: rgba(255, 255, 255, 0.1); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.2);">Dawn</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 12px; color: #B0BEC5; margin-top: 5px;">
                     <span>Midnight</span>
@@ -1426,13 +1427,13 @@ function showSandboxConfigurationMenu() {
             </div>
             
             <div style="margin-bottom: 30px;">
-                <label style="display: block; color: #E8F5E8; font-size: 14px; margin-bottom: 10px; font-weight: bold;">
+                <label style="display: block; color: #ffffff; font-size: 14px; margin-bottom: 10px; font-weight: bold;">
                     Time Speed:
                 </label>
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <input type="range" id="time-speed-slider" min="0" max="100" value="20" 
-                           style="flex: 1; height: 8px; background: rgba(255,255,255,0.2); border-radius: 5px; outline: none;">
-                    <span id="time-speed-display" style="color: #4CAF50; font-weight: bold; min-width: 80px;">Slow</span>
+                           style="flex: 1; height: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 5px; outline: none; border: 1px solid rgba(255, 255, 255, 0.2);">
+                    <span id="time-speed-display" style="color: #ffffff; font-weight: bold; min-width: 80px; background: rgba(255, 255, 255, 0.1); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.2);">Slow</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 12px; color: #B0BEC5; margin-top: 5px;">
                     <span>Frozen</span>
@@ -1441,81 +1442,81 @@ function showSandboxConfigurationMenu() {
                 </div>
             </div>
 
-            <h3 style="color: #81C784; font-size: 18px; margin-bottom: 15px; text-align: center;">🚗 Car Physics Settings</h3>
+            <h3 style="color: #81C784; margin-bottom: 15px; text-align: center; font-size: 18px; font-weight: bold;">Car Physics Settings</h3>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #E8F5E8; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
+                    <label style="display: block; color: #ffffff; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
                         Max Speed:
                     </label>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <input type="range" id="max-speed-slider" min="10" max="50" value="20" 
-                               style="flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; outline: none;">
-                        <span id="max-speed-display" style="color: #4CAF50; font-weight: bold; min-width: 60px; font-size: 12px;">70 km/h</span>
+                               style="flex: 1; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; outline: none; border: 1px solid rgba(255, 255, 255, 0.2);">
+                        <span id="max-speed-display" style="color: #ffffff; font-weight: bold; min-width: 60px; font-size: 12px; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, 0.2);">70 km/h</span>
                     </div>
                 </div>
                 
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #E8F5E8; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
+                    <label style="display: block; color: #ffffff; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
                         Acceleration:
                     </label>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <input type="range" id="acceleration-slider" min="2" max="15" value="6" 
-                               style="flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; outline: none;">
-                        <span id="acceleration-display" style="color: #4CAF50; font-weight: bold; min-width: 35px; font-size: 12px;">6</span>
+                               style="flex: 1; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; outline: none; border: 1px solid rgba(255, 255, 255, 0.2);">
+                        <span id="acceleration-display" style="color: #ffffff; font-weight: bold; min-width: 35px; font-size: 12px; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, 0.2);">6</span>
                     </div>
                 </div>
                 
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #E8F5E8; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
+                    <label style="display: block; color: #ffffff; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
                         Braking:
                     </label>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <input type="range" id="braking-slider" min="4" max="20" value="8" 
-                               style="flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; outline: none;">
-                        <span id="braking-display" style="color: #4CAF50; font-weight: bold; min-width: 35px; font-size: 12px;">8</span>
+                               style="flex: 1; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; outline: none; border: 1px solid rgba(255, 255, 255, 0.2);">
+                        <span id="braking-display" style="color: #ffffff; font-weight: bold; min-width: 35px; font-size: 12px; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, 0.2);">8</span>
                     </div>
                 </div>
                 
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #E8F5E8; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
+                    <label style="display: block; color: #ffffff; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
                         Steering Rate:
                     </label>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <input type="range" id="steering-rate-slider" min="0.5" max="4" step="0.1" value="2" 
-                               style="flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; outline: none;">
-                        <span id="steering-rate-display" style="color: #4CAF50; font-weight: bold; min-width: 35px; font-size: 12px;">2.0</span>
+                               style="flex: 1; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; outline: none; border: 1px solid rgba(255, 255, 255, 0.2);">
+                        <span id="steering-rate-display" style="color: #ffffff; font-weight: bold; min-width: 35px; font-size: 12px; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, 0.2);">2.0</span>
                     </div>
                 </div>
                 
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #E8F5E8; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
+                    <label style="display: block; color: #ffffff; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
                         Friction:
                     </label>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <input type="range" id="friction-slider" min="0.1" max="2" step="0.1" value="0.8" 
-                               style="flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; outline: none;">
-                        <span id="friction-display" style="color: #4CAF50; font-weight: bold; min-width: 35px; font-size: 12px;">0.8</span>
+                               style="flex: 1; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; outline: none; border: 1px solid rgba(255, 255, 255, 0.2);">
+                        <span id="friction-display" style="color: #ffffff; font-weight: bold; min-width: 35px; font-size: 12px; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, 0.2);">0.8</span>
                     </div>
                 </div>
                 
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #E8F5E8; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
+                    <label style="display: block; color: #ffffff; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
                         Steering Friction:
                     </label>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <input type="range" id="steering-friction-slider" min="0.5" max="3" step="0.1" value="1.5" 
-                               style="flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; outline: none;">
-                        <span id="steering-friction-display" style="color: #4CAF50; font-weight: bold; min-width: 35px; font-size: 12px;">1.5</span>
+                               style="flex: 1; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; outline: none; border: 1px solid rgba(255, 255, 255, 0.2);">
+                        <span id="steering-friction-display" style="color: #ffffff; font-weight: bold; min-width: 35px; font-size: 12px; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, 0.2);">1.5</span>
                     </div>
                 </div>
             </div>
             
-            <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px; text-align: center;">
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);">
                 <button id="reset-physics-button" style="
                     padding: 10px 20px;
-                    background: linear-gradient(45deg, #FF9800, #FFB74D);
-                    border: none;
+                    background: rgba(255, 255, 255, 0.1);
+                    border: 2px solid rgba(255, 255, 255, 0.2);
                     border-radius: 8px;
                     color: white;
                     font-family: inherit;
@@ -1523,7 +1524,7 @@ function showSandboxConfigurationMenu() {
                     font-weight: bold;
                     cursor: pointer;
                     transition: all 0.3s ease;
-                " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                " onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.transform='translateY(0)'">
                     Reset to Default
                 </button>
             </div>
@@ -1532,23 +1533,8 @@ function showSandboxConfigurationMenu() {
         <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
             <button id="sandbox-config-continue" style="
                 padding: 15px 30px;
-                background: linear-gradient(45deg, #4CAF50, #81C784);
-                border: none;
-                border-radius: 10px;
-                color: white;
-                font-family: inherit;
-                font-size: 18px;
-                font-weight: bold;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                Continue to Car Selection
-            </button>
-            <button id="sandbox-config-back" style="
-                padding: 15px 25px;
-                background: linear-gradient(45deg, #757575, #9E9E9E);
-                border: none;
+                background: rgba(76, 175, 80, 0.2);
+                border: 2px solid rgba(76, 175, 80, 0.5);
                 border-radius: 10px;
                 color: white;
                 font-family: inherit;
@@ -1556,7 +1542,21 @@ function showSandboxConfigurationMenu() {
                 font-weight: bold;
                 cursor: pointer;
                 transition: all 0.3s ease;
-            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            " onmouseover="this.style.background='rgba(76, 175, 80, 0.4)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='rgba(76, 175, 80, 0.2)'; this.style.transform='translateY(0)'">
+                Continue to Car Selection
+            </button>
+            <button id="sandbox-config-back" style="
+                padding: 15px 25px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                border-radius: 10px;
+                color: white;
+                font-family: inherit;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            " onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.transform='translateY(0)'">
                 Back
             </button>
         </div>

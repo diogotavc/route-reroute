@@ -1134,7 +1134,7 @@ function showTimerTimeoutScreen() {
     `;
 
     timeoutContent.innerHTML = `
-        <div style="font-size: 3em; margin-bottom: 20px;">⏰</div>
+        <div style="font-size: 1.5em; margin-bottom: 20px; color: #FF5722; font-weight: bold;">TIME OUT</div>
         <h2 style="margin: 0 0 20px 0; font-size: 28px; background: linear-gradient(45deg, #FF5722, #FF8A65); 
            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
            Time's Up!
@@ -1241,8 +1241,8 @@ function showLevelCompletionScreen() {
     `;
 
     completionContent.innerHTML = `
-        <div style="font-size: 3em; margin-bottom: 20px;">🏆</div>
-        <h2 style="margin: 0 0 20px 0; font-size: 28px; background: linear-gradient(45deg, #FFD700, #FFA000); 
+        <div style="font-size: 3em; margin-bottom: 20px;">LEVEL COMPLETE</div>
+        <h2 style="margin: 0 0 20px 0; font-size: 28px; background: linear-gradient(45deg, #FFD700, #FFDD33); 
            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
            Level Complete!
         </h2>
@@ -1252,7 +1252,7 @@ function showLevelCompletionScreen() {
         </p>
         <button id="continue-to-next-level" style="
             padding: 15px 30px;
-            background: linear-gradient(45deg, #4CAF50, #81C784);
+            background: linear-gradient(45deg, #4CAF50, #5CBF64);
             border: none;
             border-radius: 10px;
             color: white;
@@ -1303,7 +1303,7 @@ function showGameCompletionScreen() {
 
     const completionContent = document.createElement('div');
     completionContent.style.cssText = `
-        background: linear-gradient(135deg, rgba(156, 39, 176, 0.95), rgba(103, 58, 183, 0.95));
+        background: linear-gradient(135deg, rgba(156, 39, 176, 0.95), rgba(168, 56, 196, 0.95));
         border: 2px solid rgba(255, 255, 255, 0.2);
         border-radius: 20px;
         padding: 50px;
@@ -1319,8 +1319,8 @@ function showGameCompletionScreen() {
     `;
 
     completionContent.innerHTML = `
-        <div style="font-size: 4em; margin-bottom: 20px;">🎉</div>
-        <h2 style="margin: 0 0 20px 0; font-size: 32px; background: linear-gradient(45deg, #FFD700, #FF6F00); 
+        <div style="font-size: 4em; margin-bottom: 20px;">GAME COMPLETE!</div>
+        <h2 style="margin: 0 0 20px 0; font-size: 32px; background: linear-gradient(45deg, #FFD700, #FFDD33); 
            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
            Congratulations!
         </h2>
@@ -1331,13 +1331,13 @@ function showGameCompletionScreen() {
         <p style="margin-bottom: 40px; color: #E1BEE7; line-height: 1.5; font-size: 16px;">
             Thank you for playing! You've mastered the art of<br>
             urban navigation and emergency driving.<br><br>
-            <span style="color: #4CAF50; font-weight: bold;">🎮 Sandbox Mode has been unlocked!</span><br>
+            <span style="color: #4CAF50; font-weight: bold;">Sandbox Mode has been unlocked!</span><br>
             <span style="color: #C8E6C9; font-size: 14px;">Explore freely with any car and custom physics.</span>
         </p>
         <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
             <button id="try-another-level-button" style="
                 padding: 15px 30px;
-                background: linear-gradient(45deg, #4CAF50, #81C784);
+                background: linear-gradient(45deg, #4CAF50, #5CBF64);
                 border: none;
                 border-radius: 10px;
                 color: white;
@@ -1348,11 +1348,11 @@ function showGameCompletionScreen() {
                 transition: all 0.3s ease;
                 box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
             " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                🎯 Try Another Level
+                Try Another Level
             </button>
             <button id="start-over-button" style="
                 padding: 15px 30px;
-                background: linear-gradient(45deg, #9C27B0, #673AB7);
+                background: linear-gradient(45deg, #9C27B0, #A838C4);
                 border: none;
                 border-radius: 10px;
                 color: white;
@@ -1438,14 +1438,16 @@ function showSandboxCarSelection() {
 
     const sandboxContent = document.createElement('div');
     sandboxContent.style.cssText = `
-        background: linear-gradient(135deg, rgba(76, 175, 80, 0.95), rgba(56, 142, 60, 0.95));
-        border: 2px solid rgba(255, 255, 255, 0.2);
+        background: linear-gradient(135deg, rgba(20, 20, 40, 0.95), rgba(40, 40, 80, 0.95));
+        border: 2px solid rgba(255, 255, 255, 0.1);
         border-radius: 20px;
         padding: 40px;
         color: white;
         font-family: 'Orbitron', 'Courier New', monospace;
         text-align: center;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                    0 0 30px rgba(76, 175, 80, 0.1);
         max-width: 800px;
         min-width: 600px;
         max-height: 80vh;
@@ -1479,8 +1481,8 @@ function showSandboxCarSelection() {
     };
 
     let carSelectionHTML = `
-        <div style="font-size: 3em; margin-bottom: 20px;">🎮</div>
-        <h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #4CAF50, #81C784); 
+        <div style="font-size: 3em; margin-bottom: 20px;">SANDBOX MODE</div>
+        <h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #4CAF50, #5CBF64); 
            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
            Sandbox Mode
         </h2>
@@ -1495,8 +1497,8 @@ function showSandboxCarSelection() {
         carSelectionHTML += `
             <button class="sandbox-car-option" data-car="${modelId}" style="
                 padding: 15px;
-                background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-                border: 2px solid rgba(255, 255, 255, 0.3);
+                background: rgba(255, 255, 255, 0.1);
+                border: 2px solid rgba(255, 255, 255, 0.2);
                 border-radius: 12px;
                 color: white;
                 font-family: inherit;
@@ -1509,7 +1511,7 @@ function showSandboxCarSelection() {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-            " onmouseover="this.style.background='linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1))'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))'; this.style.transform='scale(1)'">
+            " onmouseover="this.style.background='rgba(76, 175, 80, 0.2)'; this.style.borderColor='rgba(76, 175, 80, 0.5)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(255, 255, 255, 0.2)'; this.style.transform='scale(1)'">>
                 ${displayName}
             </button>
         `;
@@ -1520,8 +1522,8 @@ function showSandboxCarSelection() {
         <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
             <button id="sandbox-back-button" style="
                 padding: 15px 25px;
-                background: linear-gradient(45deg, #757575, #9E9E9E);
-                border: none;
+                background: rgba(255, 255, 255, 0.1);
+                border: 2px solid rgba(255, 255, 255, 0.2);
                 border-radius: 10px;
                 color: white;
                 font-family: inherit;
@@ -1529,7 +1531,7 @@ function showSandboxCarSelection() {
                 font-weight: bold;
                 cursor: pointer;
                 transition: all 0.3s ease;
-            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            " onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.transform='translateY(0)'">>
                 Back
             </button>
         </div>

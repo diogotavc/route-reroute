@@ -62,7 +62,7 @@
     z-index: 2500;
     display: none;
     pointer-events: none;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(20, 20, 20, 0.8));
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(15, 20, 25, 0.8));
     padding: 25px 40px;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -107,7 +107,7 @@
     z-index: 2500;
     display: none;
     pointer-events: all;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 20, 0.9));
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(15, 20, 25, 0.9));
     padding: 40px 50px;
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -123,7 +123,7 @@
     text-align: center;
     margin-bottom: 30px;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
-    background: linear-gradient(135deg, #ffffff, #e0e0e0);
+    background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -154,10 +154,10 @@
 
 .pause-menu-item:hover,
 .pause-menu-item.selected {
-    background: linear-gradient(135deg, rgba(74, 144, 226, 0.3), rgba(80, 200, 120, 0.3));
-    border: 1px solid rgba(74, 144, 226, 0.5);
+    background: linear-gradient(135deg, rgba(64, 104, 176, 0.3), rgba(74, 114, 186, 0.3));
+    border: 1px solid rgba(64, 104, 176, 0.5);
     transform: translateX(5px);
-    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.2),
+    box-shadow: 0 4px 15px rgba(64, 104, 176, 0.2),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
@@ -172,9 +172,9 @@
 
 .pause-menu-item.danger:hover,
 .pause-menu-item.danger.selected {
-    background: linear-gradient(135deg, rgba(255, 107, 107, 0.3), rgba(255, 69, 69, 0.3));
-    border: 1px solid rgba(255, 107, 107, 0.5);
-    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.2),
+    background: linear-gradient(135deg, rgba(205, 97, 97, 0.3), rgba(205, 69, 69, 0.3));
+    border: 1px solid rgba(205, 97, 97, 0.5);
+    box-shadow: 0 4px 15px rgba(205, 97, 97, 0.2),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
@@ -227,15 +227,15 @@
 }
 
 .confirmation-button.confirm {
-    background: linear-gradient(135deg, #ff6b6b, #ff5252);
+    background: linear-gradient(135deg, #c55b5b, #b55252);
     color: white;
-    border: 1px solid rgba(255, 107, 107, 0.5);
+    border: 1px solid rgba(205, 97, 97, 0.5);
 }
 
 .confirmation-button.confirm:hover {
-    background: linear-gradient(135deg, #ff5252, #f44336);
+    background: linear-gradient(135deg, #b55252, #a44336);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    box-shadow: 0 4px 12px rgba(205, 97, 97, 0.3);
 }
 
 .confirmation-button.cancel {
@@ -261,7 +261,7 @@
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     z-index: 1000;
     pointer-events: none;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.75), rgba(20, 20, 20, 0.75));
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.75), rgba(15, 20, 25, 0.75));
     padding: 16px 20px;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -334,7 +334,7 @@
 }
 
 .achievement-notification {
-    background: linear-gradient(135deg, #4CAF50, #45a049);
+    background: linear-gradient(135deg, #6CAF70, #65a069);
     color: white;
     padding: 20px;
     border-radius: 10px;
@@ -422,7 +422,7 @@
     position: fixed;
     bottom: 30px;
     right: 30px;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.75), rgba(20, 20, 20, 0.75));
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.75), rgba(15, 20, 25, 0.75));
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 16px;
     padding: 20px;
@@ -525,7 +525,7 @@
 
 .health-bar-fill {
     height: 100%;
-    background: linear-gradient(90deg, #66bb6a, #4caf50, #43a047);
+    background: linear-gradient(90deg, #5a8b6a, #4a7f5a, #4a7357);
     border-radius: 11px;
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
                 background 0.3s ease;
@@ -652,7 +652,7 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     z-index: 1000;
     pointer-events: none;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.75), rgba(20, 20, 20, 0.75));
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.75), rgba(15, 20, 25, 0.75));
     padding: 16px 24px;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.15);
