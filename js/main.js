@@ -160,6 +160,41 @@ const exampleLevel1_Missions = [
 ];
 
 const exampleLevel2_Missions = [
+    ["garbage-truck", "Sanitation Sam", "Emergency garbage collection before the storm.", "start7", "finish7", {
+        maxSpeed: 8,
+        accelerationRate: 2.5,
+        brakingRate: 15,
+        steeringRate: 0.8,
+        friction: 1.5,
+        steeringFriction: 3.0
+    }],
+    ["van", "Moving Mike", "Urgent furniture delivery across town.", "start8", "finish8", {
+        maxSpeed: 11,
+        accelerationRate: 3.5,
+        brakingRate: 12,
+        steeringRate: 1.1,
+        friction: 1.3,
+        steeringFriction: 2.4
+    }],
+    ["suv", "Soccer Mom", "Racing to pick up kids from practice.", "start9", "finish9", {
+        maxSpeed: 16,
+        accelerationRate: 4.8,
+        brakingRate: 9,
+        steeringRate: 1.7,
+        friction: 0.9,
+        steeringFriction: 1.8
+    }],
+    ["sedan-sports", "Speed Racer", "Testing the new sports car around the city.", "start10", "finish10", {
+        maxSpeed: 20,
+        accelerationRate: 7,
+        brakingRate: 8,
+        steeringRate: 2.2,
+        friction: 0.7,
+        steeringFriction: 1.2
+    }]
+];
+
+const exampleLevel3_Missions = [
     ["police", "Officer Justice", "Pursuing a speeding vehicle through the city.", "start3", "finish3", {
         maxSpeed: 18,
         accelerationRate: 6,
@@ -191,57 +226,6 @@ const exampleLevel2_Missions = [
         steeringRate: 1.5,
         friction: 1.0,
         steeringFriction: 2.0
-    }],
-];
-
-const exampleLevel3_Missions = [
-    ["garbage-truck", "Sanitation Sam", "Emergency garbage collection before the storm.", "start7", "finish7", {
-        maxSpeed: 8,
-        accelerationRate: 2.5,
-        brakingRate: 15,
-        steeringRate: 0.8,
-        friction: 1.5,
-        steeringFriction: 3.0
-    }],
-    ["van", "Moving Mike", "Urgent furniture delivery across town.", "start8", "finish8", {
-        maxSpeed: 11,
-        accelerationRate: 3.5,
-        brakingRate: 12,
-        steeringRate: 1.1,
-        friction: 1.3,
-        steeringFriction: 2.4
-    }],
-    ["suv", "Soccer Mom", "Racing to pick up kids from practice.", "start9", "finish9", {
-        maxSpeed: 16,
-        accelerationRate: 4.8,
-        brakingRate: 9,
-        steeringRate: 1.7,
-        friction: 0.9,
-        steeringFriction: 1.8
-    }],
-    ["truck", "Trucker Tom", "Heavy cargo delivery to the construction site.", "start10", "finish10", {
-        maxSpeed: 9,
-        accelerationRate: 2.8,
-        brakingRate: 18,
-        steeringRate: 0.9,
-        friction: 1.8,
-        steeringFriction: 3.5
-    }],
-    ["sedan-sports", "Speed Racer", "Testing the new sports car around the city.", "start11", "finish11", {
-        maxSpeed: 20,
-        accelerationRate: 7,
-        brakingRate: 8,
-        steeringRate: 2.2,
-        friction: 0.7,
-        steeringFriction: 1.2
-    }],
-    ["race", "Pro Driver", "Training run through the urban circuit.", "start12", "finish12", {
-        maxSpeed: 22,
-        accelerationRate: 8,
-        brakingRate: 7,
-        steeringRate: 2.5,
-        friction: 0.6,
-        steeringFriction: 1.0
     }],
 ];
 
@@ -352,8 +336,21 @@ const levels = [
         }
     },
     { 
-        name: "Rush Hour",
+        name: "Traffic Chaos",
         missions: exampleLevel2_Missions, 
+        map: MapData, 
+        cameraStart: [0, 20, 30], 
+        initialTimeOfDay: 0.6, 
+        timeIncrementPerMission: 0.03,
+        timeSpeed: 0.012,
+        timer: {
+            totalTime: 40,
+            missionTimeBonus: 5
+        }
+    },
+    { 
+        name: "Rush Hour",
+        missions: exampleLevel3_Missions, 
         map: MapData, 
         cameraStart: [0, 20, 30], 
         initialTimeOfDay: 0.45, 
@@ -362,19 +359,6 @@ const levels = [
         timer: {
             totalTime: 35,
             missionTimeBonus: 5
-        }
-    },
-    { 
-        name: "Traffic Chaos",
-        missions: exampleLevel3_Missions, 
-        map: MapData, 
-        cameraStart: [0, 20, 30], 
-        initialTimeOfDay: 0.6, 
-        timeIncrementPerMission: 0.03,
-        timeSpeed: 0.012,
-        timer: {
-            totalTime: 240,
-            missionTimeBonus: 20
         }
     },
     { 

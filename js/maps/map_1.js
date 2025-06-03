@@ -47,6 +47,9 @@ export const mapData = {
         'planter': 'assets/kenney_city-kit-suburban/Models/planter.glb',
         'tree_large': 'assets/kenney_city-kit-suburban/Models/tree-large.glb',
         'tree_small': 'assets/kenney_city-kit-suburban/Models/tree-small.glb',
+        'construction_barrier': 'assets/kenney_city-kit-roads/Models/construction-barrier.glb',
+        'fence': 'assets/kenney_city-kit-suburban/Models/fence.glb',
+        'path_stones_messy': 'assets/kenney_city-kit-suburban/Models/path-stones-messy.glb',
     },
     layout: [ // [ name, rotation]
         [null, null, null, null, null, null, null, null, null],
@@ -80,6 +83,7 @@ export const mapData = {
         ['tree_small', 0, 0, 0, 4.5, 0, 1.8, 5.0],
         ['tree_small', 0, 0, 0, 4.3, 0, 1.6, 5.0],
         ['tree_large', 0, 0, 0, 4.7, 0, 1.6, 5.0],
+        // ['path_stones_messy', 0, 0, 0, 3.9, 0, 1.9, 15.0],
         // trees in the grass cutout with 2 houses
         ['tree_small', 0, 0, 0, 6.3, 0, 4, 5.0],
         ['tree_small', 0, 0, 0, 6.2, 0, 4.2, 4.3],
@@ -90,23 +94,15 @@ export const mapData = {
         ['tree_small', 0, 0, 0, 5.1, 0, 5.0, 5.0],
         ['tree_small', 0, 0, 0, 4.9, 0, 5.3, 4.3],
         ['tree_small', 0, 0, 0, 5.3, 0, 5.1, 5.3],
-        
-        // ['box', 0, 0, 0, 8.2, 0.1, 1.5, 0.8],
-        // ['cone_flat', 0, 90, 0, 3.1, 0.1, 0.4, 1.2],
-        // ['debris_tire', 90, 180, 0, 7.8, 0.1, 5.2, 1.0],
-        // ['cone', 0, 0, 0, 5.5, 0.1, 2.1, 1.1],
-        // ['debris_plate_a', 15, 45, 0, 0.7, 0.1, 3.8, 0.9],
-        // ['box', 0, 270, 20, 8.5, 0.1, 6.7, 0.7],
-        // ['cone_flat', 0, 180, 0, 2.8, 0.1, 8.9, 1.0],
-        // ['debris_plate_b', -10, 90, 0, 0.2, 0.1, 5.9, 1.3],
-        // ['cone', 0, 315, 0, 6.9, 0.1, 0.3, 1.0],
-        // ['debris_tire', 45, 0, 30, 4.7, 0.1, 9.1, 0.8],
-        // ['box', 0, 135, -15, 8.7, 0.1, 3.4, 1.2],
-        // ['cone_flat', 0, 270, 0, 1.1, 0.1, 7.6, 1.1],
-        // ['debris_plate_a', 20, 180, 10, 5.3, 0.1, 8.5, 0.9],
-        // ['cone', 0, 90, 0, 8.1, 0.1, 8.8, 1.0],
-        // ['debris_tire', -30, 45, 0, 1.5, 0.1, 2.3, 0.9],
-        // ['debris_tire', 60, 270, 45, 6.2, 0.1, 7.8, 1.1]
+
+        // barrier near grass house
+        ['construction_barrier', 0, 0, 0, 2.8, -0.02, 2.5, 5.5],
+        ['construction_barrier', 0, 12, 0, 2.7, -0.02, 3.2, 5.5],
+        ['construction_barrier', 0, 15, 0, 3.1, -0.02, 1.9, 5.5],
+        ['construction_barrier', 0, -12, 0, 3.0, -0.02, 3.9, 5.5],
+        // ['fence', 0, 90, 0, 2.8, 0.0, 2.5, 5.5],
+        // ['fence', 0, 87, 0, 2.78, 0.0, 2.9, 5.5],
+        // ['fence', 0, 83, 0, 2.82, 0.0, 2.2, 5.5],
     ],
     tileSize: 6,
     buildingScale: 0.7,
@@ -118,7 +114,20 @@ export const mapData = {
         'start2': { x: 6.84, z: 8, carRotationY: 180 },
         'finish2': { x: 4.67, z: 3.5, carRotationY: 0 },
 
-        // Level 2 - Rush Hour (4 cars)
+        // Level 2 - Traffic Chaos (6 cars)
+        'start7': { x: 3.85, z: 8, carRotationY: 180 },
+        'finish7': { x: 6.81, z: 1.2, carRotationY: 180 },
+
+        'start8': { x: 5.95, z: 5.7, carRotationY: 270 },
+        'finish8': { x: 1.3, z: 6.1, carRotationY: 90 },
+
+        'start9': { x: 0.85, z: 7.8, carRotationY: 180 },
+        'finish9': { x: 4.67, z: 3.5, carRotationY: 0 },
+
+        'start10': { x: 6.84, z: 8, carRotationY: 180 },
+        'finish10': { x: 4.67, z: 3.5, carRotationY: 0 },
+
+        // Level 3 - Rush Hour (4 cars)
         'start3': { x: 1.85, z: 1.5, carRotationY: 0 },
         'finish3': { x: 6.86, z: 8.05, carRotationY: 0 },
 
@@ -130,25 +139,6 @@ export const mapData = {
 
         'start6': { x: 0.7, z: 5.45, carRotationY: 0 },
         'finish6': { x: 6.7, z: 5, carRotationY: 0 },
-
-        // Level 3 - Traffic Chaos (6 cars)
-        'start7': { x: 2.4, z: 7.2, carRotationY: 0 },
-        'finish7': { x: 7.1, z: 3.8, carRotationY: 270 },
-
-        'start8': { x: 4.3, z: 8.2, carRotationY: 270 },
-        'finish8': { x: 1.3, z: 6.1, carRotationY: 90 },
-
-        'start9': { x: 7.2, z: 7.3, carRotationY: 180 },
-        'finish9': { x: 2.1, z: 5.8, carRotationY: 0 },
-
-        'start10': { x: 1.4, z: 7.8, carRotationY: 90 },
-        'finish10': { x: 4.8, z: 4.2, carRotationY: 270 },
-
-        'start11': { x: 4.1, z: 5.9, carRotationY: 0 },
-        'finish11': { x: 7.4, z: 2.3, carRotationY: 180 },
-
-        'start12': { x: 2.8, z: 3.1, carRotationY: 90 },
-        'finish12': { x: 1.8, z: 8.1, carRotationY: 270 },
 
         // Level 4 - Night Shift (5 cars) - Night theme with more complex routes
         'start13': { x: 7.16, z: 1.2, carRotationY: 0 },
