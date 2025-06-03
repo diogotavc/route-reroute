@@ -442,7 +442,6 @@ export function unlockAllAchievements() {
 
 export function onManualTrackSkip() {
     achievementsState.session.manualTrackSkips++;
-    console.log('Manual track skip detected. Total skips:', achievementsState.session.manualTrackSkips);
 
     if (achievementsState.session.manualTrackSkips >= 10) {
         unlockAchievement('DJ_MASTER', {

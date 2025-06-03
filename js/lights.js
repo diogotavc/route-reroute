@@ -4,17 +4,16 @@ import {
     STREETLIGHT_TURN_ON_TIME, 
     STREETLIGHT_TURN_OFF_TIME, 
     STREETLIGHT_SMOOTH_TRANSITIONS, 
-    DAY_CYCLE, 
-    HEADLIGHT_INTENSITY
+    DAY_CYCLE
 } from './config.js';
 import { getCurrentGraphicsSettings } from './graphics.js';
-import { updateHeadlights, toggleHeadlights, setHeadlightsEnabled, getCarHeadlights, getLoadedCarModels, getCurrentTimeOfDay, getHeadlightsEnabled } from './cars.js';
+import { updateHeadlights, getCarHeadlights } from './cars.js';
 
 let ambientLight, directionalLight;
 let streetLights = [];
 let streetLightsEnabled = true;
 let currentScene = null;
-let currentTimeOfDay = 0.5;
+let currentTimeOfDay = null;
 
 let originalLightIntensities = {
     ambient: null,

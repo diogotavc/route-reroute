@@ -1,4 +1,3 @@
-import { isIdleCameraSystemActive } from './camera.js';
 import { TIMER_WARNING_THRESHOLD } from './config.js';
 
 export function createOverlayElements() {

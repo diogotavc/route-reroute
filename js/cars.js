@@ -3,7 +3,6 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import * as CarPhysics from "./carPhysics.js";
 import * as Achievements from "./achievements.js";
 import { isIdleCameraSystemActive, isIdleCameraReturning, updateIdleCameraOriginalVisibility } from "./camera.js";
-import { getGridCoordinates } from "./mapLoader.js";
 import { getCurrentGraphicsSettings } from './graphics.js';
 import {
     HEADLIGHT_INTENSITY,
@@ -437,7 +436,6 @@ function createHeadlights(carModel, carIndex) {
     const graphicsSettings = getCurrentGraphicsSettings();
     const bbox = new THREE.Box3().setFromObject(carModel);
     const size = bbox.getSize(new THREE.Vector3());
-    const center = bbox.getCenter(new THREE.Vector3());
     
     const frontDistance = size.z * 0.5;
     const sideDistance = Math.max(size.x * 0.3, 0.4);
@@ -466,7 +464,6 @@ function createHeadlights(carModel, carIndex) {
     const rightTarget = new THREE.Object3D();
 
     const targetDistance = 15;
-    const convergenceAngle = 0.1;
     leftTarget.position.set(
         -sideDistance * 0.3,
         -0.5,

@@ -19,8 +19,6 @@ import { initMusicSystem, setIdleMode as setMusicIdleMode, startMusic } from './
 import {
     initCars,
     loadCarModels,
-    cleanupAllCars,
-    nextCar,
     setAccelerating,
     setBraking,
     setTurningLeft,
@@ -41,13 +39,11 @@ import { createOverlayElements, createAchievementNotification, animateAchievemen
 import {
     initCamera,
     setCameraPaused,
-    startIdleCameraAnimation,
     stopIdleCameraAnimation,
     updateIdleCameraAnimation,
     checkIdleTimeout,
     updateFireflyPosition,
     isIdleCameraSystemActive,
-    isIdleCameraReturning,
     getIdleCameraTimeScale
 } from './camera.js';
 
@@ -1046,12 +1042,6 @@ window.addEventListener("keydown", (event) => {
         case "p": 
         case "Escape":
             togglePause(true); 
-            break;
-        case "n": 
-            const nextCarResult = nextCar();
-            if (nextCarResult === -1) {
-                advanceToNextLevel();
-            }
             break;
     }
 });
