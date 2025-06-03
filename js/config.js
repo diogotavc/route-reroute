@@ -196,18 +196,3 @@ export const CAMERA_HEIGHT = 10;
 export const LOOK_AT_Y_OFFSET = 3.5;
 export const FIRST_PERSON_HEIGHT_OFFSET = 1.2;
 export const FIRST_PERSON_FORWARD_OFFSET = 0.3;
-
-export const SHADOW_MAP_SIZE = 1024;
-export const HEADLIGHT_SHADOW_MAP_SIZE = 512;
-export const STREETLIGHT_SHADOW_MAP_SIZE = 256;
-export const ENABLE_STREETLIGHT_SHADOWS = false;
-export const SHADOW_CAMERA_NEAR = 10;
-export const SHADOW_CAMERA_FAR = 300;
-export const SHADOW_BIAS = -0.0005;
-export const SHADOW_NORMAL_BIAS = 0.1;
-export const MAX_LIGHTS_PER_SCENE = 8;
-export const RENDERER_PIXEL_RATIO = Math.min(window.devicePixelRatio, 2);
-export const ENABLE_FRUSTUM_CULLING = true;
-export const LOD_DISTANCE_THRESHOLD = 50;
-
-export const RESOLUTION_SCALE = 0.75; // 0.5 = half resolution, 1.0 = full resolution

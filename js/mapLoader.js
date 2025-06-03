@@ -4,12 +4,9 @@ import {
     STREETLIGHT_INTENSITY, 
     GRASS_HEIGHT, 
     GRASS_COLOR,
-    STREETLIGHT_SHADOW_MAP_SIZE,
-    ENABLE_STREETLIGHT_SHADOWS,
-    SHADOW_BIAS,
-    SHADOW_NORMAL_BIAS,
     RANDOM_OBJECT_SCALE_DIVISOR
 } from './config.js';
+import { getCurrentGraphicsSettings } from './graphics.js';
 import { registerStreetLights } from './lights.js';
 
 const modelLoader = new GLTFLoader();
@@ -60,6 +57,7 @@ function createMapLayout(scene, mapDefinition) {
         return null; 
     }
 
+    const graphicsSettings = getCurrentGraphicsSettings();
     const layout = mapDefinition.layout;
     const tileSize = mapDefinition.tileSize;
     const tileScaleVec = mapDefinition.tileScale ? 
@@ -216,14 +214,14 @@ function createMapLayout(scene, mapDefinition) {
                         );
                         spotlight.target.position.copy(targetPosition);
 
-                        spotlight.castShadow = ENABLE_STREETLIGHT_SHADOWS;
-                        if (ENABLE_STREETLIGHT_SHADOWS) {
-                            spotlight.shadow.mapSize.width = STREETLIGHT_SHADOW_MAP_SIZE;
-                            spotlight.shadow.mapSize.height = STREETLIGHT_SHADOW_MAP_SIZE;
+                        spotlight.castShadow = graphicsSettings.ENABLE_STREETLIGHT_SHADOWS;
+                        if (graphicsSettings.ENABLE_STREETLIGHT_SHADOWS) {
+                            spotlight.shadow.mapSize.width = graphicsSettings.STREETLIGHT_SHADOW_MAP_SIZE;
+                            spotlight.shadow.mapSize.height = graphicsSettings.STREETLIGHT_SHADOW_MAP_SIZE;
                             spotlight.shadow.camera.near = 0.1;
                             spotlight.shadow.camera.far = lightRange;
-                            spotlight.shadow.bias = SHADOW_BIAS;
-                            spotlight.shadow.normalBias = SHADOW_NORMAL_BIAS;
+                            spotlight.shadow.bias = graphicsSettings.SHADOW_BIAS;
+                            spotlight.shadow.normalBias = graphicsSettings.SHADOW_NORMAL_BIAS;
                         }
 
                         scene.add(lightBulb);

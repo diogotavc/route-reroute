@@ -4,6 +4,7 @@ import * as CarPhysics from "./carPhysics.js";
 import * as Achievements from "./achievements.js";
 import { isIdleCameraSystemActive, isIdleCameraReturning, updateIdleCameraOriginalVisibility } from "./camera.js";
 import { getGridCoordinates } from "./mapLoader.js";
+import { getCurrentGraphicsSettings } from './graphics.js';
 import {
     HEADLIGHT_INTENSITY,
     HEADLIGHT_DISTANCE,
@@ -32,7 +33,6 @@ import {
     LOOK_AT_Y_OFFSET,
     FIRST_PERSON_HEIGHT_OFFSET,
     FIRST_PERSON_FORWARD_OFFSET,
-    HEADLIGHT_SHADOW_MAP_SIZE,
     VEHICLE_COORDINATE_DEBUG_LOGGING,
     VEHICLE_COORDINATE_LOG_INTERVAL
 } from './config.js';
@@ -440,6 +440,7 @@ let elapsedTime = 0;
 let isFirstPersonMode = false;
 
 function createHeadlights(carModel, carIndex) {
+    const graphicsSettings = getCurrentGraphicsSettings();
     const bbox = new THREE.Box3().setFromObject(carModel);
     const size = bbox.getSize(new THREE.Vector3());
     const center = bbox.getCenter(new THREE.Vector3());
@@ -489,15 +490,15 @@ function createHeadlights(carModel, carIndex) {
     leftHeadlight.castShadow = true;
     rightHeadlight.castShadow = true;
 
-    leftHeadlight.shadow.mapSize.width = HEADLIGHT_SHADOW_MAP_SIZE;
-    leftHeadlight.shadow.mapSize.height = HEADLIGHT_SHADOW_MAP_SIZE;
+    leftHeadlight.shadow.mapSize.width = graphicsSettings.HEADLIGHT_SHADOW_MAP_SIZE;
+    leftHeadlight.shadow.mapSize.height = graphicsSettings.HEADLIGHT_SHADOW_MAP_SIZE;
     leftHeadlight.shadow.camera.near = 0.1;
     leftHeadlight.shadow.camera.far = HEADLIGHT_DISTANCE;
     leftHeadlight.shadow.bias = -0.0001;
     leftHeadlight.shadow.normalBias = 0.02;
 
-    rightHeadlight.shadow.mapSize.width = HEADLIGHT_SHADOW_MAP_SIZE;
-    rightHeadlight.shadow.mapSize.height = HEADLIGHT_SHADOW_MAP_SIZE;
+    rightHeadlight.shadow.mapSize.width = graphicsSettings.HEADLIGHT_SHADOW_MAP_SIZE;
+    rightHeadlight.shadow.mapSize.height = graphicsSettings.HEADLIGHT_SHADOW_MAP_SIZE;
     rightHeadlight.shadow.camera.near = 0.1;
     rightHeadlight.shadow.camera.far = HEADLIGHT_DISTANCE;
     rightHeadlight.shadow.bias = -0.0001;

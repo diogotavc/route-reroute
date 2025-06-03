@@ -2,8 +2,6 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import {
     AUTO_PAUSE_ON_FOCUS_LOST, 
-    RENDERER_PIXEL_RATIO,
-    RESOLUTION_SCALE,
     TIMER_REWIND_PENALTY,
     TIMER_GRASS_SPEED_MULTIPLIER,
     TIMER_HINTS_ENABLED,
@@ -13,6 +11,7 @@ import {
     TIMER_HINT_MAX_INTERVAL,
     TIMER_GRACE_PERIOD
 } from './config.js';
+import { getCurrentGraphicsSettings } from './graphics.js';
 
 import { setupLights, updateDayNightCycle } from './lights.js';
 import * as Achievements from './achievements.js';
@@ -55,37 +54,16 @@ import {
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
 
+const graphicsSettings = getCurrentGraphicsSettings();
+
 const renderer = new THREE.WebGLRenderer({ 
-    antialias: true,
+    antialias: graphicsSettings.ANTIALIAS,
     powerPreference: "high-performance"
 });
 
-function loadResolutionScale() {
-    try {
-        const saved = localStorage.getItem('route_reroute_resolution_scale');
-        if (saved !== null) {
-            const scale = parseFloat(saved);
-            if (!isNaN(scale) && scale > 0 && scale <= 2) {
-                return scale;
-            }
-        }
-    } catch (error) {
-        console.warn('Failed to load resolution scale from localStorage:', error);
-    }
-    return RESOLUTION_SCALE;
-}
-
-function saveResolutionScale(scale) {
-    try {
-        localStorage.setItem('route_reroute_resolution_scale', scale.toString());
-    } catch (error) {
-        console.warn('Failed to save resolution scale to localStorage:', error);
-    }
-}
-
 function applyResolutionScale(scale) {
     if (scale === undefined) {
-        scale = loadResolutionScale();
+        scale = graphicsSettings.RESOLUTION_SCALE;
     }
 
     const scaledWidth = Math.floor(window.innerWidth * scale);
@@ -94,20 +72,18 @@ function applyResolutionScale(scale) {
     renderer.domElement.style.width = window.innerWidth + 'px';
     renderer.domElement.style.height = window.innerHeight + 'px';
 
-    saveResolutionScale(scale);
-
     console.log(`Resolution scale set to ${(scale * 100).toFixed(1)}% (${scaledWidth}x${scaledHeight})`);
 }
 
 window.applyResolutionScale = applyResolutionScale;
-window.getCurrentResolutionScale = () => loadResolutionScale();
+window.getCurrentResolutionScale = () => graphicsSettings.RESOLUTION_SCALE;
 window.resetResolutionScale = () => {
-    applyResolutionScale(RESOLUTION_SCALE);
-    console.log(`Resolution scale reset to default: ${(RESOLUTION_SCALE * 100).toFixed(1)}%`);
+    applyResolutionScale(graphicsSettings.RESOLUTION_SCALE);
+    console.log(`Resolution scale reset to graphics preset default: ${(graphicsSettings.RESOLUTION_SCALE * 100).toFixed(1)}%`);
 };
 
 applyResolutionScale();
-renderer.setPixelRatio(RENDERER_PIXEL_RATIO);
+renderer.setPixelRatio(graphicsSettings.RENDERER_PIXEL_RATIO);
 renderer.setAnimationLoop(animate);
 renderer.setClearColor(0x212121);
 renderer.shadowMap.enabled = true;

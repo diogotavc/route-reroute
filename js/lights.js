@@ -5,13 +5,9 @@ import {
     STREETLIGHT_TURN_OFF_TIME, 
     STREETLIGHT_SMOOTH_TRANSITIONS, 
     DAY_CYCLE, 
-    HEADLIGHT_INTENSITY,
-    SHADOW_MAP_SIZE,
-    SHADOW_CAMERA_NEAR,
-    SHADOW_CAMERA_FAR,
-    SHADOW_BIAS,
-    SHADOW_NORMAL_BIAS
+    HEADLIGHT_INTENSITY
 } from './config.js';
+import { getCurrentGraphicsSettings } from './graphics.js';
 import { updateHeadlights, toggleHeadlights, setHeadlightsEnabled, getCarHeadlights, getLoadedCarModels, getCurrentTimeOfDay, getHeadlightsEnabled } from './cars.js';
 
 let ambientLight, directionalLight;
@@ -29,23 +25,25 @@ let originalLightIntensities = {
 
 export function setupLights(scene) {
     currentScene = scene;
+    const graphicsSettings = getCurrentGraphicsSettings();
+    
     ambientLight = new THREE.AmbientLight(0x404040, 0.5);
     scene.add(ambientLight);
     directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
     directionalLight.position.set(50, 50, 50);
     directionalLight.castShadow = true;
 
-    directionalLight.shadow.mapSize.width = SHADOW_MAP_SIZE;
-    directionalLight.shadow.mapSize.height = SHADOW_MAP_SIZE;
-    directionalLight.shadow.camera.near = SHADOW_CAMERA_NEAR;
-    directionalLight.shadow.camera.far = SHADOW_CAMERA_FAR;
+    directionalLight.shadow.mapSize.width = graphicsSettings.SHADOW_MAP_SIZE;
+    directionalLight.shadow.mapSize.height = graphicsSettings.SHADOW_MAP_SIZE;
+    directionalLight.shadow.camera.near = graphicsSettings.SHADOW_CAMERA_NEAR;
+    directionalLight.shadow.camera.far = graphicsSettings.SHADOW_CAMERA_FAR;
     directionalLight.shadow.camera.left = -100;
     directionalLight.shadow.camera.right = 100;
     directionalLight.shadow.camera.top = 100;
     directionalLight.shadow.camera.bottom = -100;
 
-    directionalLight.shadow.bias = SHADOW_BIAS;
-    directionalLight.shadow.normalBias = SHADOW_NORMAL_BIAS;
+    directionalLight.shadow.bias = graphicsSettings.SHADOW_BIAS;
+    directionalLight.shadow.normalBias = graphicsSettings.SHADOW_NORMAL_BIAS;
     
     directionalLight.shadow.camera.updateProjectionMatrix();
     scene.add(directionalLight);
