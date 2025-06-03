@@ -1,12 +1,9 @@
 ### Fixes
 
 - [ ] complete the third level before 0.4-alpha (which will be good enough for delivery)
-- [ ] fix control flow
-- [ ] fix UI when exiting sandbox mode and entering a regular level
-- [ ] fix missing UI if level is invoked at the initial level selection screen (sometimes?)
 - [ ] prevent esc on the initial level selection screen
-- [ ] add a localstorage graphics preset system (prompts if there's no graphics save in localstorage, before loading anything)
-- [ ] make sure music/audio context only starts after the levels prompt
+- [ ] _shows stats at the end of the level?_
+- [ ] bug with the pause menu level selector in sandbox mode
 
 ### Features still yet to be added
 
@@ -17,6 +14,8 @@
 
 - [ ] check for unused variables and bad imports
 - [ ] look over the configs before prod
+- [ ] look for stupid logs
+- [ ] add log for graphics setting
 - [ ] remove debug / check for console.* (including 'n' key)
 - [ ] add last level finishing logic
 
