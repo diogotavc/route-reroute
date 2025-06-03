@@ -365,10 +365,6 @@ function handleFirstInteraction() {
 
         const audioContextReady = initAudioContext();
 
-        if (audioContextReady) {
-            console.log('Music system ready - AudioContext initialized');
-        }
-
         if (MUSIC_AUTO_NEXT && !currentAudio && !isPlaying) {
             setTimeout(() => {
                 startMusic();

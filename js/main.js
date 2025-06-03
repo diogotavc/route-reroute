@@ -67,8 +67,6 @@ function applyResolutionScale(scale) {
     renderer.setSize(scaledWidth, scaledHeight, false);
     renderer.domElement.style.width = window.innerWidth + 'px';
     renderer.domElement.style.height = window.innerHeight + 'px';
-
-    console.log(`Resolution scale set to ${(scale * 100).toFixed(1)}% (${scaledWidth}x${scaledHeight})`);
 }
 
 window.applyResolutionScale = applyResolutionScale;
