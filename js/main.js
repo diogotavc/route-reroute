@@ -516,6 +516,8 @@ function resetAllData() {
     completedLevels = [];
     localStorage.removeItem('route_reroute_completed_levels');
     localStorage.removeItem('route_reroute_resolution_scale');
+    localStorage.removeItem('route_reroute_graphics_preset');
+    localStorage.removeItem('route_reroute_custom_resolution_scale');
 
     currentLevelIndex = 0;
     hasAskedForLevelSelection = false;
