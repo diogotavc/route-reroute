@@ -13,6 +13,27 @@ import {
 } from './config.js';
 import { getCurrentGraphicsSettings } from './graphics.js';
 
+console.log(`
+If you experience performance or rendering issues, consider switching to a different graphics preset and refreshing the page.
+
+The modes 'HIGH', 'MEDIUM' (default), 'LOW' and 'POTATO' are available. To apply them, run:
+
+* applyGraphicsPreset(preset)
+or
+* applyGraphicsPreset(preset, resolution_scale)
+
+resolution_scale being a number, where 1.0 is your resolution and 0.5 is half of it.
+
+Also available:
+
+* getCurrentGraphicsSettings() - View current graphics configuration
+* getCurrentResolutionScale() - Check current resolution scale
+* applyResolutionScale(resolution_scale) - Manually set resolution scale
+
+Type any of these commands in the console to adjust graphics settings.
+
+`);
+
 import { setupLights, updateDayNightCycle } from './lights.js';
 import * as Achievements from './achievements.js';
 import { initMusicSystem, setIdleMode as setMusicIdleMode, startMusic } from './music.js';
