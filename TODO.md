@@ -1,7 +1,7 @@
 ### Fixes
 
 - [ ] complete the third level before 0.4-alpha (which will be good enough for delivery)
-- [ ] prevent esc on the initial level selection screen
+- [x] prevent esc on the initial level selection screen
 
 ### Right before delivery
 

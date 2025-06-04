@@ -1028,7 +1028,7 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
         if (event.key === 'Escape') {
             event.preventDefault();
             if (isInitialSelection) {
-                removeOverlay();
+                return;
             } else if (fromTimeout) {
                 removeOverlay();
                 setTimeout(() => {
