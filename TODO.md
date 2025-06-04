@@ -1,18 +1,10 @@
 ### Fixes
 
-- [ ] complete the third level before 0.4-alpha (which will be good enough for delivery)
-- [x] prevent esc on the initial level selection screen
-- [x] fix music restart bug when changing levels (manually paused music should stay paused)
-- [x] standardize fonts across interface to eliminate font conflicts
+ALL DONE :)
 
 ### Right before delivery
 
-- [ ] check for unused variables and bad imports
 - [ ] look over the configs before prod
-- [ ] look for stupid logs
-- [ ] add log for graphics setting
-- [ ] remove debug / check for console.* (including 'n' key)
-- [ ] add last level finishing logic
 
 ### trash bin (likely incomplete)
 
