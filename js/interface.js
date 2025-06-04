@@ -787,7 +787,7 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
     `;
 
     const totalLevels = window.getCurrentLevelIndex !== undefined ? 
-        (typeof window.levels !== 'undefined' ? window.levels.length : 3) : 3;
+        (typeof window.levels !== 'undefined' && window.getOriginalLevelsLength ? window.getOriginalLevelsLength() : window.levels.length) : 3;
     const currentLevel = window.getCurrentLevelIndex ? window.getCurrentLevelIndex() : 0;
     const highestCompleted = window.getHighestCompletedLevel ? window.getHighestCompletedLevel() : -1;
 

@@ -402,8 +402,16 @@ let completedLevels = JSON.parse(localStorage.getItem('route_reroute_completed_l
 let hasAskedForLevelSelection = false;
 let isInInitialLevelSelection = false;
 let isSandboxMode = false;
+let originalLevelsLength = levels.length;
 
 window.isSandboxMode = false;
+
+function cleanupSandboxLevels() {
+    if (levels.length > originalLevelsLength) {
+        levels.length = originalLevelsLength;
+    }
+}
+
 window.isInInitialLevelSelection = () => isInInitialLevelSelection;
 
 let currentLevelTimer = 0;
@@ -501,7 +509,7 @@ function getHighestCompletedLevel() {
 }
 
 function setCurrentLevel(levelIndex) {
-    if (levelIndex >= 0 && levelIndex < levels.length) {
+    if (levelIndex >= 0 && levelIndex < originalLevelsLength) {
         currentLevelIndex = levelIndex;
         loadCarModelsAndSetupLevel();
     }
@@ -511,6 +519,7 @@ window.markLevelCompleted = markLevelCompleted;
 window.isLevelCompleted = isLevelCompleted;
 window.getHighestCompletedLevel = getHighestCompletedLevel;
 window.setCurrentLevel = setCurrentLevel;
+window.getOriginalLevelsLength = () => originalLevelsLength;
 window.unpauseGame = unpauseGame;
 window.levels = levels;
 window.showSandboxCarSelection = showSandboxCarSelection;
@@ -614,7 +623,7 @@ function advanceToNextLevel() {
 
     markLevelCompleted(currentLevelIndex);
 
-    if (currentLevelIndex < levels.length - 1) {
+    if (currentLevelIndex < originalLevelsLength - 1) {
         showLevelCompletionScreen();
         return true;
     } else {
@@ -640,6 +649,8 @@ function safeUpdateLevelIndicatorWithMission() {
 
 function loadCarModelsAndSetupLevel() {
     if (isLoading) return;
+
+    cleanupSandboxLevels();
 
     isSandboxMode = false;
     window.isSandboxMode = false;
