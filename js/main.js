@@ -1528,7 +1528,7 @@ function showSandboxCarSelection() {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-            " onmouseover="this.style.background='rgba(76, 175, 80, 0.2)'; this.style.borderColor='rgba(76, 175, 80, 0.5)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(255, 255, 255, 0.2)'; this.style.transform='scale(1)'">>
+            " onmouseover="this.style.background='rgba(76, 175, 80, 0.2)'; this.style.borderColor='rgba(76, 175, 80, 0.5)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(255, 255, 255, 0.2)'; this.style.transform='scale(1)'">
                 ${displayName}
             </button>
         `;
@@ -1547,7 +1547,7 @@ function showSandboxCarSelection() {
                 font-weight: bold;
                 cursor: pointer;
                 transition: all 0.3s ease;
-            " onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.transform='translateY(0)'">>
+            " onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.transform='translateY(0)'">
                 Back
             </button>
         </div>
