@@ -843,7 +843,6 @@ window.pauseMenuActions = {
                 color: white;
                 padding: 20px 40px;
                 border-radius: 12px;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                 font-size: 18px;
                 font-weight: 500;
                 z-index: 3500;
@@ -1163,7 +1162,6 @@ function showTimerTimeoutScreen() {
         border-radius: 20px;
         padding: 50px;
         color: white;
-        font-family: 'Orbitron', 'Courier New', monospace;
         text-align: center;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
         max-width: 500px;
@@ -1189,7 +1187,6 @@ function showTimerTimeoutScreen() {
                 border: none;
                 border-radius: 10px;
                 color: white;
-                font-family: inherit;
                 font-size: 16px;
                 font-weight: bold;
                 cursor: pointer;
@@ -1204,7 +1201,6 @@ function showTimerTimeoutScreen() {
                 border: none;
                 border-radius: 10px;
                 color: white;
-                font-family: inherit;
                 font-size: 16px;
                 font-weight: bold;
                 cursor: pointer;
@@ -1269,7 +1265,6 @@ function showLevelCompletionScreen() {
         border-radius: 20px;
         padding: 50px;
         color: white;
-        font-family: 'Orbitron', 'Courier New', monospace;
         text-align: center;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
         max-width: 500px;
@@ -1291,7 +1286,6 @@ function showLevelCompletionScreen() {
             border: none;
             border-radius: 10px;
             color: white;
-            font-family: inherit;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
@@ -1343,7 +1337,6 @@ function showGameCompletionScreen() {
         border-radius: 20px;
         padding: 50px;
         color: white;
-        font-family: 'Orbitron', 'Courier New', monospace;
         text-align: center;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
         max-width: 600px;
@@ -1370,7 +1363,6 @@ function showGameCompletionScreen() {
                 border: none;
                 border-radius: 10px;
                 color: white;
-                font-family: inherit;
                 font-size: 18px;
                 font-weight: bold;
                 cursor: pointer;
@@ -1385,7 +1377,6 @@ function showGameCompletionScreen() {
                 border: none;
                 border-radius: 10px;
                 color: white;
-                font-family: inherit;
                 font-size: 18px;
                 font-weight: bold;
                 cursor: pointer;
@@ -1472,7 +1463,6 @@ function showSandboxCarSelection() {
         border-radius: 20px;
         padding: 40px;
         color: white;
-        font-family: 'Orbitron', 'Courier New', monospace;
         text-align: center;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 
                     inset 0 1px 0 rgba(255, 255, 255, 0.1),
@@ -1529,7 +1519,6 @@ function showSandboxCarSelection() {
                 border: 2px solid rgba(255, 255, 255, 0.2);
                 border-radius: 12px;
                 color: white;
-                font-family: inherit;
                 font-size: 14px;
                 font-weight: bold;
                 cursor: pointer;
@@ -1554,7 +1543,6 @@ function showSandboxCarSelection() {
                 border: 2px solid rgba(255, 255, 255, 0.2);
                 border-radius: 10px;
                 color: white;
-                font-family: inherit;
                 font-size: 16px;
                 font-weight: bold;
                 cursor: pointer;

@@ -3,6 +3,7 @@
 - [ ] complete the third level before 0.4-alpha (which will be good enough for delivery)
 - [x] prevent esc on the initial level selection screen
 - [x] fix music restart bug when changing levels (manually paused music should stay paused)
+- [x] standardize fonts across interface to eliminate font conflicts
 
 ### Right before delivery
 

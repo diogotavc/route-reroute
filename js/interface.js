@@ -583,7 +583,6 @@ export function showAchievementsMenu() {
         max-height: 80vh;
         overflow-y: auto;
         text-align: center;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     `;
 
     let achievementContent = '<h2 style="margin-top: 0; color: #4A90E2; text-align: center;">Achievements</h2>';
@@ -777,7 +776,6 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
         border-radius: 20px;
         padding: 40px;
         color: white;
-        font-family: 'Orbitron', 'Courier New', monospace;
         text-align: center;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
         backdrop-filter: blur(10px);
@@ -838,7 +836,6 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
             border-radius: 10px;
             color: ${isUnlocked ? 'white' : '#888'};
             cursor: ${isUnlocked ? 'pointer' : 'not-allowed'};
-            font-family: inherit;
             font-size: 16px;
             transition: all 0.3s ease;
             ${isUnlocked && !isInitialSelection ? 'background: rgba(76, 175, 80, 0.3); border-color: rgba(76, 175, 80, 0.7);' : ''}
@@ -868,7 +865,6 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
                     border-radius: 10px;
                     color: white;
                     cursor: pointer;
-                    font-family: inherit;
                     font-size: 16px;
                     font-weight: bold;
                     transition: all 0.3s ease;
@@ -1013,7 +1009,6 @@ export function showManualMenu() {
         border-radius: 20px;
         padding: 40px;
         color: white;
-        font-family: 'Orbitron', 'Courier New', monospace;
         text-align: left;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
         backdrop-filter: blur(10px);
@@ -1135,7 +1130,6 @@ export function showAboutMenu() {
         border-radius: 20px;
         padding: 40px;
         color: white;
-        font-family: 'Orbitron', 'Courier New', monospace;
         text-align: center;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
         backdrop-filter: blur(10px);
@@ -1320,7 +1314,6 @@ function showSandboxConfigurationMenu() {
         border-radius: 20px;
         padding: 40px;
         color: white;
-        font-family: 'Orbitron', 'Courier New', monospace;
         text-align: center;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 
                     inset 0 1px 0 rgba(255, 255, 255, 0.1),
@@ -1455,7 +1448,6 @@ function showSandboxConfigurationMenu() {
                     border: 2px solid rgba(255, 255, 255, 0.2);
                     border-radius: 8px;
                     color: white;
-                    font-family: inherit;
                     font-size: 14px;
                     font-weight: bold;
                     cursor: pointer;
@@ -1473,7 +1465,6 @@ function showSandboxConfigurationMenu() {
                 border: 2px solid rgba(76, 175, 80, 0.5);
                 border-radius: 10px;
                 color: white;
-                font-family: inherit;
                 font-size: 16px;
                 font-weight: bold;
                 cursor: pointer;
@@ -1487,7 +1478,6 @@ function showSandboxConfigurationMenu() {
                 border: 2px solid rgba(255, 255, 255, 0.2);
                 border-radius: 10px;
                 color: white;
-                font-family: inherit;
                 font-size: 16px;
                 font-weight: bold;
                 cursor: pointer;
