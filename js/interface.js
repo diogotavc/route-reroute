@@ -809,10 +809,15 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
             const isCompleted = window.isLevelCompleted ? window.isLevelCompleted(i) : false;
             const isUnlocked = i === 0 || isCompleted || i <= highestCompleted + 1;
             const isCurrent = i === currentLevel;
-            
-            const statusIcon = isCompleted ? '✓' : (isCurrent ? '▶' : (isUnlocked ? '○' : 'LOCKED'));
+
+            const statusIcon = isInitialSelection ? 
+                (isCompleted ? '✓' : (isUnlocked ? '○' : '')) :
+                (isCompleted ? (isCurrent ? '▶' : '✓') : (isCurrent ? '▶' : (isUnlocked ? '○' : '')));
             const statusText = isCompleted ? 'Completed' : (isCurrent ? 'Current' : (isUnlocked ? 'Available' : 'Locked'));
-            
+
+            const levelName = (isUnlocked || isCompleted) && window.levels && window.levels[i] ? window.levels[i].name : null;
+            const levelText = levelName ? `${levelName}` : `Level ${i + 1}`;
+
             const buttonStyle = `
                 display: block;
                 width: 100%;
@@ -833,7 +838,7 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
                         ${isUnlocked ? `onclick="selectLevel(${i})"` : ''} 
                         ${isUnlocked ? 'onmouseover="this.style.background=\'rgba(76, 175, 80, 0.4)\'"' : ''}
                         ${isUnlocked ? 'onmouseout="this.style.background=\'rgba(76, 175, 80, 0.2)\'"' : ''}>
-                    ${statusIcon} Level ${i + 1} - ${statusText}
+                    ${statusIcon} ${levelText} - ${statusText}
                 </button>
             `;
         }
@@ -884,8 +889,11 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
             const isUnlocked = i === 0 || isCompleted || i <= highestCompleted + 1;
             const isCurrent = i === currentLevel;
             
-            const statusIcon = isCompleted ? '✓' : (isCurrent ? '▶' : (isUnlocked ? '○' : 'LOCKED'));
+            const statusIcon = isCompleted ? (isCurrent ? '▶' : '✓') : (isCurrent ? '▶' : (isUnlocked ? '○' : ''));
             const statusText = isCompleted ? 'Completed' : (isCurrent ? 'Current' : (isUnlocked ? 'Available' : 'Locked'));
+            
+            const levelName = (isUnlocked || isCompleted) && window.levels && window.levels[i] ? window.levels[i].name : null;
+            const levelText = levelName ? `${levelName}` : `Level ${i + 1}`;
             
             const buttonStyle = `
                 display: block;
@@ -908,7 +916,7 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
                         ${isUnlocked ? `onclick="selectLevel(${i})"` : ''} 
                         ${isUnlocked ? 'onmouseover="this.style.background=\'rgba(76, 175, 80, 0.4)\'"' : ''}
                         ${isUnlocked ? 'onmouseout="this.style.background=\'rgba(76, 175, 80, 0.2)\'"' : ''}>
-                    ${statusIcon} Level ${i + 1} - ${statusText}
+                    ${statusIcon} ${levelText} - ${statusText}
                 </button>
             `;
         }
