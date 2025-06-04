@@ -18,19 +18,11 @@ If you experience performance or rendering issues, consider switching to a diffe
 
 The modes 'HIGH', 'MEDIUM' (default), 'LOW' and 'POTATO' are available. To apply them, run:
 
-* applyGraphicsPreset(preset)
+* setGraphicsPreset(preset)
 or
-* applyGraphicsPreset(preset, resolution_scale)
+* setGraphicsPreset(preset, resolution_scale)
 
-resolution_scale being a number, where 1.0 is your resolution and 0.5 is half of it.
-
-Also available:
-
-* getCurrentGraphicsSettings() - View current graphics configuration
-* getCurrentResolutionScale() - Check current resolution scale
-* applyResolutionScale(resolution_scale) - Manually set resolution scale
-
-Type any of these commands in the console to adjust graphics settings.
+The value resolution_scale is a number, where 1.0 is your resolution and 0.5 is half of it.
 
 `);
 

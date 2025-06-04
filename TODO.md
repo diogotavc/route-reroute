@@ -2,10 +2,6 @@
 
 ALL DONE :)
 
-### Right before delivery
-
-- [ ] look over the configs before prod
-
 ### trash bin (likely incomplete)
 
 - [ ] ~~SFX (UI, crashes, car engines, other fx)~~

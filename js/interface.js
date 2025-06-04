@@ -1069,7 +1069,7 @@ export function showManualMenu() {
             <div style="margin-left: 20px; line-height: 1.6;">
                 <p>• Plan your route before starting each mission</p>
                 <p>• Use different camera angles to better navigate</p>
-                <p>• Stay on roads to avoid grass speed penalties</p>
+                <p>• Stay on roads to avoid grass speed and time penalties</p>
                 <p>• Some missions have time bonuses upon completion</p>
                 <p>• Unlock achievements by trying different play styles</p>
             </div>
@@ -1148,9 +1148,9 @@ export function showAboutMenu() {
         <div style="margin-bottom: 30px; text-align: left;">
             <h3 style="color: #4CAF50; margin-bottom: 15px; font-size: 20px; text-align: center;">The Game</h3>
             <p style="line-height: 1.6; margin-bottom: 15px;">
-                Route Reroute is an innovative 3D driving game where you help different characters 
-                reach their destinations. Each mission presents unique challenges and time constraints, 
-                testing your driving skills and strategic thinking.
+                Route Reroute is a fun 3D driving game where you help different characters reach their
+                destinations. Each mission presents unique challenges and time constraints, as your
+                previous movements are replayed, testing your driving skills and strategic thinking.
             </p>
             <p style="line-height: 1.6; margin-bottom: 15px;">
                 Master the art of time management, perfect your driving technique, and unlock 
@@ -1161,11 +1161,12 @@ export function showAboutMenu() {
         <div style="margin-bottom: 30px; text-align: left;">
             <h3 style="color: #2196F3; margin-bottom: 15px; font-size: 20px; text-align: center;">Technical Features</h3>
             <div style="margin-left: 20px; line-height: 1.6;">
-                <p>• Built with Three.js for stunning 3D graphics</p>
-                <p>• Advanced physics simulation for realistic driving</p>
+                <p>• Built with Three.js for 3D graphics</p>
+                <p>• Physics simulation for realistic driving</p>
                 <p>• Dynamic day/night cycle system</p>
                 <p>• Comprehensive achievement system</p>
                 <p>• Time rewind mechanics</p>
+                <p>• Movement replay mechanics</p>
                 <p>• Multiple camera perspectives</p>
                 <p>• Responsive UI design</p>
             </div>
@@ -1173,8 +1174,8 @@ export function showAboutMenu() {
 
         <div style="margin-bottom: 20px;">
             <h3 style="color: #9C27B0; margin-bottom: 15px; font-size: 20px;">Project Info</h3>
-            <p style="color: #B39DDB; font-size: 16px;">Version 0.3-alpha</p>
-            <p style="color: #888; font-size: 14px;">Built with passion by Diogo Carvalho (113221</p>
+            <p style="color: #B39DDB; font-size: 16px;">Version 0.4-alpha</p>
+            <p style="color: #888; font-size: 14px;">Built with a lot of love by Diogo Carvalho (113221)</p>
         </div>
         
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">

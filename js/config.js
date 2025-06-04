@@ -76,18 +76,19 @@ export const TIMER_RANDOM_HINTS = [
     "Spoiler alert: you're driving a car",
     "Plot twist: the road is your friend",
     "Breaking news: steering wheel controls direction",
-    "Life hack: green means go, red means... don't",
-    "Friendly reminder: time moves forward",
+    "Nature fact: fireflies love it when cars stay still",
+    "Friendly reminder: time moves forward (unless you rewind)",
     "PSA: momentum is a real thing",
     "Hot tip: crashing reduces speed dramatically",
     "Science fact: friction exists",
-    "Daily wisdom: speed limits aren't minimums",
+    "Daily wisdom: speed limits don't always have to be respected",
     "Reality check: you can't park everywhere",
     "Weather update: it's always driving weather",
     "Traffic report: you are the traffic",
     "Navigation tip: GPS stands for 'Go Pretty Safely'",
-    "Safety first: unless you're racing",
+    "Safety first: unless you're racing against time",
     "Driver's ed: experience is the best teacher",
+    "Fun fact: honking at other cars won't make them move",
     "Grade report: definitely worth top marks"
 ];
 
