@@ -1055,7 +1055,7 @@ window.addEventListener("keydown", (event) => {
         case "r": 
         case "R":
             if (event.shiftKey) {
-                if (!isLoading) {
+                if (!isLoading  && !isRewinding && !isSandboxMode) {
                     if (window.stopIdleCameraAnimation) {
                         window.stopIdleCameraAnimation();
                     }
