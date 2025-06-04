@@ -197,8 +197,8 @@ export function startMusic() {
 
     initAudioContext();
 
-    if (!isPlaying || !currentAudio) {
-        playCurrentTrack();
+    if (!currentAudio || isPlaying) {
+        if (!isPlaying) playCurrentTrack()
     }
 }
 

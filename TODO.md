@@ -2,6 +2,7 @@
 
 - [ ] complete the third level before 0.4-alpha (which will be good enough for delivery)
 - [x] prevent esc on the initial level selection screen
+- [x] fix music restart bug when changing levels (manually paused music should stay paused)
 
 ### Right before delivery
 
@@ -17,20 +18,14 @@
 - [ ] ~~SFX (UI, crashes, car engines, other fx)~~
 - [ ] ~~add vehicle specific lights and sounds (i.e. ambulance)~~
 - [ ] ~~add look back camera~~
-- [ ] ~~separate achievements by type~~
+- [ ] ~~visually separate achievements by type~~
 - [ ] ~~fix t-bone achievement~~
 - [ ] ~~balance out achievements (wrecked and ruined can be 10 crashes, instead of 1; lawn enforcement can be for a few meters; terminal velocity can be for enough time)~~
-- [ ] ~~shows stats at the end of the level~~ (no time, could break other systems and I can't afford that)
-- [ ] ~~save system~~ (in favour of the "play a different level" system)
-- [ ] ~~Add dialogs for each mission~~ (too late)
-- [ ] ~~Selectable OST (lists files in the designated folder, and let's you toggle it)~~ (no time)
-- [ ] ~~add support for physics based objects (construction barrier, cone and light)~~ (too complex, too late)
+- [ ] ~~shows stats at the end of the level~~
+- [ ] ~~Add better mission dialogs (something meaninful, rather than some random story at the top right corner)~~
+- [ ] ~~Selectable OST (lists files in the designated folder, and let's you toggle it)~~
+- [ ] ~~add support for physics based objects (construction barrier, cone and light)~~
 - [ ] ~~fix first person headlight issue~~
-- [ ] ~~firefly should flicker more often, not just at the beginning~~
-- [ ] ~~streetlight and road/building layout are literally not built the same (matrixes are interpreted backwards)~~
-- [ ] ~~idle time counts if the user is paused~~
-- [ ] ~~pause music in the pause menu~~
-- [ ] ~~Menus (keyboard driven, but supporting mice)~~
 - [ ] ~~parameterizable controls~~
     - [ ] ~~gamepad support~~
         - [ ] ~~add steering and pedal gauges specific to the gamepad (analog support)~~
@@ -45,4 +40,4 @@
     - [ ] ~~Slow down time for everyone else~~
     - [ ] ~~No brake pedal~~
     - [ ] ~~etc etc etc~~
-- [ ] ~~Mouse interactions~~ (there's mouse interaction in the pause menu idc)
+- [ ] ~~More mouse interactions~~ (there's mouse interaction in the pause menu idc)
