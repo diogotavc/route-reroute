@@ -791,169 +791,96 @@ export function showLevelSelectMenu(isInitialSelection = false, fromTimeout = fa
     const currentLevel = window.getCurrentLevelIndex ? window.getCurrentLevelIndex() : 0;
     const highestCompleted = window.getHighestCompletedLevel ? window.getHighestCompletedLevel() : -1;
 
-    let levelSelectContent;
-    
-    if (isInitialSelection) {
-        levelSelectContent = `
-            <h2 style="margin: 0 0 20px 0; font-size: 24px; background: linear-gradient(45deg, #4CAF50, #5CBF64); 
-               -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-               Welcome Back!
-            </h2>
-            <p style="margin-bottom: 30px; color: #B0BEC5; line-height: 1.5;">
-                You've completed level ${highestCompleted + 1}. Which level would you like to play?
-            </p>
-            <div style="margin-bottom: 30px;">
+    const headerContent = isInitialSelection 
+        ? `<h2 style="margin: 0 0 20px 0; font-size: 24px; background: linear-gradient(45deg, #4CAF50, #5CBF64); 
+             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+             Welcome Back!
+           </h2>
+           <p style="margin-bottom: 30px; color: #B0BEC5; line-height: 1.5;">
+               You've completed level ${highestCompleted + 1}. Which level would you like to play?
+           </p>`
+        : `<h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #4CAF50, #5CBF64); 
+             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+             Select Level
+           </h2>`;
+
+    const footerContent = isInitialSelection
+        ? `<p style="color: #666; font-size: 14px; margin-top: 20px;">
+               You can also change levels anytime from the pause menu
+           </p>`
+        : `<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center;">
+               <em style="color: #888; font-size: 14px;">${fromTimeout ? 'Press ESC to restart level' : 'Press ESC to return to pause menu'}</em>
+           </div>`;
+
+    let levelSelectContent = headerContent + '<div style="margin-bottom: 30px;">';
+
+    for (let i = 0; i < totalLevels; i++) {
+        const isCompleted = window.isLevelCompleted ? window.isLevelCompleted(i) : false;
+        const isUnlocked = i === 0 || isCompleted || i <= highestCompleted + 1;
+        const isCurrent = i === currentLevel;
+
+        const statusIcon = isInitialSelection ? 
+            (isCompleted ? '✓' : (isUnlocked ? '○' : '')) :
+            (isCompleted ? (isCurrent ? '▶' : '✓') : (isCurrent ? '▶' : (isUnlocked ? '○' : '')));
+        
+        const statusText = isCompleted ? 'Completed' : (isCurrent ? 'Current' : (isUnlocked ? 'Available' : 'Locked'));
+        
+        const levelName = (isUnlocked || isCompleted) && window.levels && window.levels[i] ? window.levels[i].name : null;
+        const levelText = levelName ? `${levelName}` : `Level ${i + 1}`;
+        
+        const buttonStyle = `
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 15px;
+            background: ${isUnlocked ? 'rgba(76, 175, 80, 0.2)' : 'rgba(100, 100, 100, 0.2)'};
+            border: 2px solid ${isUnlocked ? 'rgba(76, 175, 80, 0.5)' : 'rgba(100, 100, 100, 0.3)'};
+            border-radius: 10px;
+            color: ${isUnlocked ? 'white' : '#888'};
+            cursor: ${isUnlocked ? 'pointer' : 'not-allowed'};
+            font-family: inherit;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            ${isUnlocked && !isInitialSelection ? 'background: rgba(76, 175, 80, 0.3); border-color: rgba(76, 175, 80, 0.7);' : ''}
         `;
-
-        for (let i = 0; i < totalLevels; i++) {
-            const isCompleted = window.isLevelCompleted ? window.isLevelCompleted(i) : false;
-            const isUnlocked = i === 0 || isCompleted || i <= highestCompleted + 1;
-            const isCurrent = i === currentLevel;
-
-            const statusIcon = isInitialSelection ? 
-                (isCompleted ? '✓' : (isUnlocked ? '○' : '')) :
-                (isCompleted ? (isCurrent ? '▶' : '✓') : (isCurrent ? '▶' : (isUnlocked ? '○' : '')));
-            const statusText = isCompleted ? 'Completed' : (isCurrent ? 'Current' : (isUnlocked ? 'Available' : 'Locked'));
-
-            const levelName = (isUnlocked || isCompleted) && window.levels && window.levels[i] ? window.levels[i].name : null;
-            const levelText = levelName ? `${levelName}` : `Level ${i + 1}`;
-
-            const buttonStyle = `
-                display: block;
-                width: 100%;
-                margin: 10px 0;
-                padding: 15px;
-                background: ${isUnlocked ? 'rgba(76, 175, 80, 0.2)' : 'rgba(100, 100, 100, 0.2)'};
-                border: 2px solid ${isUnlocked ? 'rgba(76, 175, 80, 0.5)' : 'rgba(100, 100, 100, 0.3)'};
-                border-radius: 10px;
-                color: ${isUnlocked ? 'white' : '#888'};
-                cursor: ${isUnlocked ? 'pointer' : 'not-allowed'};
-                font-family: inherit;
-                font-size: 16px;
-                transition: all 0.3s ease;
-            `;
-
-            levelSelectContent += `
-                <button style="${buttonStyle}" 
-                        ${isUnlocked ? `onclick="selectLevel(${i})"` : ''} 
-                        ${isUnlocked ? 'onmouseover="this.style.background=\'rgba(76, 175, 80, 0.4)\'"' : ''}
-                        ${isUnlocked ? 'onmouseout="this.style.background=\'rgba(76, 175, 80, 0.2)\'"' : ''}>
-                    ${statusIcon} ${levelText} - ${statusText}
-                </button>
-            `;
-        }
-
-        const allLevelsCompleted = window.levels && totalLevels > 0 && highestCompleted >= totalLevels - 1;
-        if (allLevelsCompleted) {
-            levelSelectContent += `
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                    <button onclick="enterSandboxMode()" style="
-                        display: block;
-                        width: 100%;
-                        margin: 15px 0;
-                        padding: 15px;
-                        background: linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(86, 185, 90, 0.3));
-                        border: 2px solid rgba(76, 175, 80, 0.6);
-                        border-radius: 10px;
-                        color: white;
-                        cursor: pointer;
-                        font-family: inherit;
-                        font-size: 16px;
-                        font-weight: bold;
-                        transition: all 0.3s ease;
-                    " onmouseover="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.4), rgba(86, 185, 90, 0.4))'"
-                       onmouseout="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(86, 185, 90, 0.3))'">
-                        Enter Sandbox Mode
-                    </button>
-                </div>
-            `;
-        }
 
         levelSelectContent += `
-            </div>
-            <p style="color: #666; font-size: 14px; margin-top: 20px;">
-                You can also change levels anytime from the pause menu
-            </p>
+            <button style="${buttonStyle}" 
+                    ${isUnlocked ? `onclick="selectLevel(${i})"` : ''} 
+                    ${isUnlocked ? 'onmouseover="this.style.background=\'rgba(76, 175, 80, 0.4)\'"' : ''}
+                    ${isUnlocked ? 'onmouseout="this.style.background=\'rgba(76, 175, 80, 0.2)\'"' : ''}>
+                ${statusIcon} ${levelText} - ${statusText}
+            </button>
         `;
-    } else {
-        levelSelectContent = `
-            <h2 style="margin: 0 0 30px 0; font-size: 28px; background: linear-gradient(45deg, #4CAF50, #5CBF64); 
-               -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-               Select Level
-            </h2>
-            <div style="margin-bottom: 30px;">
-        `;
+    }
 
-        for (let i = 0; i < totalLevels; i++) {
-            const isCompleted = window.isLevelCompleted ? window.isLevelCompleted(i) : false;
-            const isUnlocked = i === 0 || isCompleted || i <= highestCompleted + 1;
-            const isCurrent = i === currentLevel;
-            
-            const statusIcon = isCompleted ? (isCurrent ? '▶' : '✓') : (isCurrent ? '▶' : (isUnlocked ? '○' : ''));
-            const statusText = isCompleted ? 'Completed' : (isCurrent ? 'Current' : (isUnlocked ? 'Available' : 'Locked'));
-            
-            const levelName = (isUnlocked || isCompleted) && window.levels && window.levels[i] ? window.levels[i].name : null;
-            const levelText = levelName ? `${levelName}` : `Level ${i + 1}`;
-            
-            const buttonStyle = `
-                display: block;
-                width: 100%;
-                margin: 10px 0;
-                padding: 15px;
-                background: ${isUnlocked ? 'rgba(76, 175, 80, 0.2)' : 'rgba(100, 100, 100, 0.2)'};
-                border: 2px solid ${isUnlocked ? 'rgba(76, 175, 80, 0.5)' : 'rgba(100, 100, 100, 0.3)'};
-                border-radius: 10px;
-                color: ${isUnlocked ? 'white' : '#888'};
-                cursor: ${isUnlocked ? 'pointer' : 'not-allowed'};
-                font-family: inherit;
-                font-size: 16px;
-                transition: all 0.3s ease;
-                ${isUnlocked ? 'background: rgba(76, 175, 80, 0.3); border-color: rgba(76, 175, 80, 0.7);' : ''}
-            `;
-
-            levelSelectContent += `
-                <button style="${buttonStyle}" 
-                        ${isUnlocked ? `onclick="selectLevel(${i})"` : ''} 
-                        ${isUnlocked ? 'onmouseover="this.style.background=\'rgba(76, 175, 80, 0.4)\'"' : ''}
-                        ${isUnlocked ? 'onmouseout="this.style.background=\'rgba(76, 175, 80, 0.2)\'"' : ''}>
-                    ${statusIcon} ${levelText} - ${statusText}
-                </button>
-            `;
-        }
-
-        const allLevelsCompleted = window.levels && totalLevels > 0 && highestCompleted >= totalLevels - 1;
-        if (allLevelsCompleted) {
-            levelSelectContent += `
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                    <button onclick="enterSandboxMode()" style="
-                        display: block;
-                        width: 100%;
-                        margin: 15px 0;
-                        padding: 15px;
-                        background: linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(86, 185, 90, 0.3));
-                        border: 2px solid rgba(76, 175, 80, 0.6);
-                        border-radius: 10px;
-                        color: white;
-                        cursor: pointer;
-                        font-family: inherit;
-                        font-size: 16px;
-                        font-weight: bold;
-                        transition: all 0.3s ease;
-                    " onmouseover="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.4), rgba(86, 185, 90, 0.4))'"
-                       onmouseout="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(86, 185, 90, 0.3))'">
-                        Enter Sandbox Mode
-                    </button>
-                </div>
-            `;
-        }
-
+    const allLevelsCompleted = window.levels && totalLevels > 0 && highestCompleted >= totalLevels - 1;
+    if (allLevelsCompleted) {
         levelSelectContent += `
-            </div>
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center;">
-                <em style="color: #888; font-size: 14px;">${isInitialSelection ? 'Select a level to continue' : (fromTimeout ? 'Press ESC to restart level' : 'Press ESC to return to pause menu')}</em>
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                <button onclick="enterSandboxMode()" style="
+                    display: block;
+                    width: 100%;
+                    margin: 15px 0;
+                    padding: 15px;
+                    background: linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(86, 185, 90, 0.3));
+                    border: 2px solid rgba(76, 175, 80, 0.6);
+                    border-radius: 10px;
+                    color: white;
+                    cursor: pointer;
+                    font-family: inherit;
+                    font-size: 16px;
+                    font-weight: bold;
+                    transition: all 0.3s ease;
+                " onmouseover="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.4), rgba(86, 185, 90, 0.4))'"
+                   onmouseout="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(86, 185, 90, 0.3))'">
+                    Enter Sandbox Mode
+                </button>
             </div>
         `;
     }
+
+    levelSelectContent += '</div>' + footerContent;
 
     levelSelectOverlay.innerHTML = levelSelectContent;
     document.body.appendChild(levelSelectOverlay);
