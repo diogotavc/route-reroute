@@ -1108,6 +1108,7 @@ export function showManualMenu() {
             <h3 style="color: #FF9800; margin-bottom: 10px; font-size: 20px;">Game Controls</h3>
             <div style="margin-left: 20px; line-height: 1.6;">
                 <p><strong>R</strong> - Rewind time</p>
+                <p><strong>Shift + R</strong> - Restart current level</p>
                 <p><strong>C</strong> - Switch camera view</p>
                 <p><strong>ESC / P</strong> - Pause menu</p>
             </div>

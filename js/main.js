@@ -1053,8 +1053,18 @@ window.addEventListener("keydown", (event) => {
         case "ArrowLeft": case "a": setTurningLeft(true); break;
         case "ArrowRight": case "d": setTurningRight(true); break;
         case "r": 
-            if (!isLoading && !isRewinding) {
-                setRewinding(); 
+        case "R":
+            if (event.shiftKey) {
+                if (!isLoading) {
+                    if (window.stopIdleCameraAnimation) {
+                        window.stopIdleCameraAnimation();
+                    }
+                    loadCarModelsAndSetupLevel();
+                }
+            } else {
+                if (!isLoading && !isRewinding) {
+                    setRewinding(); 
+                }
             }
             break;
         case "c": toggleCameraMode(); break;
