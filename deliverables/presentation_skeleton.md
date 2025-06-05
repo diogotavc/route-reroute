@@ -24,7 +24,7 @@
 ### Asset Architecture
 - **GLTF models** from Kenney asset packs (cars, buildings, roads)
 - **Hierarchical scene graph**: Map Group → Tiles → Objects → Lights
-- **Modular tile system** for procedural map generation
+- **Modular tile system** for declarative map construction
 
 ### Scene Organization
 ```
@@ -40,7 +40,7 @@ Scene
 ```
 
 ### Model Management
-- **Instance cloning** for performance optimization
+- **Instance cloning** for performance optimisation
 - **Bounding box calculation** for collision detection
 - **LOD system** based on graphics settings
 
@@ -59,7 +59,7 @@ Scene
 - **Multi-car replay** system for complex traffic scenarios
 
 ### Camera System
-- **Follow camera** with smooth lerping
+- **Follow camera** with smooth movement transitions
 - **Idle showcase mode** with cinematic orbital animations
 - **Firefly companion** with physics-based movement during idle
 
@@ -77,15 +77,22 @@ Scene
 - **Ambient lighting** varying by time of day (dawn, day, dusk, night)
 - **Color temperature shifts** from blue night to warm day
 
+### Light Types Implementation
+- **DirectionalLight**: Main sun/moon light source with dynamic positioning and shadow casting
+- **AmbientLight**: Base ambient lighting to prevent complete darkness in scenes  
+- **SpotLight**: Used for both car headlights (dynamic) and streetlights (static) with cone-shaped illumination
+- **PointLight**: Firefly camera effects and small decorative lighting elements
+
 ### Artificial Lighting
-- **Car headlights**: Automatic spot lights with shadow casting
-- **Street lights**: Grid-based placement with time-controlled activation
-- **Configurable intensities** and shadow map resolutions
+- **Car headlights**: Dynamic SpotLights with automatic day/night activation
+- **Street lights**: Grid-based SpotLight placement with time-controlled activation
+- **Firefly effects**: PointLight companions during idle camera mode
+- **Configurable intensities** and shadow map resolutions per graphics preset
 
 ### Advanced Features
 - **Shadow mapping** with PCF filtering
 - **Graphics quality presets** (Potato, Low, Medium, High)
-- **Resolution scaling** for performance optimization
+- **Resolution scaling** for performance optimisation
 - **Fog system** creating depth and atmosphere
 
 ---
@@ -114,28 +121,61 @@ Scene
 ## Development
 
 ### Architecture
-- **Modular ES6 structure** with clear separation of concerns
-- **Configuration-driven** gameplay parameters
-- **Event-driven** achievement system
-- **Local storage** for progress persistence
+- **Highly modular JavaScript structure** with dedicated files for distinct responsibilities
+  - **Physics simulation** (`carPhysics.js`) - collision detection, movement calculations
+  - **Vehicle management** (`cars.js`) - car loading, headlights, health, reactions
+  - **3D rendering** (`graphics.js`) - quality presets, shadow settings, optimisation
+  - **Audio system** (`music.js`) - playlist management, Web Audio API integration  
+  - **User interface** (`interface.js`) - menus, HUD, notifications, overlays
+  - **Achievement tracking** (`achievements.js`) - progress monitoring, unlock logic
+  - **Lighting system** (`lights.js`) - day/night cycle, street lights, headlight control
+  - **Map generation** (`mapLoader.js`) - map layout creation, tile placement, scene construction
+  - **Camera control** (`camera.js`) - follow modes, idle animations, firefly effects
+  - **Game configuration** (`config.js`) - centralized parameter management
+- **Configuration-driven** gameplay with all parameters externalised
+- **Event-driven** achievement system with decoupled communication
+- **Local storage** persistence for progress and settings
+
+### Detailed System Architecture
+- **Separation of Concerns**: Physics, rendering, and game logic organized into distinct modules
+- **Observer Pattern**: Achievement system listens to game events without tight coupling
+- **State Management**: Centralized game state with controlled mutations
+- **Asset Pipeline**: Lazy loading and caching for optimal performance
 
 ### Key Systems
 ```
 ├── Core (main.js) - Game loop and coordination
-├── Cars (cars.js) - Vehicle management and physics
-├── Physics (carPhysics.js) - Collision and movement
-├── Graphics (graphics.js) - Quality settings and optimization
-├── Audio (music.js) - Playlist and Web Audio API
-├── Achievements (achievements.js) - Progress tracking
-├── Interface (interface.js) - UI components and menus
-└── Maps (mapLoader.js) - Scene generation and asset loading
+├── Cars (cars.js) - Vehicle management and state tracking  
+├── Physics (carPhysics.js) - Collision detection and movement
+├── Graphics (graphics.js) - Quality settings and rendering optimisation
+├── Audio (music.js) - Playlist management and Web Audio API
+├── Achievements (achievements.js) - Progress tracking and notifications
+├── Interface (interface.js) - UI components, menus, and overlays
+├── Lights (lights.js) - Day/night cycle and lighting control
+├── Camera (camera.js) - Follow modes and cinematic effects
+├── Maps (mapLoader.js) - Map layout creation and tile placement
+└── Config (config.js) - Centralized parameter management
 ```
 
-### Performance Optimizations
+### Dedicated File Organization Benefits
+- **Clear responsibility boundaries** - each file handles a specific domain
+- **Independent development** - team members can work on different systems
+- **Easier debugging** - issues can be isolated to specific modules
+- **Reusable components** - systems can be extracted for other projects
+- **Maintainable codebase** - changes are localized and predictable
+
+### Module Interactions
+- **main.js**: Central game loop orchestrating all subsystems
+- **Event Bus**: Decoupled communication between modules
+- **Shared State**: Global configuration accessible across systems
+- **Error Handling**: Graceful degradation when modules fail
+- **Hot Swapping**: Dynamic loading of maps and assets
+
+### Performance Optimisations
 - **Frustum culling** for off-screen objects
 - **Instance management** reducing draw calls
 - **Configurable quality settings** scaling with hardware
-- **Efficient collision detection** using spatial optimization
+- **Efficient collision detection** using spatial optimisation
 
 ---
 
@@ -149,15 +189,16 @@ Scene
 
 ### Learning Outcomes
 - **WebGL pipeline** understanding through Three.js
-- **Game physics** implementation and optimization
+- **Game physics** implementation and optimisation
 - **User experience design** for complex interactive systems
-- **Performance optimization** techniques for web applications
+- **Performance optimisation** techniques for web applications
 
 ### Future Enhancements
 - **Multiplayer support** using WebRTC
 - **Procedural level generation**
 - **Advanced particle systems**
 - **Mobile touch controls**
+- **Godot Engine port** - Complete reimplementation in Godot for enhanced performance and native compilation
 
 ---
 
@@ -169,3 +210,4 @@ Scene
 - **CSS Animations** - UI transitions and effects
 - **LocalStorage API** - Progress persistence
 - **GLTF Format Specification** - 3D model loading
+- **Stack Overflow** - Community solutions for specific implementation challenges
